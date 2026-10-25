@@ -148,6 +148,21 @@ MB_TEST (tool_ui_shots)
         MidiMap::currentFileOverride().deleteFile();
         MidiMap::currentFileOverride() = juce::File();
     }
+    {
+        // Settings: the keyboard shortcuts and the MIDI controller map
+        MidiMap::currentFileOverride() = juce::File::getSpecialLocation (juce::File::tempDirectory).getChildFile ("minibox-shot.mbmidi");
+        if (! MidiMap::factoryMaps().isEmpty()) mc.midiMap().load (MidiMap::factoryMaps()[0]);
+        ui::SettingsPanel panel (mc.context(), mc.midiMap(), [] { return new juce::Component(); });
+        panel.setSize (900, 640);
+        panel.setLookAndFeel (&mc.getLookAndFeel());
+        juce::MessageManager::getInstance()->runDispatchLoopUntil (100);   // the shortcut list fills in asynchronously
+        snap (panel, "17_settings_keyboard");
+        if (auto* tabs = dynamic_cast<juce::TabbedComponent*> (panel.getChildComponent (0))) tabs->setCurrentTabIndex (1);
+        snap (panel, "17b_settings_midi");
+        panel.setLookAndFeel (nullptr);
+        MidiMap::currentFileOverride().deleteFile();
+        MidiMap::currentFileOverride() = juce::File();
+    }
     shot (2, 0, "03_drums");
     shot (2, 1, "04_acid");
     shot (2, 2, "05_poly");

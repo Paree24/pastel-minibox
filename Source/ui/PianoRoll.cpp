@@ -1,5 +1,6 @@
 #include "PianoRoll.h"
 #include "seq/Scales.h"
+#include "Shortcuts.h"
 #include <climits>
 #include <map>
 
@@ -1599,35 +1600,35 @@ bool PianoRoll::cursorKey (const juce::KeyPress& k)
 
 bool PianoRoll::keyCommand (const juce::KeyPress& k)
 {
+    // the piano roll's shortcuts (Settings ▸ Keyboard ▸ Piano roll); arrows nudge, Esc clears the selection
+    auto& sc = shortcuts();
     const auto mods = k.getModifiers();
     const int code = k.getKeyCode();
     const bool cmd = mods.isCommandDown();
-    auto is = [code] (char c) { return code == c || code == c + 32; };
-    // view: Ctrl+= / Ctrl+- zoom in time (Shift: rows), Ctrl+0 the whole pattern, Ctrl+4 snap on / off
-    if (cmd && (code == '=' || code == '+' || code == juce::KeyPress::numberPadAdd))
-    {
-        if (mods.isShiftDown()) zoomRows (-2); else zoomTime (0.5);
-        return true;
-    }
-    if (cmd && (code == '-' || code == '_' || code == juce::KeyPress::numberPadSubtract))
-    {
-        if (mods.isShiftDown()) zoomRows (2); else zoomTime (2.0);
-        return true;
-    }
-    if (cmd && (code == '0' || code == ')')) { if (mods.isShiftDown()) fitNotes (! sel.empty()); else zoomToFit(); return true; }
-    if (cmd && is ('L')) { toggleLock(); return true; }
-    if (cmd && code == '4') { ctx.rollSettings.snap = ! ctx.rollSettings.snap; repaint(); return true; }
-    if (cmd && is ('A')) { if (mods.isShiftDown()) invertSelection(); else selectAll(); return true; }
-    if (cmd && is ('V')) { paste(); return true; }
-    if (! cmd && is ('B')) { ctx.rollSettings.tool = 1 - ctx.rollSettings.tool; repaint(); return true; }
+    if (sc.is (cmd::rollZoomIn, k)) { zoomTime (0.5); return true; }
+    if (sc.is (cmd::rollZoomOut, k)) { zoomTime (2.0); return true; }
+    if (sc.is (cmd::rollRowsIn, k)) { zoomRows (-2); return true; }
+    if (sc.is (cmd::rollRowsOut, k)) { zoomRows (2); return true; }
+    if (sc.is (cmd::rollFit, k)) { zoomToFit(); return true; }
+    if (sc.is (cmd::rollFitNotes, k)) { fitNotes (! sel.empty()); return true; }
+    if (sc.is (cmd::rollLock, k)) { toggleLock(); return true; }
+    if (sc.is (cmd::rollSnap, k)) { ctx.rollSettings.snap = ! ctx.rollSettings.snap; repaint(); return true; }
+    if (sc.is (cmd::rollSelectAll, k)) { selectAll(); return true; }
+    if (sc.is (cmd::rollInvertSelection, k)) { invertSelection(); return true; }
+    if (sc.is (cmd::rollPaste, k)) { paste(); return true; }
+    if (sc.is (cmd::rollTool, k)) { ctx.rollSettings.tool = ctx.rollSettings.tool == 1 ? 0 : 1; repaint(); return true; }
+    if (sc.is (cmd::rollTransposeUp, k)) { transposeBy (1, false); return true; }
+    if (sc.is (cmd::rollTransposeDown, k)) { transposeBy (-1, false); return true; }
+    if (sc.is (cmd::rollOctaveUp, k)) { transposeBy (1, true); return true; }
+    if (sc.is (cmd::rollOctaveDown, k)) { transposeBy (-1, true); return true; }
     if (sel.empty()) return false;
-    if (code == juce::KeyPress::deleteKey || code == juce::KeyPress::backspaceKey) { deleteSelection(); return true; }
+    if (sc.is (cmd::rollDelete, k) || sc.is (cmd::rollDeleteAlt, k)) { deleteSelection(); return true; }
     if (code == juce::KeyPress::escapeKey) { clearSelection(); return true; }
-    if (cmd && is ('C')) { copySelection (false); return true; }
-    if (cmd && is ('X')) { copySelection (true); return true; }
-    if (cmd && is ('D')) { duplicate(); return true; }
-    if (! cmd && is ('Q')) { quantize (1.0f, false); return true; }
-    if (! cmd && code == '0') { toggleMute(); return true; }
+    if (sc.is (cmd::rollCopy, k)) { copySelection (false); return true; }
+    if (sc.is (cmd::rollCut, k)) { copySelection (true); return true; }
+    if (sc.is (cmd::rollDuplicate, k)) { duplicate(); return true; }
+    if (sc.is (cmd::rollQuantize, k)) { quantize (1.0f, false); return true; }
+    if (sc.is (cmd::rollMute, k)) { toggleMute(); return true; }
     // nudge: a grid unit (Shift: a bar, Ctrl: 1/48 step), a semitone (Shift: an octave)
     const int byT = mods.isShiftDown() ? stepsPerBar() * stepT() : (cmd ? std::max (1, stepT() / kTicksPerStep) : gridTicks());
     if (code == juce::KeyPress::leftKey) { nudge (-byT, 0); return true; }

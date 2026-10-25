@@ -18,6 +18,7 @@ struct MidiMapping
     int number = 0;             // CC or note number
     juce::String port;          // matched as a part of the input's name (empty = any input)
     juce::String target;
+    juce::String label;         // the hardware control's name ("Knob 1"), shown in Settings ▸ MIDI controller
     Mode mode = Mode::Absolute;
     float lo = 0.0f, hi = 1.0f; // range of the target the control covers
     bool pickup = false;        // absolute: wait until the control passes the current value

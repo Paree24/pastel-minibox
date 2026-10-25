@@ -3,7 +3,7 @@
  "version": 1,
  "name": "KeyLab Essential 49 mk2",
  "detect": "KeyLab Essential 49",
- "notes": "User mode (MID port): knobs 1-8 = macros of the selected instrument, knob 9 = its pan, faders 1-4 = track levels, 5-6 = selected sends, 7-8 = master delay / reverb, master fader = volume. DAW mode (DAW port, Mackie): transport, Save, Undo, Metro, Part / bank buttons = instrument / preset, encoders = macros, faders 1-4 = levels. Pads play the drums.",
+ "notes": "User mode (MID port): knobs 1-8 = macros of the selected instrument, knob 9 = its pan, faders 1-8 = track levels 1-8, master fader = volume. DAW mode (DAW port, Mackie): transport, Save, Undo, Metro, Part / bank buttons = instrument / preset, encoders = macros, faders 1-8 = levels. Pads play the drums.",
  "mappings": [
   {
    "type": "cc",
@@ -11,7 +11,8 @@
    "number": 74,
    "port": "KeyLab Essential 49 MID",
    "target": "macro:sel:0",
-   "mode": "absolute"
+   "mode": "absolute",
+   "label": "Knob 1"
   },
   {
    "type": "cc",
@@ -19,7 +20,8 @@
    "number": 71,
    "port": "KeyLab Essential 49 MID",
    "target": "macro:sel:1",
-   "mode": "absolute"
+   "mode": "absolute",
+   "label": "Knob 2"
   },
   {
    "type": "cc",
@@ -27,7 +29,8 @@
    "number": 76,
    "port": "KeyLab Essential 49 MID",
    "target": "macro:sel:2",
-   "mode": "absolute"
+   "mode": "absolute",
+   "label": "Knob 3"
   },
   {
    "type": "cc",
@@ -35,7 +38,8 @@
    "number": 77,
    "port": "KeyLab Essential 49 MID",
    "target": "macro:sel:3",
-   "mode": "absolute"
+   "mode": "absolute",
+   "label": "Knob 4"
   },
   {
    "type": "cc",
@@ -43,7 +47,8 @@
    "number": 93,
    "port": "KeyLab Essential 49 MID",
    "target": "macro:sel:4",
-   "mode": "absolute"
+   "mode": "absolute",
+   "label": "Knob 5"
   },
   {
    "type": "cc",
@@ -51,7 +56,8 @@
    "number": 18,
    "port": "KeyLab Essential 49 MID",
    "target": "macro:sel:5",
-   "mode": "absolute"
+   "mode": "absolute",
+   "label": "Knob 6"
   },
   {
    "type": "cc",
@@ -59,7 +65,8 @@
    "number": 19,
    "port": "KeyLab Essential 49 MID",
    "target": "macro:sel:6",
-   "mode": "absolute"
+   "mode": "absolute",
+   "label": "Knob 7"
   },
   {
    "type": "cc",
@@ -67,7 +74,8 @@
    "number": 16,
    "port": "KeyLab Essential 49 MID",
    "target": "macro:sel:7",
-   "mode": "absolute"
+   "mode": "absolute",
+   "label": "Knob 8"
   },
   {
    "type": "cc",
@@ -75,7 +83,8 @@
    "number": 17,
    "port": "KeyLab Essential 49 MID",
    "target": "pan:sel",
-   "mode": "absolute"
+   "mode": "absolute",
+   "label": "Knob 9"
   },
   {
    "type": "cc",
@@ -83,7 +92,8 @@
    "number": 73,
    "port": "KeyLab Essential 49 MID",
    "target": "level:0",
-   "mode": "absolute"
+   "mode": "absolute",
+   "label": "Fader 1"
   },
   {
    "type": "cc",
@@ -91,7 +101,8 @@
    "number": 75,
    "port": "KeyLab Essential 49 MID",
    "target": "level:1",
-   "mode": "absolute"
+   "mode": "absolute",
+   "label": "Fader 2"
   },
   {
    "type": "cc",
@@ -99,7 +110,8 @@
    "number": 79,
    "port": "KeyLab Essential 49 MID",
    "target": "level:2",
-   "mode": "absolute"
+   "mode": "absolute",
+   "label": "Fader 3"
   },
   {
    "type": "cc",
@@ -107,39 +119,44 @@
    "number": 72,
    "port": "KeyLab Essential 49 MID",
    "target": "level:3",
-   "mode": "absolute"
+   "mode": "absolute",
+   "label": "Fader 4"
   },
   {
    "type": "cc",
    "channel": 0,
    "number": 80,
    "port": "KeyLab Essential 49 MID",
-   "target": "delay:sel",
-   "mode": "absolute"
+   "target": "level:4",
+   "mode": "absolute",
+   "label": "Fader 5"
   },
   {
    "type": "cc",
    "channel": 0,
    "number": 81,
    "port": "KeyLab Essential 49 MID",
-   "target": "reverb:sel",
-   "mode": "absolute"
+   "target": "level:5",
+   "mode": "absolute",
+   "label": "Fader 6"
   },
   {
    "type": "cc",
    "channel": 0,
    "number": 82,
    "port": "KeyLab Essential 49 MID",
-   "target": "master:delay",
-   "mode": "absolute"
+   "target": "level:6",
+   "mode": "absolute",
+   "label": "Fader 7"
   },
   {
    "type": "cc",
    "channel": 0,
    "number": 83,
    "port": "KeyLab Essential 49 MID",
-   "target": "master:reverb",
-   "mode": "absolute"
+   "target": "level:7",
+   "mode": "absolute",
+   "label": "Fader 8"
   },
   {
    "type": "cc",
@@ -147,7 +164,8 @@
    "number": 85,
    "port": "KeyLab Essential 49 MID",
    "target": "master:volume",
-   "mode": "absolute"
+   "mode": "absolute",
+   "label": "Master fader"
   },
   {
    "type": "cc",
@@ -155,7 +173,8 @@
    "number": 16,
    "port": "KeyLab Essential 49 DAW",
    "target": "macro:sel:0",
-   "mode": "relative-sign"
+   "mode": "relative-sign",
+   "label": "Encoder 1 (DAW)"
   },
   {
    "type": "cc",
@@ -163,7 +182,8 @@
    "number": 17,
    "port": "KeyLab Essential 49 DAW",
    "target": "macro:sel:1",
-   "mode": "relative-sign"
+   "mode": "relative-sign",
+   "label": "Encoder 2 (DAW)"
   },
   {
    "type": "cc",
@@ -171,7 +191,8 @@
    "number": 18,
    "port": "KeyLab Essential 49 DAW",
    "target": "macro:sel:2",
-   "mode": "relative-sign"
+   "mode": "relative-sign",
+   "label": "Encoder 3 (DAW)"
   },
   {
    "type": "cc",
@@ -179,7 +200,8 @@
    "number": 19,
    "port": "KeyLab Essential 49 DAW",
    "target": "macro:sel:3",
-   "mode": "relative-sign"
+   "mode": "relative-sign",
+   "label": "Encoder 4 (DAW)"
   },
   {
    "type": "cc",
@@ -187,7 +209,8 @@
    "number": 20,
    "port": "KeyLab Essential 49 DAW",
    "target": "macro:sel:4",
-   "mode": "relative-sign"
+   "mode": "relative-sign",
+   "label": "Encoder 5 (DAW)"
   },
   {
    "type": "cc",
@@ -195,7 +218,8 @@
    "number": 21,
    "port": "KeyLab Essential 49 DAW",
    "target": "macro:sel:5",
-   "mode": "relative-sign"
+   "mode": "relative-sign",
+   "label": "Encoder 6 (DAW)"
   },
   {
    "type": "cc",
@@ -203,7 +227,8 @@
    "number": 22,
    "port": "KeyLab Essential 49 DAW",
    "target": "macro:sel:6",
-   "mode": "relative-sign"
+   "mode": "relative-sign",
+   "label": "Encoder 7 (DAW)"
   },
   {
    "type": "cc",
@@ -211,42 +236,80 @@
    "number": 23,
    "port": "KeyLab Essential 49 DAW",
    "target": "macro:sel:7",
-   "mode": "relative-sign"
+   "mode": "relative-sign",
+   "label": "Encoder 8 (DAW)"
   },
   {
    "type": "pitchbend",
    "channel": 1,
    "port": "KeyLab Essential 49 DAW",
    "target": "level:0",
-   "mode": "absolute"
+   "mode": "absolute",
+   "label": "Fader 1 (DAW)"
   },
   {
    "type": "pitchbend",
    "channel": 2,
    "port": "KeyLab Essential 49 DAW",
    "target": "level:1",
-   "mode": "absolute"
+   "mode": "absolute",
+   "label": "Fader 2 (DAW)"
   },
   {
    "type": "pitchbend",
    "channel": 3,
    "port": "KeyLab Essential 49 DAW",
    "target": "level:2",
-   "mode": "absolute"
+   "mode": "absolute",
+   "label": "Fader 3 (DAW)"
   },
   {
    "type": "pitchbend",
    "channel": 4,
    "port": "KeyLab Essential 49 DAW",
    "target": "level:3",
-   "mode": "absolute"
+   "mode": "absolute",
+   "label": "Fader 4 (DAW)"
+  },
+  {
+   "type": "pitchbend",
+   "channel": 5,
+   "port": "KeyLab Essential 49 DAW",
+   "target": "level:4",
+   "mode": "absolute",
+   "label": "Fader 5 (DAW)"
+  },
+  {
+   "type": "pitchbend",
+   "channel": 6,
+   "port": "KeyLab Essential 49 DAW",
+   "target": "level:5",
+   "mode": "absolute",
+   "label": "Fader 6 (DAW)"
+  },
+  {
+   "type": "pitchbend",
+   "channel": 7,
+   "port": "KeyLab Essential 49 DAW",
+   "target": "level:6",
+   "mode": "absolute",
+   "label": "Fader 7 (DAW)"
+  },
+  {
+   "type": "pitchbend",
+   "channel": 8,
+   "port": "KeyLab Essential 49 DAW",
+   "target": "level:7",
+   "mode": "absolute",
+   "label": "Fader 8 (DAW)"
   },
   {
    "type": "pitchbend",
    "channel": 9,
    "port": "KeyLab Essential 49 DAW",
    "target": "master:volume",
-   "mode": "absolute"
+   "mode": "absolute",
+   "label": "Master fader (DAW)"
   },
   {
    "type": "note",
@@ -254,7 +317,8 @@
    "number": 94,
    "port": "KeyLab Essential 49 DAW",
    "target": "action:play",
-   "mode": "trigger"
+   "mode": "trigger",
+   "label": "Play"
   },
   {
    "type": "note",
@@ -262,7 +326,8 @@
    "number": 93,
    "port": "KeyLab Essential 49 DAW",
    "target": "action:stop",
-   "mode": "trigger"
+   "mode": "trigger",
+   "label": "Stop"
   },
   {
    "type": "note",
@@ -270,7 +335,8 @@
    "number": 95,
    "port": "KeyLab Essential 49 DAW",
    "target": "action:rec",
-   "mode": "trigger"
+   "mode": "trigger",
+   "label": "Record"
   },
   {
    "type": "note",
@@ -278,7 +344,8 @@
    "number": 91,
    "port": "KeyLab Essential 49 DAW",
    "target": "action:tostart",
-   "mode": "trigger"
+   "mode": "trigger",
+   "label": "Rewind"
   },
   {
    "type": "note",
@@ -286,7 +353,8 @@
    "number": 92,
    "port": "KeyLab Essential 49 DAW",
    "target": "action:bar-next",
-   "mode": "trigger"
+   "mode": "trigger",
+   "label": "Fast forward"
   },
   {
    "type": "note",
@@ -294,7 +362,8 @@
    "number": 89,
    "port": "KeyLab Essential 49 DAW",
    "target": "action:click",
-   "mode": "trigger"
+   "mode": "trigger",
+   "label": "Metro"
   },
   {
    "type": "note",
@@ -302,7 +371,8 @@
    "number": 80,
    "port": "KeyLab Essential 49 DAW",
    "target": "action:save",
-   "mode": "trigger"
+   "mode": "trigger",
+   "label": "Save"
   },
   {
    "type": "note",
@@ -310,7 +380,8 @@
    "number": 81,
    "port": "KeyLab Essential 49 DAW",
    "target": "action:undo",
-   "mode": "trigger"
+   "mode": "trigger",
+   "label": "Undo"
   },
   {
    "type": "note",
@@ -318,7 +389,8 @@
    "number": 48,
    "port": "KeyLab Essential 49 DAW",
    "target": "action:track-prev",
-   "mode": "trigger"
+   "mode": "trigger",
+   "label": "Part / track left"
   },
   {
    "type": "note",
@@ -326,7 +398,8 @@
    "number": 49,
    "port": "KeyLab Essential 49 DAW",
    "target": "action:track-next",
-   "mode": "trigger"
+   "mode": "trigger",
+   "label": "Part / track right"
   },
   {
    "type": "note",
@@ -334,7 +407,8 @@
    "number": 46,
    "port": "KeyLab Essential 49 DAW",
    "target": "action:preset-prev",
-   "mode": "trigger"
+   "mode": "trigger",
+   "label": "Bank left"
   },
   {
    "type": "note",
@@ -342,7 +416,8 @@
    "number": 47,
    "port": "KeyLab Essential 49 DAW",
    "target": "action:preset-next",
-   "mode": "trigger"
+   "mode": "trigger",
+   "label": "Bank right"
   }
  ]
 }

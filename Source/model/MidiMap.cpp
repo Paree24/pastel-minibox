@@ -200,6 +200,8 @@ void MidiMap::arm (const juce::String& target)
 void MidiMap::add (MidiMapping mp)
 {
     // a message moves to its new target; a control learns one message (the last one moved)
+    // a re-learnt control keeps its name
+    for (auto& o : mappings) if (mp.label.isEmpty() && (o.target == mp.target || o.sameSource (mp))) mp.label = o.label;
     mappings.erase (std::remove_if (mappings.begin(), mappings.end(), [&] (const MidiMapping& o) { return o.sameSource (mp) || o.target == mp.target; }),
                     mappings.end());
     mappings.push_back (std::move (mp));
@@ -260,6 +262,7 @@ juce::var MidiMap::toVar() const
         if (m.kind != MidiMapping::Kind::PitchBend) o->setProperty ("number", m.number);
         if (m.port.isNotEmpty()) o->setProperty ("port", m.port);
         o->setProperty ("target", m.target);
+        if (m.label.isNotEmpty()) o->setProperty ("label", m.label);
         o->setProperty ("mode", kModes[(int) m.mode]);
         if (m.lo != 0.0f) o->setProperty ("min", m.lo);
         if (m.hi != 1.0f) o->setProperty ("max", m.hi);
@@ -292,6 +295,7 @@ bool MidiMap::fromVar (const juce::var& v)
         m.number = juce::jlimit (0, 127, (int) e.getProperty ("number", 0));
         m.port = e["port"].toString();
         m.target = e["target"].toString();
+        m.label = e["label"].toString();
         m.lo = (float) e.getProperty ("min", 0.0);
         m.hi = (float) e.getProperty ("max", 1.0);
         m.pickup = (bool) e.getProperty ("pickup", false);

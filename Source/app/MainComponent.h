@@ -5,6 +5,7 @@
 #include "ui/EditorView.h"
 #include "ui/PlayDrawer.h"
 #include "ui/LearnDrawer.h"
+#include "ui/SettingsWindow.h"
 #include "ui/LookAndFeel.h"
 
 namespace mb
@@ -55,6 +56,8 @@ public:
     /** The track the device menu was last opened for (tests). */
     int lastPickerTrack = -1;
     std::function<void()> showAudioSettings;
+    /** The audio / MIDI device panel (Settings ▸ Audio and MIDI devices), made by the window that owns the devices. */
+    std::function<juce::Component*()> createAudioSettings;
 
 private:
     void timerCallback() override;
@@ -63,6 +66,8 @@ private:
     void showMenu();
     void markClean();
     void selectTrack (int dir);
+    void runCommand (juce::CommandID);
+    void showSettings();
     void addDevice();
     void moveBar (int dir);
     void midiControl (const juce::String& target, const MidiControl&, MidiMapping&);

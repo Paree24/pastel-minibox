@@ -65,6 +65,12 @@ public:
         main = new MainComponent (e);
         main->onTitleChanged = [this] { setName (main->windowTitle()); };
         main->showAudioSettings = [this] { showAudioSettings(); };
+        main->createAudioSettings = [this] () -> juce::Component*
+        {
+            auto* sel = new juce::AudioDeviceSelectorComponent (deviceManager, 0, 0, 2, 2, true, false, true, false);
+            sel->setSize (520, 440);
+            return sel;
+        };
         setContentOwned (main, false);
         setResizable (true, true);
         constrainer.setFixedAspectRatio (1.6);

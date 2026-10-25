@@ -28,11 +28,11 @@ Standalone only: in the plugin the host's own MIDI learn / automation does this.
 
 ## Factory map: KeyLab Essential 49 mk2
 `Factory/midimaps/KeyLab Essential 49 mk2.mbmidi`, picked automatically on the first run when the controller is
-connected. Built from the controller's documented factory user-preset CCs; check them with the drawer's *Last received*.
+connected; every row is named (Knob 1 …) and editable in **Settings ▸ MIDI controller** (target, mode, re-learn,
+add, remove). Built from the controller's documented factory user-preset CCs; check them with *Last received*.
 - **User mode (MID port):** knobs 1–8 (CC 74, 71, 76, 77, 93, 18, 19, 16) → macros 1–8 of the selected instrument,
-  knob 9 (CC 17) → its pan; faders 1–4 (CC 73, 75, 79, 72) → track levels 1–4; faders 5–6 (CC 80, 81) → the selected
-  instrument's delay / reverb sends; faders 7–8 (CC 82, 83) → master delay / reverb; master fader (CC 85) → volume.
+  knob 9 (CC 17) → its pan; faders 1–8 (CC 73, 75, 79, 72, 80, 81, 82, 83) → track levels 1–8; master fader (CC 85) → volume.
 - **DAW mode (DAW port, Mackie protocol):** Play, Stop, Record, Rewind (back to start), Fast-forward (next bar),
   Metro, Save, Undo; track ◀ ▶ → previous / next instrument, bank ◀ ▶ → previous / next preset; encoders
-  (CC 16–23, relative) → macros 1–8; faders 1–4 → track levels, master fader → volume.
+  (CC 16–23, relative) → macros 1–8; faders 1–8 → track levels, master fader → volume.
 - Pads and keys are not mapped: they play the selected instrument.

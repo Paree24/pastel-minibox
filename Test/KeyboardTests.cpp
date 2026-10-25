@@ -24,6 +24,7 @@ template <class Pred> bool tabTo (MainComponent& mc, Pred want, int n = 400)
     piano roll's cursor. */
 MB_TEST (keyboard_navigation)
 {
+    ui::shortcuts().mappings().resetToDefaultMappings();   // the defaults, whatever this machine's Settings say
     Engine e;
     e.prepare (48000.0, 512);
     e.setDevice (0, 1, createDevice (DeviceType::Acid));
@@ -178,4 +179,28 @@ MB_TEST (app_live_record_two_chords)
     topBar.trigger ("rec");                    // LIVE again: record off
     ctx.check (e.project().patterns[0].lengthBars == 2, "a take with nothing new: back to 2 bars (" + juce::String (e.project().patterns[0].lengthBars) + ")");
     topBar.trigger ("stop");
+}
+
+/** Settings ▸ Keyboard: every shortcut comes from the shortcut table; rebinding one moves it. */
+MB_TEST (keyboard_shortcuts_rebind)
+{
+    auto& sc = ui::shortcuts();
+    sc.mappings().resetToDefaultMappings();
+    Engine e;
+    e.prepare (48000.0, 512);
+    MainComponent mc (e);
+    mc.setSize (1600, 1000);
+    ctx.check (! e.project().metronome && mc.keyPressed (juce::KeyPress ('K', juce::ModifierKeys::commandModifier, 0)) && e.project().metronome,
+               "Ctrl+K toggles the metronome (default)");
+    sc.mappings().clearAllKeyPresses (ui::cmd::metronome);
+    sc.mappings().addKeyPress (ui::cmd::metronome, juce::KeyPress ('9', juce::ModifierKeys::altModifier, 0));
+    ctx.check (mc.keyPressed (juce::KeyPress ('9', juce::ModifierKeys::altModifier, 0)) && ! e.project().metronome, "rebound to Alt+9");
+    ctx.check (! mc.keyPressed (juce::KeyPress ('K', juce::ModifierKeys::commandModifier, 0)) || ! e.project().metronome, "Ctrl+K no longer does it");
+    // the computer-keyboard notes follow the table too
+    ctx.check (sc.keyCode (ui::cmd::note0) == 'A' && sc.keyCode (ui::cmd::octaveUp) == 'X', "note keys: A plays C, X is octave up");
+    sc.mappings().resetToDefaultMappings();
+    // the Settings window builds (all three tabs)
+    ui::SettingsPanel panel (mc.context(), mc.midiMap(), [] { return new juce::Component(); });
+    panel.setSize (900, 640);
+    ctx.check (panel.getNumChildComponents() > 0, "the Settings window builds");
 }

@@ -355,7 +355,9 @@ void LearnDrawer::showMaps()
     });
 }
 
-void LearnDrawer::showMode (int index)
+void LearnDrawer::showMode (int index) { showMappingModeMenu (map, index, [this] { repaint(); }); }
+
+void showMappingModeMenu (MidiMap& map, int index, std::function<void()> after)
 {
     if (index < 0 || index >= (int) map.mappings.size()) return;
     const auto& mp = map.mappings[(size_t) index];
@@ -380,7 +382,7 @@ void LearnDrawer::showMode (int index)
         for (int i = 0; i < 5; ++i) range.addItem (200 + i, names[i], true, mp.lo == ranges[i].first && mp.hi == ranges[i].second);
         m.addSubMenu ("Range", range);
     }
-    m.showMenuAsync (juce::PopupMenu::Options(), [this, index] (int r)
+    m.showMenuAsync (juce::PopupMenu::Options(), [&map, index, after] (int r)
     {
         if (index >= (int) map.mappings.size() || r <= 0) return;
         auto& mp = map.mappings[(size_t) index];
@@ -393,7 +395,33 @@ void LearnDrawer::showMode (int index)
         }
         mp.held = false; mp.lastIn = -1.0f;
         map.changed();
-        repaint();
+        if (after) after();
     });
+}
+
+juce::PopupMenu learnTargetMenu (AppContext& ctx, std::vector<juce::String>& ids)
+{
+    // every target a controller can drive: the selected instrument, each track, the master, tempo, actions
+    ids.clear();
+    auto item = [&] (juce::PopupMenu& m, const juce::String& id, const juce::String& name) { ids.push_back (id); m.addItem ((int) ids.size(), name); };
+    juce::PopupMenu m, sel, master, actions;
+    for (int k = 0; k < 8; ++k) item (sel, "macro:sel:" + juce::String (k), "Macro " + juce::String (k + 1));
+    for (auto [kind, name] : { std::pair<const char*, const char*> { "level", "Level" }, { "pan", "Pan" }, { "delay", "Delay send" }, { "reverb", "Reverb send" } })
+        item (sel, juce::String (kind) + ":sel", name);
+    m.addSubMenu ("Selected instrument", sel);
+    for (int t = 0; t < kTracks; ++t)
+    {
+        juce::PopupMenu tm;
+        for (auto [kind, name] : { std::pair<const char*, const char*> { "level", "Level" }, { "pan", "Pan" }, { "delay", "Delay send" }, { "reverb", "Reverb send" } })
+            item (tm, juce::String (kind) + ":" + juce::String (t), name);
+        for (int k = 0; k < 8; ++k) item (tm, "macro:" + juce::String (t) + ":" + juce::String (k), "Macro " + juce::String (k + 1));
+        m.addSubMenu ("Track " + juce::String (t + 1), tm);
+    }
+    for (auto name : { "volume", "delay", "reverb", "glue", "limit" }) item (master, "master:" + juce::String (name), learnTargetName (ctx, "master:" + juce::String (name)));
+    m.addSubMenu ("Master", master);
+    item (m, "tempo", "Tempo");
+    for (auto& [id, name] : learnActions()) item (actions, "action:" + id, name);
+    m.addSubMenu ("Actions", actions);
+    return m;
 }
 } // namespace mb::ui

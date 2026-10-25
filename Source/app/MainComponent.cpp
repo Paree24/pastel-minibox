@@ -1,6 +1,7 @@
 #include "MainComponent.h"
 #include <juce_audio_devices/juce_audio_devices.h>
 #include "ui/PresetBrowser.h"
+#include "ui/Shortcuts.h"
 #include "model/Serializer.h"
 #include "model/MidiFiles.h"
 #include "devices/SampleSlot.h"
@@ -176,6 +177,11 @@ void MainComponent::addDevice()
                                             "All four tracks of this pattern have an instrument. Change one with its name menu.");
 }
 
+void MainComponent::showSettings()
+{
+    SettingsPanel::show (ctx, map, createAudioSettings);
+}
+
 void MainComponent::selectTrack (int dir)
 {
     // the previous / next instrument (what the keyboard and MIDI play)
@@ -315,7 +321,8 @@ void MainComponent::showMenu()
 {
     auto& p = engine.project();
     juce::PopupMenu m, sw, rec, q, click;
-    m.addItem (1, "Audio and MIDI settings...");
+    m.addItem (3, "Settings (keyboard, MIDI controller, devices)...\tCtrl+,");
+    m.addItem (1, "Audio and MIDI devices...");
     m.addItem (2, "MIDI learn (Ctrl+M)", true, learnOpen());
     m.addSeparator();
     sw.addItem (10, "Bar", true, p.switchQuantize == 0);
@@ -349,6 +356,7 @@ void MainComponent::showMenu()
     {
         auto& pr = engine.project();
         if (id == 1 && showAudioSettings) showAudioSettings();
+        if (id == 3) showSettings();
         if (id == 2) showLearn (! learnOpen());
         if (id >= 10 && id <= 12) pr.switchQuantize = id - 10;
         if (id == 13) pr.perform = ! pr.perform;
@@ -523,49 +531,19 @@ void MainComponent::exportWav()
 // ------------------------------------------------------------------------------------------- keyboard
 bool MainComponent::keyPressed (const juce::KeyPress& k)
 {
-    // docs/keyboard.md: focus (Tab, arrows, Enter, Esc), global shortcuts, then the sequencer and note keys
-    const auto mods = k.getModifiers();
+    // docs/keyboard.md: focus (Tab, arrows, Enter, Esc), then the shortcuts (Settings ▸ Keyboard), the piano roll's
+    // and the note keys. Undo / redo come first so they work whatever has focus.
+    auto& sc = shortcuts();
     const int code = k.getKeyCode();
-    const bool cmd = mods.isCommandDown();
-    auto is = [code] (char c) { return code == c || code == c + 32; };
-    // undo / redo of every sequence edit (notes, steps, lanes, lengths, recording passes)
-    if (cmd && is ('Z')) { if (mods.isShiftDown() ? ctx.redo() : ctx.undo()) { seq.refresh(); rack.refresh(); } return true; }
-    if (cmd && is ('Y')) { if (ctx.redo()) seq.refresh(); return true; }
-    // keyboard focus: Tab moves it, arrows move or adjust, Enter activates, Esc clears
-    if (Feedback::handleKey (k, content)) return true;
-    // the piano roll's editing keys while notes are selected: Delete, Ctrl+A/C/X/V/D, arrows (nudge), Q, 0, B, Esc
-    if (view == TopBar::View::Seq && seq.keyCommand (k)) return true;
-    if (cmd)
+    if (sc.is (cmd::undo, k) || sc.is (cmd::redo, k) || sc.is (cmd::redoAlt, k))
     {
-        if (is ('N')) { newProject(); return true; }
-        if (is ('O')) { openProject(); return true; }
-        if (is ('S')) { saveProject (mods.isShiftDown()); return true; }
-        if (is ('E')) { exportWav(); return true; }
-        if (is ('R')) { topBar.toggleRecord (mods.isShiftDown() ? 1 : 0); return true; }
-        if (code == '1') { setView (TopBar::View::Rack); return true; }
-        if (code == '2') { setView (TopBar::View::Seq); return true; }
-        if (code == '3') { if (ctx.openEditor) ctx.openEditor (ctx.focusTrack()); return true; }
-        if (is ('P') && mods.isShiftDown()) { topBar.trigger ("perform"); return true; }
-        if (is ('P')) { showDrawer (! drawer.isVisible()); return true; }
-        if (is ('M')) { showLearn (! learnOpen()); return true; }
-        if (is ('K')) { engine.project().metronome = ! engine.project().metronome; ctx.markDirty(); topBar.repaint(); return true; }
-        if (is ('B')) { if (auto* d = ctx.focusDevice()) if (ctx.showPresetBrowser) ctx.showPresetBrowser (d, &topBar); return true; }
-        if (code == '[' || code == ']') { if (auto* d = ctx.focusDevice()) presetActions::step (ctx, *d, code == '[' ? -1 : 1); return true; }
-        if (code == juce::KeyPress::upKey || code == juce::KeyPress::downKey)
-        {
-            const double inc = (mods.isShiftDown() ? 0.1 : 1.0) * (code == juce::KeyPress::upKey ? 1 : -1);
-            engine.project().bpm = juce::jlimit (30.0, 300.0, std::round ((engine.project().bpm + inc) * 10.0) / 10.0);
-            ctx.markDirty(); topBar.repaint();
-            return true;
-        }
-        return false;
+        if (sc.is (cmd::undo, k) ? ctx.undo() : ctx.redo()) { seq.refresh(); rack.refresh(); }
+        return true;
     }
-    if (mods.isAltDown() && code >= '1' && code <= '0' + kPatterns) { topBar.trigger ("pat" + juce::String (code - '1')); return true; }
-    if (code == juce::KeyPress::spaceKey) { if (engine.isPlaying()) engine.stop(); else engine.play(); return true; }
-    if (code == '=' || code == '+' || k.getTextCharacter() == '+' || k.getTextCharacter() == '=') { addDevice(); return true; }
-    if (code == juce::KeyPress::homeKey) { engine.toStart(); return true; }
-    if (code == juce::KeyPress::upKey || code == juce::KeyPress::downKey) { selectTrack (code == juce::KeyPress::upKey ? -1 : 1); return true; }
-    if (code == juce::KeyPress::leftKey || code == juce::KeyPress::rightKey) { moveBar (code == juce::KeyPress::leftKey ? -1 : 1); return true; }
+    if (Feedback::handleKey (k, content)) return true;
+    // the piano roll's editing keys (Delete, Ctrl+A/C/X/V/D, arrows nudge, Q, 0, B, zoom …)
+    if (view == TopBar::View::Seq && seq.keyCommand (k)) return true;
+    if (const auto id = sc.find (k, Shortcuts::globalCategories()); id != 0) { runCommand (id); return true; }
     if (code == juce::KeyPress::returnKey && view == TopBar::View::Rack) { if (ctx.openEditor) ctx.openEditor (ctx.focusTrack()); return true; }
     if (code == juce::KeyPress::escapeKey)
     {
@@ -575,33 +553,83 @@ bool MainComponent::keyPressed (const juce::KeyPress& k)
         else if (view == TopBar::View::Editor) setView (TopBar::View::Rack);
         return true;
     }
-    const auto ch = juce::CharacterFunctions::toLowerCase (k.getTextCharacter());
-    if (ch == 'z') { keyboardOctave = std::max (0, keyboardOctave - 1); return true; }
-    if (ch == 'x') { keyboardOctave = std::min (8, keyboardOctave + 1); return true; }
-    return juce::String ("awsedftgyhujkolp").containsChar (ch);
+    if (sc.is (cmd::octaveDown, k)) { keyboardOctave = std::max (0, keyboardOctave - 1); return true; }
+    if (sc.is (cmd::octaveUp, k)) { keyboardOctave = std::min (8, keyboardOctave + 1); return true; }
+    for (int i = 0; i < 16; ++i) if (sc.is (cmd::note0 + i, k)) return true;   // played in keyStateChanged
+    return false;
+}
+
+void MainComponent::runCommand (juce::CommandID id)
+{
+    auto& proj = engine.project();
+    auto tempo = [&] (double inc) { proj.bpm = juce::jlimit (30.0, 300.0, std::round ((proj.bpm + inc) * 10.0) / 10.0); ctx.markDirty(); topBar.repaint(); };
+    if (id >= cmd::pattern0 && id <= cmd::pattern7) { topBar.trigger ("pat" + juce::String ((int) (id - cmd::pattern0))); return; }
+    switch (id)
+    {
+        case cmd::newProject: this->newProject(); break;
+        case cmd::openProject: this->openProject(); break;
+        case cmd::saveProject: this->saveProject (false); break;
+        case cmd::saveProjectAs: this->saveProject (true); break;
+        case cmd::exportWav: this->exportWav(); break;
+        case cmd::exportMidi: this->exportMidi(); break;
+        case cmd::importMidi: this->importMidi(); break;
+        case cmd::settings: showSettings(); break;
+        case cmd::playStop: if (engine.isPlaying()) engine.stop(); else engine.play(); break;
+        case cmd::toStart: engine.toStart(); break;
+        case cmd::recordLive: topBar.toggleRecord (0); break;
+        case cmd::recordStep: topBar.toggleRecord (1); break;
+        case cmd::metronome: proj.metronome = ! proj.metronome; ctx.markDirty(); topBar.repaint(); break;
+        case cmd::tempoUp: tempo (1.0); break;
+        case cmd::tempoDown: tempo (-1.0); break;
+        case cmd::tempoUpFine: tempo (0.1); break;
+        case cmd::tempoDownFine: tempo (-0.1); break;
+        case cmd::perform: topBar.trigger ("perform"); break;
+        case cmd::pageRack: setView (TopBar::View::Rack); break;
+        case cmd::pageSeq: setView (TopBar::View::Seq); break;
+        case cmd::pageEditor: if (ctx.openEditor) ctx.openEditor (ctx.focusTrack()); break;
+        case cmd::playDrawer: showDrawer (! drawer.isVisible()); break;
+        case cmd::midiLearn: showLearn (! learnOpen()); break;
+        case cmd::trackPrev: selectTrack (-1); break;
+        case cmd::trackNext: selectTrack (1); break;
+        case cmd::addDevice: this->addDevice(); break;
+        case cmd::presetBrowser: if (auto* d = ctx.focusDevice()) if (ctx.showPresetBrowser) ctx.showPresetBrowser (d, &topBar); break;
+        case cmd::presetPrev: if (auto* d = ctx.focusDevice()) presetActions::step (ctx, *d, -1); break;
+        case cmd::presetNext: if (auto* d = ctx.focusDevice()) presetActions::step (ctx, *d, 1); break;
+        case cmd::barPrev: moveBar (-1); break;
+        case cmd::barNext: moveBar (1); break;
+        default: break;
+    }
 }
 
 bool MainComponent::keyStateChanged (bool)
 {
-    static const std::pair<char, int> keys[] = { { 'A', 0 }, { 'W', 1 }, { 'S', 2 }, { 'E', 3 }, { 'D', 4 }, { 'F', 5 }, { 'T', 6 }, { 'G', 7 },
-                                                 { 'Y', 8 }, { 'H', 9 }, { 'U', 10 }, { 'J', 11 }, { 'K', 12 }, { 'O', 13 }, { 'L', 14 }, { 'P', 15 } };
+    // the note keys (Settings ▸ Keyboard ▸ Computer keyboard notes), C upwards; drums: the white keys play the 8 parts
+    std::pair<int, int> keys[16];
+    for (int i = 0; i < 16; ++i)
+    {
+        int c = shortcuts().keyCode (cmd::note0 + i);
+        if (c >= 'a' && c <= 'z') c -= 32;
+        keys[i] = { c, i };
+    }
     if (juce::ModifierKeys::currentModifiers.isCommandDown()) return false;
     bool used = false;
     auto* dev = ctx.focusDevice();
     const int track = ctx.focusTrack();
     for (auto [key, semi] : keys)
     {
-        const bool down = juce::KeyPress::isKeyCurrentlyDown (key) || juce::KeyPress::isKeyCurrentlyDown (key + 32);
+        if (key == 0) continue;
+        const bool down = juce::KeyPress::isKeyCurrentlyDown (key) || (key >= 'A' && key <= 'Z' && juce::KeyPress::isKeyCurrentlyDown (key + 32));
         auto it = keysDown.find (key);
         if (down && it == keysDown.end())
         {
             int note = (keyboardOctave + 1) * 12 + semi;
             if (dev != nullptr && dev->laneCount() > 0)
             {
-                static const char white[] = "ASDFGHJK";
-                const char* pos = std::strchr (white, key);
-                if (pos == nullptr) continue;
-                note = dev->laneNote ((int) (pos - white));
+                // drums: the white-note keys play the eight parts
+                static const int whiteSemis[8] = { 0, 2, 4, 5, 7, 9, 11, 12 };
+                const auto* pos = std::find (whiteSemis, whiteSemis + 8, semi);
+                if (pos == whiteSemis + 8) continue;
+                note = dev->laneNote ((int) (pos - whiteSemis));
             }
             keysDown[key] = note;
             engine.injectNote (track, note, 0.8f, true);
