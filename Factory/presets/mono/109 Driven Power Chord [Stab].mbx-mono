@@ -1,0 +1,26 @@
+{
+  "family": "Stab",
+  "macros": "",
+  "name": "Driven Power Chord",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.002,
+    "chord": 3,
+    "cutoff": 1500,
+    "decay": 0.5,
+    "drive": 0.7,
+    "envAmt": 0.3,
+    "key": 0.5,
+    "level": 0.31810000538826,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "release": 0.3,
+    "reso": 0.3,
+    "sustain": 0.6,
+    "voiceMode": 3
+  },
+  "version": 1
+}

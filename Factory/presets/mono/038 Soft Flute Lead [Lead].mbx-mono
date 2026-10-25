@@ -1,0 +1,33 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Soft Flute Lead",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.08,
+    "cutoff": 1100,
+    "decay": 0.5,
+    "envAmt": 0.15,
+    "fxReverb": 0.35,
+    "key": 0.7,
+    "level": 0.221100002527237,
+    "lfoCut": 0.08,
+    "lfoFade": 1.0,
+    "lfoPwm": 0.0,
+    "lfoRate": 4.5,
+    "lfoShape": 0,
+    "mixNoise": 0.12,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.0,
+    "pw": 0.5,
+    "release": 0.525,
+    "reso": 0.1,
+    "revPre": 0.0255,
+    "revSize": 0.635,
+    "revTone": 0.55,
+    "sustain": 0.8
+  },
+  "version": 1
+}

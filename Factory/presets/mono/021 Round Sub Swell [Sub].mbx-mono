@@ -1,0 +1,25 @@
+{
+  "family": "Sub",
+  "macros": "",
+  "name": "Round Sub Swell",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.35,
+    "cutoff": 110,
+    "decay": 1.0,
+    "envAmt": 0.3,
+    "key": 0.2,
+    "level": 0.224000006914139,
+    "mixNoise": 0.0,
+    "mixPulse": 0.3,
+    "mixSaw": 0.0,
+    "mixSub": 1.0,
+    "pw": 0.5,
+    "release": 0.6,
+    "reso": 0.0,
+    "subType": 0,
+    "sustain": 1.0
+  },
+  "version": 1
+}

@@ -1,0 +1,28 @@
+{
+  "family": "Driven",
+  "macros": "",
+  "name": "Angry Lead",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.005,
+    "cutoff": 1800.0,
+    "decay": 0.409000009298325,
+    "drive": 0.9,
+    "envAmt": 0.524699985980988,
+    "fxDelay": 0.2,
+    "fxFeedback": 0.4,
+    "fxTime": 7,
+    "key": 0.800000011920929,
+    "level": 0.641200006008148,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "pw": 0.5,
+    "release": 0.300000011920929,
+    "reso": 0.699999988079071,
+    "sustain": 0.800000011920929
+  },
+  "version": 1
+}

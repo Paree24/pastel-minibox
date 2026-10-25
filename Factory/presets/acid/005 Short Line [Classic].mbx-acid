@@ -1,0 +1,23 @@
+{
+  "family": "Classic",
+  "macros": "",
+  "name": "Short Line",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 520,
+    "decay": 0.22,
+    "delayDiv": 10,
+    "delayDuck": 0.6,
+    "delayFb": 0.35,
+    "delayMix": 0.3,
+    "delayTone": 0.5,
+    "envMod": 0.65,
+    "level": 1.179900050163269,
+    "oscWave": 0,
+    "reso": 0.8,
+    "sweep": 0.4
+  },
+  "version": 1
+}

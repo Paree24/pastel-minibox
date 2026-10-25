@@ -1,0 +1,27 @@
+{
+  "family": "Wobble",
+  "macros": "",
+  "name": "Wobble Lead",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 900,
+    "decay": 1.5,
+    "delayDiv": 9,
+    "delayDuck": 0.5,
+    "delayFb": 0.45,
+    "delayMix": 0.25,
+    "delayTone": 0.5,
+    "envMod": 0.2,
+    "level": 1.047700047492981,
+    "lfoCut": 0.45,
+    "lfoDiv": 6,
+    "lfoShape": 0,
+    "lfoSync": 1,
+    "oscWave": 0,
+    "reso": 0.9,
+    "sweep": 0.4
+  },
+  "version": 1
+}

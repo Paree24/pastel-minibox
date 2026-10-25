@@ -1,0 +1,31 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Echo Bass",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.001,
+    "aDecay": 0.4,
+    "aRelease": 0.15,
+    "aSustain": 0.4,
+    "cutoff": 350,
+    "delayDiv": 6,
+    "delayFb": 0.45,
+    "delayMix": 0.2,
+    "delayTone": 0.3,
+    "engine": 1,
+    "envAmt": 0.6,
+    "fAttack": 0.001,
+    "fDecay": 0.25,
+    "fRelease": 0.15,
+    "fSustain": 0.1,
+    "filterMode": 1,
+    "key": 0.3,
+    "level": 0.670400023460388,
+    "reso": 0.5,
+    "vaPw": 0.3,
+    "vaWave": 1
+  },
+  "version": 1
+}

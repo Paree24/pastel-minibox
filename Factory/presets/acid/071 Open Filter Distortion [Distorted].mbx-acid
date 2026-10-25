@@ -1,0 +1,24 @@
+{
+  "family": "Distorted",
+  "macros": "",
+  "name": "Open Filter Distortion",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.600000023841858,
+    "cutoff": 806.022216796875,
+    "decay": 0.296499997377396,
+    "driveAmt": 0.8,
+    "driveMix": 1.0,
+    "driveTone": 1.0,
+    "driveType": 1,
+    "envMod": 0.550000011920929,
+    "level": 0.609899997711182,
+    "oscWave": 0,
+    "reso": 0.850000023841858,
+    "sweep": 0.4,
+    "bassComp": 0.25,
+    "pw": 0.64139997959137
+  },
+  "version": 1
+}

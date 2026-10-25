@@ -1,0 +1,26 @@
+{
+  "family": "Wobble",
+  "macros": "",
+  "name": "Fuzz Wobble",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 380,
+    "decay": 1.5,
+    "driveAmt": 0.7,
+    "driveMix": 1.0,
+    "driveTone": 0.4,
+    "driveType": 2,
+    "envMod": 0.15,
+    "level": 0.73470002412796,
+    "lfoCut": 0.6,
+    "lfoDiv": 8,
+    "lfoShape": 2,
+    "lfoSync": 1,
+    "oscWave": 1,
+    "reso": 0.75,
+    "sweep": 0.4
+  },
+  "version": 1
+}

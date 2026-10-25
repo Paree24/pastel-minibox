@@ -1,0 +1,28 @@
+{
+  "family": "Wobble",
+  "macros": "",
+  "name": "Octave Stack Wobble",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.600000023841858,
+    "cutoff": 350.0,
+    "decay": 1.5,
+    "envMod": 0.009700000286102,
+    "level": 1.466500043869019,
+    "lfoCut": 0.6,
+    "lfoDiv": 7,
+    "lfoShape": 1,
+    "lfoSync": 1,
+    "oscWave": 0,
+    "reso": 0.800000011920929,
+    "stack": 1,
+    "stackMix": 0.5,
+    "stackMode": 2,
+    "stackSpread": 0.5,
+    "sweep": 0.4,
+    "bassComp": 0.189899995923042,
+    "pw": 0.5
+  },
+  "version": 1
+}

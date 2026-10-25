@@ -1,0 +1,32 @@
+{
+  "family": "FX",
+  "macros": "",
+  "name": "Wind",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 1.0,
+    "cutoff": 800,
+    "decay": 1.0,
+    "envAmt": 0.0,
+    "fxReverb": 0.5,
+    "key": 0.0,
+    "level": 2.0,
+    "lfoCut": 0.5,
+    "lfoFade": 0.0,
+    "lfoPwm": 0.0,
+    "lfoRate": 0.3,
+    "lfoShape": 3,
+    "mixNoise": 1.0,
+    "mixPulse": 0.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.0,
+    "release": 2.25,
+    "reso": 0.7,
+    "revPre": 0.033,
+    "revSize": 0.8,
+    "revTone": 0.55,
+    "sustain": 1.0
+  },
+  "version": 1
+}

@@ -1,0 +1,29 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Soft Bell Pluck",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.002,
+    "cutoff": 2600,
+    "decay": 2.43,
+    "envAmt": 0.2,
+    "fxChorus": 0.3,
+    "fxReverb": 0.45,
+    "key": 1.0,
+    "level": 0.496499985456467,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.0,
+    "pw": 0.2,
+    "release": 1.8,
+    "reso": 0.35,
+    "revPre": 0.0305,
+    "revSize": 0.745,
+    "revTone": 0.55,
+    "sustain": 0.0
+  },
+  "version": 1
+}

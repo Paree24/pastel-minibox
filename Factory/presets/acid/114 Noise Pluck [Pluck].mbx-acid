@@ -1,0 +1,21 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Noise Pluck",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "ampDecay": 0.15,
+    "ampMode": 1,
+    "cutoff": 900,
+    "decay": 0.2,
+    "envMod": 0.7,
+    "level": 1.619099974632263,
+    "noise": 0.15,
+    "oscWave": 0,
+    "reso": 0.7,
+    "sweep": 0.4
+  },
+  "version": 1
+}

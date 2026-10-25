@@ -1,0 +1,31 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Bright Lead",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.01,
+    "cutoff": 2400,
+    "decay": 0.6,
+    "envAmt": 0.3,
+    "fxDelay": 0.3,
+    "fxFeedback": 0.4,
+    "fxReverb": 0.15,
+    "fxTime": 7,
+    "key": 0.8,
+    "level": 0.879899978637695,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "pw": 0.3,
+    "release": 0.375,
+    "reso": 0.35,
+    "revPre": 0.0155,
+    "revSize": 0.415,
+    "revTone": 0.55,
+    "sustain": 0.8
+  },
+  "version": 1
+}

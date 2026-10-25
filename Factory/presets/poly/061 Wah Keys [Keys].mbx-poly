@@ -1,0 +1,31 @@
+{
+  "family": "Keys",
+  "macros": "",
+  "name": "Wah Keys",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.002,
+    "aDecay": 0.6,
+    "aRelease": 0.3,
+    "aSustain": 0.4,
+    "chorusMix": 0.4,
+    "chorusMode": 1,
+    "cutoff": 600,
+    "dcoWave": 1,
+    "engine": 0,
+    "envAmt": 0.7,
+    "fAttack": 0.003,
+    "fDecay": 0.3,
+    "fRelease": 0.3,
+    "fSustain": 0.2,
+    "key": 0.7,
+    "level": 2.0,
+    "reso": 0.6,
+    "revPre": 0.018,
+    "revSize": 0.47,
+    "revTone": 0.55,
+    "reverb": 0.2
+  },
+  "version": 1
+}

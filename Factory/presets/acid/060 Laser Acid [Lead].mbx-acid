@@ -1,0 +1,23 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Laser Acid",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 3500,
+    "decay": 0.3,
+    "delayDiv": 10,
+    "delayDuck": 0.5,
+    "delayFb": 0.4,
+    "delayMix": 0.3,
+    "delayTone": 0.5,
+    "envMod": 0.6,
+    "level": 1.035699963569641,
+    "oscWave": 0,
+    "reso": 0.95,
+    "sweep": 0.4
+  },
+  "version": 1
+}

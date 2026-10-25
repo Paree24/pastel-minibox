@@ -1,0 +1,30 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Resonant Pluck",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 260,
+    "decay": 1.8,
+    "envAmt": 0.85,
+    "fxDelay": 0.25,
+    "fxFeedback": 0.45,
+    "fxReverb": 0.2,
+    "fxTime": 9,
+    "key": 1.0,
+    "level": 0.585600018501282,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "release": 0.375,
+    "reso": 0.7,
+    "revPre": 0.018,
+    "revSize": 0.47,
+    "revTone": 0.55,
+    "sustain": 0.0
+  },
+  "version": 1
+}

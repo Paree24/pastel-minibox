@@ -1,0 +1,24 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Soft Low Bass",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.02,
+    "cutoff": 220,
+    "decay": 0.9,
+    "envAmt": 0.15,
+    "key": 0.2,
+    "level": 0.309399992227554,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.0,
+    "pw": 0.5,
+    "release": 0.375,
+    "reso": 0.0,
+    "sustain": 0.8
+  },
+  "version": 1
+}

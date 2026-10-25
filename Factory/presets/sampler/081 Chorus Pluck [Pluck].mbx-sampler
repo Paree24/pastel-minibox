@@ -1,0 +1,21 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Chorus Pluck",
+  "samples": [
+    "factory:src081_chorus_pluck"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.001,
+    "decay": 3.143083333333333,
+    "level": 0.369500011205673,
+    "playMode": 1,
+    "release": 0.4,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

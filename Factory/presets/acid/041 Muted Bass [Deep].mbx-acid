@@ -1,0 +1,20 @@
+{
+  "family": "Deep",
+  "macros": "",
+  "name": "Muted Bass",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.600000023841858,
+    "cutoff": 234.798599243164062,
+    "decay": 0.519500017166138,
+    "envMod": 0.150000005960464,
+    "level": 2.0,
+    "oscWave": 0,
+    "reso": 0.255899995565414,
+    "sweep": 0.4,
+    "bassComp": 0.25,
+    "pw": 0.5
+  },
+  "version": 1
+}

@@ -1,0 +1,32 @@
+{
+  "family": "Brass",
+  "macros": "",
+  "name": "Pulse Brass",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.03,
+    "aDecay": 0.6,
+    "aRelease": 0.45,
+    "aSustain": 0.85,
+    "chorusMix": 0.4,
+    "chorusMode": 1,
+    "cutoff": 600,
+    "dcoPw": 0.3,
+    "dcoWave": 0,
+    "engine": 0,
+    "envAmt": 0.6,
+    "fAttack": 0.05,
+    "fDecay": 0.5,
+    "fRelease": 0.45,
+    "fSustain": 0.4,
+    "key": 0.5,
+    "level": 1.008999943733215,
+    "reso": 0.2,
+    "revPre": 0.018,
+    "revSize": 0.47,
+    "revTone": 0.55,
+    "reverb": 0.2
+  },
+  "version": 1
+}

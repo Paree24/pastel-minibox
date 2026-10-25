@@ -1,0 +1,24 @@
+{
+  "family": "Driven",
+  "macros": "",
+  "name": "Rasp",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.002,
+    "cutoff": 1200,
+    "decay": 0.3,
+    "drive": 0.8,
+    "envAmt": 0.4,
+    "key": 0.5,
+    "level": 0.418199986219406,
+    "mixNoise": 0.3,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "release": 0.15,
+    "reso": 0.6,
+    "sustain": 0.7
+  },
+  "version": 1
+}

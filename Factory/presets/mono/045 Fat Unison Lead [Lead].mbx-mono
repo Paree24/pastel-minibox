@@ -1,0 +1,29 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Fat Unison Lead",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.01,
+    "cutoff": 1500,
+    "decay": 0.5,
+    "envAmt": 0.3,
+    "fxChorus": 0.3,
+    "fxDelay": 0.2,
+    "fxFeedback": 0.4,
+    "fxTime": 7,
+    "key": 0.7,
+    "level": 0.784900009632111,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.5,
+    "release": 0.375,
+    "reso": 0.3,
+    "subType": 0,
+    "sustain": 0.85,
+    "voiceMode": 1
+  },
+  "version": 1
+}

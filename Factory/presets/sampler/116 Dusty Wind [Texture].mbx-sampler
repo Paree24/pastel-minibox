@@ -1,0 +1,27 @@
+{
+  "family": "Texture",
+  "macros": "",
+  "name": "Dusty Wind",
+  "samples": [
+    "factory:src116_wind"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.001,
+    "bits": 12,
+    "character": 1,
+    "decay": 4.0,
+    "level": 0.423700004816055,
+    "playMode": 0,
+    "rate": 20,
+    "release": 0.4,
+    "revPre": 0.018,
+    "revSize": 0.47,
+    "reverb": 0.2,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

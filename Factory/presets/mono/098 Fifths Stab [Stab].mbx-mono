@@ -1,0 +1,30 @@
+{
+  "family": "Stab",
+  "macros": "",
+  "name": "Fifths Stab",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.002,
+    "chord": 3,
+    "cutoff": 900,
+    "decay": 1.8,
+    "envAmt": 0.6,
+    "fxReverb": 0.3,
+    "key": 0.5,
+    "level": 0.39190000295639,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.0,
+    "pw": 0.35,
+    "release": 0.375,
+    "reso": 0.4,
+    "revPre": 0.023,
+    "revSize": 0.58,
+    "revTone": 0.55,
+    "sustain": 0.0,
+    "voiceMode": 3
+  },
+  "version": 1
+}

@@ -1,0 +1,25 @@
+{
+  "family": "Deep",
+  "macros": "",
+  "name": "Thick Deep",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.643999993801117,
+    "cutoff": 260.0,
+    "decay": 1.242599964141846,
+    "envMod": 0.38740000128746,
+    "level": 1.333400011062622,
+    "oscWave": 0,
+    "reso": 0.38730001449585,
+    "stack": 1,
+    "stackMix": 0.5,
+    "stackMode": 2,
+    "stackSpread": 0.3,
+    "sub": 0.4,
+    "sweep": 0.4,
+    "bassComp": 0.25,
+    "pw": 0.514400005340576
+  },
+  "version": 1
+}

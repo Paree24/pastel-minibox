@@ -1,0 +1,33 @@
+{
+  "family": "Arp",
+  "macros": "",
+  "name": "Funky Arp",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.001,
+    "aDecay": 0.405,
+    "aRelease": 0.075,
+    "aSustain": 0.2,
+    "arpGate": 0.3,
+    "arpMode": 4,
+    "arpRange": 1,
+    "arpRate": 10,
+    "chorusMix": 0.4,
+    "chorusMode": 1,
+    "cutoff": 1800,
+    "dcoPw": 0.15,
+    "dcoWave": 0,
+    "engine": 0,
+    "envAmt": 0.6,
+    "fAttack": 0.001,
+    "fDecay": 0.16,
+    "fRelease": 0.075,
+    "fSustain": 0.1,
+    "hpf": 2,
+    "key": 0.7,
+    "level": 2.0,
+    "reso": 0.4
+  },
+  "version": 1
+}

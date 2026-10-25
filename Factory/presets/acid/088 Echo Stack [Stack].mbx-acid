@@ -1,0 +1,27 @@
+{
+  "family": "Stack",
+  "macros": "",
+  "name": "Echo Stack",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 600,
+    "decay": 0.5,
+    "delayDiv": 6,
+    "delayDuck": 0.5,
+    "delayFb": 0.5,
+    "delayMix": 0.35,
+    "delayTone": 0.5,
+    "envMod": 0.5,
+    "level": 1.045500040054321,
+    "oscWave": 1,
+    "reso": 0.75,
+    "stack": 1,
+    "stackMix": 0.6,
+    "stackMode": 2,
+    "stackSpread": 0.5,
+    "sweep": 0.4
+  },
+  "version": 1
+}

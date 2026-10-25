@@ -1,0 +1,30 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Long Boom",
+  "samples": [],
+  "type": "drums",
+  "values": {
+    "kitLevel": 0.397399991750717,
+    "p1Bend": 0.6,
+    "p1Decay": 2.0,
+    "p1Eng": 0,
+    "p1Tone": 0.3,
+    "p2Click": 0.4,
+    "p2Eng": 0,
+    "p2Pitch": 170,
+    "p2SendReverb": 0.3,
+    "p3Eng": 0,
+    "p3SendReverb": 0.35,
+    "p4Eng": 0,
+    "p5Decay": 0.05,
+    "p5Eng": 0,
+    "p6Eng": 0,
+    "p7Eng": 0,
+    "p8Eng": 0,
+    "revPre": 0.02,
+    "revSize": 0.65,
+    "revTone": 0.45
+  },
+  "version": 1
+}

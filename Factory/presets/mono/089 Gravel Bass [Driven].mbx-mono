@@ -1,0 +1,30 @@
+{
+  "family": "Driven",
+  "macros": "",
+  "name": "Gravel Bass",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.002,
+    "cutoff": 400,
+    "decay": 0.35,
+    "drive": 0.9,
+    "envAmt": 0.6,
+    "key": 0.3,
+    "level": 0.432599991559982,
+    "lfoCut": 0.15,
+    "lfoFade": 0.0,
+    "lfoPwm": 0.0,
+    "lfoRate": 18.0,
+    "lfoShape": 3,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.6,
+    "release": 0.15,
+    "reso": 0.7,
+    "subType": 1,
+    "sustain": 0.6
+  },
+  "version": 1
+}

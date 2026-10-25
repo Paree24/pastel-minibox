@@ -1,0 +1,27 @@
+{
+  "family": "FX",
+  "macros": "",
+  "name": "Laser",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 9000,
+    "decay": 0.216,
+    "envAmt": -1.0,
+    "fxDelay": 0.3,
+    "fxFeedback": 0.5,
+    "fxTime": 10,
+    "key": 1.0,
+    "level": 0.633099973201752,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.0,
+    "pw": 0.5,
+    "release": 0.15,
+    "reso": 0.95,
+    "sustain": 0.0
+  },
+  "version": 1
+}

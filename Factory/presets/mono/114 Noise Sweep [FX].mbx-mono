@@ -1,0 +1,27 @@
+{
+  "family": "FX",
+  "macros": "",
+  "name": "Noise Sweep",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.6,
+    "cutoff": 300,
+    "decay": 4.05,
+    "envAmt": 0.9,
+    "fxReverb": 0.4,
+    "key": 0.0,
+    "level": 0.684899985790253,
+    "mixNoise": 1.0,
+    "mixPulse": 0.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.0,
+    "release": 1.5,
+    "reso": 0.8,
+    "revPre": 0.028,
+    "revSize": 0.69,
+    "revTone": 0.55,
+    "sustain": 0.0
+  },
+  "version": 1
+}

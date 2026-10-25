@@ -1,0 +1,24 @@
+{
+  "family": "Sub",
+  "macros": "",
+  "name": "Pure Sub",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.003,
+    "cutoff": 140,
+    "decay": 1.0,
+    "envAmt": 0.1,
+    "key": 0.2,
+    "level": 0.291500002145767,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 0.0,
+    "mixSub": 1.0,
+    "release": 0.18,
+    "reso": 0.0,
+    "subType": 0,
+    "sustain": 1.0
+  },
+  "version": 1
+}

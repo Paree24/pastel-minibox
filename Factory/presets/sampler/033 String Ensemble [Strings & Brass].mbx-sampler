@@ -1,0 +1,24 @@
+{
+  "family": "Strings & Brass",
+  "macros": "",
+  "name": "String Ensemble",
+  "samples": [
+    "factory:src033_string_ensemble"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.004999999888241,
+    "decay": 1.0,
+    "level": 0.327399998903275,
+    "loopLen": 0.272832685355706,
+    "loopStart": 0.306936771025169,
+    "playMode": 2,
+    "release": 1.101999998092651,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60,
+    "cutoff": 18000.0
+  },
+  "version": 1
+}

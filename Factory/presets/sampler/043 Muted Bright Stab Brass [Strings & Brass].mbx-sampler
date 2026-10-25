@@ -1,0 +1,29 @@
+{
+  "family": "Strings & Brass",
+  "macros": "",
+  "name": "Muted Bright Stab Brass",
+  "samples": [
+    "factory:src043_bright_stab_brass"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.005,
+    "cutoff": 1400,
+    "decay": 1.0,
+    "filterType": 0,
+    "level": 0.273200005292892,
+    "loopLen": 0.352937932555767,
+    "loopStart": 0.397055174125238,
+    "playMode": 2,
+    "release": 0.6,
+    "reso": 0.15,
+    "revPre": 0.0155,
+    "revSize": 0.415,
+    "reverb": 0.15,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

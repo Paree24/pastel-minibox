@@ -1,0 +1,22 @@
+{
+  "family": "Wobble",
+  "macros": "",
+  "name": "Gate Wobble",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 420,
+    "decay": 1.5,
+    "envMod": 0.1,
+    "level": 0.762099981307983,
+    "lfoCut": 0.55,
+    "lfoDiv": 10,
+    "lfoShape": 2,
+    "lfoSync": 1,
+    "oscWave": 1,
+    "reso": 0.7,
+    "sweep": 0.4
+  },
+  "version": 1
+}

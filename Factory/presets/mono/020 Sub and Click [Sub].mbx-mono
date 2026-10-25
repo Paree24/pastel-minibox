@@ -1,0 +1,24 @@
+{
+  "family": "Sub",
+  "macros": "",
+  "name": "Sub and Click",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 160,
+    "decay": 0.08,
+    "envAmt": 0.9,
+    "key": 0.3,
+    "level": 0.285400003194809,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 0.2,
+    "mixSub": 1.0,
+    "release": 0.15,
+    "reso": 0.2,
+    "subType": 0,
+    "sustain": 0.8
+  },
+  "version": 1
+}

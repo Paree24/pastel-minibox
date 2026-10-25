@@ -1,0 +1,24 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Noisy Bass",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 380.0,
+    "decay": 0.675000011920929,
+    "envAmt": 0.53549998998642,
+    "key": 0.30019998550415,
+    "level": 0.688199996948242,
+    "mixNoise": 0.25,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.4,
+    "release": 0.104999996721745,
+    "reso": 0.400000005960464,
+    "subType": 0,
+    "sustain": 0.207499995827675
+  },
+  "version": 1
+}

@@ -1,0 +1,28 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Screaming Lead",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.005,
+    "cutoff": 1200,
+    "decay": 0.4,
+    "drive": 0.6,
+    "envAmt": 0.5,
+    "fxDelay": 0.25,
+    "fxFeedback": 0.4,
+    "fxTime": 7,
+    "key": 0.9,
+    "level": 0.440200001001358,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.3,
+    "release": 0.3,
+    "reso": 0.85,
+    "subType": 0,
+    "sustain": 0.7
+  },
+  "version": 1
+}

@@ -1,0 +1,22 @@
+{
+  "family": "Distorted",
+  "macros": "",
+  "name": "Sharp Fuzz",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 700,
+    "decay": 0.3,
+    "driveAmt": 0.8,
+    "driveMix": 1.0,
+    "driveTone": 0.9,
+    "driveType": 2,
+    "envMod": 0.5,
+    "level": 0.678300023078918,
+    "oscWave": 0,
+    "reso": 0.85,
+    "sweep": 0.4
+  },
+  "version": 1
+}

@@ -1,0 +1,29 @@
+{
+  "family": "Stab",
+  "macros": "",
+  "name": "Fourths Stack",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.002,
+    "chord": 7,
+    "cutoff": 1300,
+    "decay": 0.945,
+    "envAmt": 0.45,
+    "fxDelay": 0.3,
+    "fxFeedback": 0.4,
+    "fxTime": 7,
+    "key": 0.5,
+    "level": 0.440299987792969,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.0,
+    "pw": 0.5,
+    "release": 0.45,
+    "reso": 0.3,
+    "sustain": 0.1,
+    "voiceMode": 3
+  },
+  "version": 1
+}

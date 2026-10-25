@@ -1,0 +1,22 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Dub Bass",
+  "samples": [
+    "factory:src056_dub_bass"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.001,
+    "decay": 2.5,
+    "drive": 0.3,
+    "level": 0.192699998617172,
+    "playMode": 1,
+    "release": 0.4,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 36
+  },
+  "version": 1
+}

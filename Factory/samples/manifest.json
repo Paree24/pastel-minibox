@@ -1,0 +1,1318 @@
+{
+ "sampler": [
+  {
+   "file": "src001_hollow_keys",
+   "name": "Hollow Keys",
+   "family": "Keys",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src002_ring_bell_keys",
+   "name": "Ring Bell Keys",
+   "family": "Keys",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src003_triangle_keys",
+   "name": "Triangle Keys",
+   "family": "Keys",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src004_electric_piano",
+   "name": "Electric Piano",
+   "family": "Keys",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src005_funky_pulse_keys",
+   "name": "Funky Pulse Keys",
+   "family": "Keys",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src006_soft_keys",
+   "name": "Soft Keys",
+   "family": "Keys",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src007_bright_poly_keys",
+   "name": "Bright Poly Keys",
+   "family": "Keys",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src008_mallet_keys",
+   "name": "Mallet Keys",
+   "family": "Keys",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src009_octave_keys",
+   "name": "Octave Keys",
+   "family": "Keys",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src010_vintage_piano",
+   "name": "Vintage Piano",
+   "family": "Keys",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src011_classic_tine_piano",
+   "name": "Classic Tine Piano",
+   "family": "Keys",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src012_soft_tine_piano",
+   "name": "Soft Tine Piano",
+   "family": "Keys",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src013_bright_tine_piano",
+   "name": "Bright Tine Piano",
+   "family": "Keys",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src014_tremolo_piano",
+   "name": "Tremolo Piano",
+   "family": "Keys",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src015_dark_mellow_piano",
+   "name": "Dark Mellow Piano",
+   "family": "Keys",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src016_bell_tine_piano",
+   "name": "Bell Tine Piano",
+   "family": "Keys",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src017_warm_chorus_pad",
+   "name": "Warm Chorus Pad",
+   "family": "Pad",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src018_silk_pad",
+   "name": "Silk Pad",
+   "family": "Pad",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src019_dark_analog_pad",
+   "name": "Dark Analog Pad",
+   "family": "Pad",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src020_breathing_pad",
+   "name": "Breathing Pad",
+   "family": "Pad",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src021_glass_pad",
+   "name": "Glass Pad",
+   "family": "Pad",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src022_paraphonic_pad",
+   "name": "Paraphonic Pad",
+   "family": "Pad",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src023_swelling_strings_pad",
+   "name": "Swelling Strings Pad",
+   "family": "Pad",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src024_hollow_pulse_pad",
+   "name": "Hollow Pulse Pad",
+   "family": "Pad",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src025_octave_pad",
+   "name": "Octave Pad",
+   "family": "Pad",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src026_fifths_pad",
+   "name": "Fifths Pad",
+   "family": "Pad",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src027_sweeping_pad",
+   "name": "Sweeping Pad",
+   "family": "Pad",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src028_moving_filter_pad",
+   "name": "Moving Filter Pad",
+   "family": "Pad",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src029_noise_air_pad",
+   "name": "Noise Air Pad",
+   "family": "Pad",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src030_ring_pad",
+   "name": "Ring Pad",
+   "family": "Pad",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src031_warm_sub_pad",
+   "name": "Warm Sub Pad",
+   "family": "Pad",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src032_distant_pad",
+   "name": "Distant Pad",
+   "family": "Pad",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src033_string_ensemble",
+   "name": "String Ensemble",
+   "family": "Strings & Brass",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src034_bowed_strings",
+   "name": "Bowed Strings",
+   "family": "Strings & Brass",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src035_chamber_strings",
+   "name": "Chamber Strings",
+   "family": "Strings & Brass",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src036_tremolo_strings",
+   "name": "Tremolo Strings",
+   "family": "Strings & Brass",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src037_pizzicato_strings",
+   "name": "Pizzicato Strings",
+   "family": "Strings & Brass",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src038_string_machine_wash",
+   "name": "String Machine Wash",
+   "family": "Strings & Brass",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src039_dark_cellos",
+   "name": "Dark Cellos",
+   "family": "Strings & Brass",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src040_slow_strings",
+   "name": "Slow Strings",
+   "family": "Strings & Brass",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src041_brass_section",
+   "name": "Brass Section",
+   "family": "Strings & Brass",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src042_fifth_brass",
+   "name": "Fifth Brass",
+   "family": "Strings & Brass",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src043_bright_stab_brass",
+   "name": "Bright Stab Brass",
+   "family": "Strings & Brass",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src044_soft_horns",
+   "name": "Soft Horns",
+   "family": "Strings & Brass",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src045_synth_brass_swell",
+   "name": "Synth Brass Swell",
+   "family": "Strings & Brass",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src046_punchy_brass",
+   "name": "Punchy Brass",
+   "family": "Strings & Brass",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src047_pulse_brass",
+   "name": "Pulse Brass",
+   "family": "Strings & Brass",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src048_wide_brass",
+   "name": "Wide Brass",
+   "family": "Strings & Brass",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src049_round_bass",
+   "name": "Round Bass",
+   "family": "Bass",
+   "root": 36,
+   "sustained": false
+  },
+  {
+   "file": "src050_square_thump",
+   "name": "Square Thump",
+   "family": "Bass",
+   "root": 36,
+   "sustained": false
+  },
+  {
+   "file": "src051_rubber_bass",
+   "name": "Rubber Bass",
+   "family": "Bass",
+   "root": 36,
+   "sustained": false
+  },
+  {
+   "file": "src052_hollow_pulse_bass",
+   "name": "Hollow Pulse Bass",
+   "family": "Bass",
+   "root": 36,
+   "sustained": false
+  },
+  {
+   "file": "src053_funk_bass",
+   "name": "Funk Bass",
+   "family": "Bass",
+   "root": 36,
+   "sustained": false
+  },
+  {
+   "file": "src054_deep_pluck_bass",
+   "name": "Deep Pluck Bass",
+   "family": "Bass",
+   "root": 36,
+   "sustained": false
+  },
+  {
+   "file": "src055_deep_bass",
+   "name": "Deep Bass",
+   "family": "Bass",
+   "root": 36,
+   "sustained": false
+  },
+  {
+   "file": "src056_dub_bass",
+   "name": "Dub Bass",
+   "family": "Bass",
+   "root": 36,
+   "sustained": false
+  },
+  {
+   "file": "src057_sub_acid",
+   "name": "Sub Acid",
+   "family": "Bass",
+   "root": 36,
+   "sustained": false
+  },
+  {
+   "file": "src058_round_low",
+   "name": "Round Low",
+   "family": "Bass",
+   "root": 36,
+   "sustained": false
+  },
+  {
+   "file": "src059_soft_deep",
+   "name": "Soft Deep",
+   "family": "Bass",
+   "root": 36,
+   "sustained": false
+  },
+  {
+   "file": "src060_sub_pulse_bass",
+   "name": "Sub Pulse Bass",
+   "family": "Bass",
+   "root": 36,
+   "sustained": false
+  },
+  {
+   "file": "src061_squelch_bass",
+   "name": "Squelch Bass",
+   "family": "Bass",
+   "root": 36,
+   "sustained": false
+  },
+  {
+   "file": "src062_poly_saw_bass",
+   "name": "Poly Saw Bass",
+   "family": "Bass",
+   "root": 36,
+   "sustained": false
+  },
+  {
+   "file": "src063_funky_pulse_bass",
+   "name": "Funky Pulse Bass",
+   "family": "Bass",
+   "root": 36,
+   "sustained": false
+  },
+  {
+   "file": "src064_round_bass",
+   "name": "Round Bass",
+   "family": "Bass",
+   "root": 36,
+   "sustained": false
+  },
+  {
+   "file": "src065_bright_lead",
+   "name": "Bright Lead",
+   "family": "Lead",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src066_hollow_lead",
+   "name": "Hollow Lead",
+   "family": "Lead",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src067_talking_lead",
+   "name": "Talking Lead",
+   "family": "Lead",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src068_singing_square",
+   "name": "Singing Square",
+   "family": "Lead",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src069_screaming_lead",
+   "name": "Screaming Lead",
+   "family": "Lead",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src070_soft_flute_lead",
+   "name": "Soft Flute Lead",
+   "family": "Lead",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src071_thin_pulse_lead",
+   "name": "Thin Pulse Lead",
+   "family": "Lead",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src072_wah_lead",
+   "name": "Wah Lead",
+   "family": "Lead",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src073_buzz_lead",
+   "name": "Buzz Lead",
+   "family": "Lead",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src074_glassy_lead",
+   "name": "Glassy Lead",
+   "family": "Lead",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src075_screamer",
+   "name": "Screamer",
+   "family": "Lead",
+   "root": 48,
+   "sustained": true
+  },
+  {
+   "file": "src076_hybrid_lead",
+   "name": "Hybrid Lead",
+   "family": "Lead",
+   "root": 48,
+   "sustained": true
+  },
+  {
+   "file": "src077_singing_acid",
+   "name": "Singing Acid",
+   "family": "Lead",
+   "root": 48,
+   "sustained": true
+  },
+  {
+   "file": "src078_bright_acid_lead",
+   "name": "Bright Acid Lead",
+   "family": "Lead",
+   "root": 48,
+   "sustained": true
+  },
+  {
+   "file": "src079_whistle_acid",
+   "name": "Whistle Acid",
+   "family": "Lead",
+   "root": 48,
+   "sustained": true
+  },
+  {
+   "file": "src080_spacey_acid",
+   "name": "Spacey Acid",
+   "family": "Lead",
+   "root": 48,
+   "sustained": true
+  },
+  {
+   "file": "src081_chorus_pluck",
+   "name": "Chorus Pluck",
+   "family": "Pluck",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src082_tape_echo_pluck",
+   "name": "Tape Echo Pluck",
+   "family": "Pluck",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src083_glass_pluck",
+   "name": "Glass Pluck",
+   "family": "Pluck",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src084_harp_pluck",
+   "name": "Harp Pluck",
+   "family": "Pluck",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src085_short_saw_pluck",
+   "name": "Short Saw Pluck",
+   "family": "Pluck",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src086_marimba_pluck",
+   "name": "Marimba Pluck",
+   "family": "Pluck",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src087_bell_pluck",
+   "name": "Bell Pluck",
+   "family": "Pluck",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src088_soft_pluck",
+   "name": "Soft Pluck",
+   "family": "Pluck",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src089_resonant_pluck",
+   "name": "Resonant Pluck",
+   "family": "Pluck",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src090_glass_pluck",
+   "name": "Glass Pluck",
+   "family": "Pluck",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src091_wooden_pluck",
+   "name": "Wooden Pluck",
+   "family": "Pluck",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src092_echo_pluck",
+   "name": "Echo Pluck",
+   "family": "Pluck",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src093_pizzicato",
+   "name": "Pizzicato",
+   "family": "Pluck",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src094_plinky_square",
+   "name": "Plinky Square",
+   "family": "Pluck",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src095_muted_pluck",
+   "name": "Muted Pluck",
+   "family": "Pluck",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src096_long_pluck",
+   "name": "Long Pluck",
+   "family": "Pluck",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src097_tubular_bell",
+   "name": "Tubular Bell",
+   "family": "Bell",
+   "root": 72,
+   "sustained": false
+  },
+  {
+   "file": "src098_church_bell",
+   "name": "Church Bell",
+   "family": "Bell",
+   "root": 72,
+   "sustained": false
+  },
+  {
+   "file": "src099_glass_bell",
+   "name": "Glass Bell",
+   "family": "Bell",
+   "root": 72,
+   "sustained": false
+  },
+  {
+   "file": "src100_small_bell",
+   "name": "Small Bell",
+   "family": "Bell",
+   "root": 72,
+   "sustained": false
+  },
+  {
+   "file": "src101_gamelan",
+   "name": "Gamelan",
+   "family": "Bell",
+   "root": 72,
+   "sustained": false
+  },
+  {
+   "file": "src102_crystal_chime",
+   "name": "Crystal Chime",
+   "family": "Bell",
+   "root": 72,
+   "sustained": false
+  },
+  {
+   "file": "src103_dark_gong",
+   "name": "Dark Gong",
+   "family": "Bell",
+   "root": 72,
+   "sustained": false
+  },
+  {
+   "file": "src104_music_box",
+   "name": "Music Box",
+   "family": "Bell",
+   "root": 72,
+   "sustained": false
+  },
+  {
+   "file": "src105_marimba",
+   "name": "Marimba",
+   "family": "Bell",
+   "root": 72,
+   "sustained": false
+  },
+  {
+   "file": "src106_vibraphone",
+   "name": "Vibraphone",
+   "family": "Bell",
+   "root": 72,
+   "sustained": false
+  },
+  {
+   "file": "src107_xylophone",
+   "name": "Xylophone",
+   "family": "Bell",
+   "root": 72,
+   "sustained": false
+  },
+  {
+   "file": "src108_kalimba",
+   "name": "Kalimba",
+   "family": "Bell",
+   "root": 72,
+   "sustained": false
+  },
+  {
+   "file": "src109_steel_drum",
+   "name": "Steel Drum",
+   "family": "Bell",
+   "root": 72,
+   "sustained": false
+  },
+  {
+   "file": "src110_wood_block",
+   "name": "Wood Block",
+   "family": "Bell",
+   "root": 72,
+   "sustained": false
+  },
+  {
+   "file": "src111_glockenspiel",
+   "name": "Glockenspiel",
+   "family": "Bell",
+   "root": 72,
+   "sustained": false
+  },
+  {
+   "file": "src112_soft_mallet",
+   "name": "Soft Mallet",
+   "family": "Bell",
+   "root": 72,
+   "sustained": false
+  },
+  {
+   "file": "src113_falling_zap",
+   "name": "Falling Zap",
+   "family": "Texture",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src114_noise_sweep",
+   "name": "Noise Sweep",
+   "family": "Texture",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src115_laser",
+   "name": "Laser",
+   "family": "Texture",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src116_wind",
+   "name": "Wind",
+   "family": "Texture",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src117_siren_filter",
+   "name": "Siren Filter",
+   "family": "Texture",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src118_computer_bleeps",
+   "name": "Computer Bleeps",
+   "family": "Texture",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src119_rising_whoosh",
+   "name": "Rising Whoosh",
+   "family": "Texture",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src120_ping",
+   "name": "Ping",
+   "family": "Texture",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src121_static_burst",
+   "name": "Static Burst",
+   "family": "Texture",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src122_underwater_bubbles",
+   "name": "Underwater Bubbles",
+   "family": "Texture",
+   "root": 60,
+   "sustained": false
+  },
+  {
+   "file": "src123_warm_fm_pad",
+   "name": "Warm FM Pad",
+   "family": "Texture",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src124_glass_pad",
+   "name": "Glass Pad",
+   "family": "Texture",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src125_breathing_pad",
+   "name": "Breathing Pad",
+   "family": "Texture",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src126_choir_pad",
+   "name": "Choir Pad",
+   "family": "Texture",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src127_string_pad",
+   "name": "String Pad",
+   "family": "Texture",
+   "root": 60,
+   "sustained": true
+  },
+  {
+   "file": "src128_bell_swell_pad",
+   "name": "Bell Swell Pad",
+   "family": "Texture",
+   "root": 60,
+   "sustained": true
+  }
+ ],
+ "kits": [
+  {
+   "name": "Classic Analog",
+   "files": [
+    "kit01_kick",
+    "kit01_snare",
+    "kit01_chat",
+    "kit01_ohat",
+    "kit01_clap",
+    "kit01_tom",
+    "kit01_cym",
+    "kit01_perc"
+   ]
+  },
+  {
+   "name": "Warehouse",
+   "files": [
+    "kit02_kick",
+    "kit02_snare",
+    "kit02_chat",
+    "kit02_ohat",
+    "kit02_clap",
+    "kit02_tom",
+    "kit02_cym",
+    "kit02_perc"
+   ]
+  },
+  {
+   "name": "Beat Box",
+   "files": [
+    "kit03_kick",
+    "kit03_snare",
+    "kit03_chat",
+    "kit03_ohat",
+    "kit03_clap",
+    "kit03_tom",
+    "kit03_cym",
+    "kit03_perc"
+   ]
+  },
+  {
+   "name": "Deep Ring",
+   "files": [
+    "kit04_kick",
+    "kit04_snare",
+    "kit04_chat",
+    "kit04_ohat",
+    "kit04_clap",
+    "kit04_tom",
+    "kit04_cym",
+    "kit04_perc"
+   ]
+  },
+  {
+   "name": "Layer Kit",
+   "files": [
+    "kit05_kick",
+    "kit05_snare",
+    "kit05_chat",
+    "kit05_ohat",
+    "kit05_clap",
+    "kit05_tom",
+    "kit05_cym",
+    "kit05_perc"
+   ]
+  },
+  {
+   "name": "Electro",
+   "files": [
+    "kit06_kick",
+    "kit06_snare",
+    "kit06_chat",
+    "kit06_ohat",
+    "kit06_clap",
+    "kit06_tom",
+    "kit06_cym",
+    "kit06_perc"
+   ]
+  },
+  {
+   "name": "Techno Rumble",
+   "files": [
+    "kit07_kick",
+    "kit07_snare",
+    "kit07_chat",
+    "kit07_ohat",
+    "kit07_clap",
+    "kit07_tom",
+    "kit07_cym",
+    "kit07_perc"
+   ]
+  },
+  {
+   "name": "Lo-Fi Box",
+   "files": [
+    "kit08_kick",
+    "kit08_snare",
+    "kit08_chat",
+    "kit08_ohat",
+    "kit08_clap",
+    "kit08_tom",
+    "kit08_cym",
+    "kit08_perc"
+   ]
+  },
+  {
+   "name": "Long Boom",
+   "files": [
+    "kit09_kick",
+    "kit09_snare",
+    "kit09_chat",
+    "kit09_ohat",
+    "kit09_clap",
+    "kit09_tom",
+    "kit09_cym",
+    "kit09_perc"
+   ]
+  },
+  {
+   "name": "Trap Rolls",
+   "files": [
+    "kit10_kick",
+    "kit10_snare",
+    "kit10_chat",
+    "kit10_ohat",
+    "kit10_clap",
+    "kit10_tom",
+    "kit10_cym",
+    "kit10_perc"
+   ]
+  },
+  {
+   "name": "House Pump",
+   "files": [
+    "kit11_kick",
+    "kit11_snare",
+    "kit11_chat",
+    "kit11_ohat",
+    "kit11_clap",
+    "kit11_tom",
+    "kit11_cym",
+    "kit11_perc"
+   ]
+  },
+  {
+   "name": "Minimal Click",
+   "files": [
+    "kit12_kick",
+    "kit12_snare",
+    "kit12_chat",
+    "kit12_ohat",
+    "kit12_clap",
+    "kit12_tom",
+    "kit12_cym",
+    "kit12_perc"
+   ]
+  },
+  {
+   "name": "Dub Space",
+   "files": [
+    "kit13_kick",
+    "kit13_snare",
+    "kit13_chat",
+    "kit13_ohat",
+    "kit13_clap",
+    "kit13_tom",
+    "kit13_cym",
+    "kit13_perc"
+   ]
+  },
+  {
+   "name": "Industrial",
+   "files": [
+    "kit14_kick",
+    "kit14_snare",
+    "kit14_chat",
+    "kit14_ohat",
+    "kit14_clap",
+    "kit14_tom",
+    "kit14_cym",
+    "kit14_perc"
+   ]
+  },
+  {
+   "name": "Breakbeat",
+   "files": [
+    "kit15_kick",
+    "kit15_snare",
+    "kit15_chat",
+    "kit15_ohat",
+    "kit15_clap",
+    "kit15_tom",
+    "kit15_cym",
+    "kit15_perc"
+   ]
+  },
+  {
+   "name": "Chip Box",
+   "files": [
+    "kit16_kick",
+    "kit16_snare",
+    "kit16_chat",
+    "kit16_ohat",
+    "kit16_clap",
+    "kit16_tom",
+    "kit16_cym",
+    "kit16_perc"
+   ]
+  },
+  {
+   "name": "Hand Percussion",
+   "files": [
+    "kit17_kick",
+    "kit17_snare",
+    "kit17_chat",
+    "kit17_ohat",
+    "kit17_clap",
+    "kit17_tom",
+    "kit17_cym",
+    "kit17_perc"
+   ]
+  },
+  {
+   "name": "Ambient Kit",
+   "files": [
+    "kit18_kick",
+    "kit18_snare",
+    "kit18_chat",
+    "kit18_ohat",
+    "kit18_clap",
+    "kit18_tom",
+    "kit18_cym",
+    "kit18_perc"
+   ]
+  },
+  {
+   "name": "Garage Shuffle",
+   "files": [
+    "kit19_kick",
+    "kit19_snare",
+    "kit19_chat",
+    "kit19_ohat",
+    "kit19_clap",
+    "kit19_tom",
+    "kit19_cym",
+    "kit19_perc"
+   ]
+  },
+  {
+   "name": "Drum and Bass",
+   "files": [
+    "kit20_kick",
+    "kit20_snare",
+    "kit20_chat",
+    "kit20_ohat",
+    "kit20_clap",
+    "kit20_tom",
+    "kit20_cym",
+    "kit20_perc"
+   ]
+  },
+  {
+   "name": "Synthwave",
+   "files": [
+    "kit21_kick",
+    "kit21_snare",
+    "kit21_chat",
+    "kit21_ohat",
+    "kit21_clap",
+    "kit21_tom",
+    "kit21_cym",
+    "kit21_perc"
+   ]
+  },
+  {
+   "name": "Footwork",
+   "files": [
+    "kit22_kick",
+    "kit22_snare",
+    "kit22_chat",
+    "kit22_ohat",
+    "kit22_clap",
+    "kit22_tom",
+    "kit22_cym",
+    "kit22_perc"
+   ]
+  },
+  {
+   "name": "Afro Percussion",
+   "files": [
+    "kit23_kick",
+    "kit23_snare",
+    "kit23_chat",
+    "kit23_ohat",
+    "kit23_clap",
+    "kit23_tom",
+    "kit23_cym",
+    "kit23_perc"
+   ]
+  },
+  {
+   "name": "Glitch",
+   "files": [
+    "kit24_kick",
+    "kit24_snare",
+    "kit24_chat",
+    "kit24_ohat",
+    "kit24_clap",
+    "kit24_tom",
+    "kit24_cym",
+    "kit24_perc"
+   ]
+  },
+  {
+   "name": "Big Room",
+   "files": [
+    "kit25_kick",
+    "kit25_snare",
+    "kit25_chat",
+    "kit25_ohat",
+    "kit25_clap",
+    "kit25_tom",
+    "kit25_cym",
+    "kit25_perc"
+   ]
+  },
+  {
+   "name": "Soft Brush",
+   "files": [
+    "kit26_kick",
+    "kit26_snare",
+    "kit26_chat",
+    "kit26_ohat",
+    "kit26_clap",
+    "kit26_tom",
+    "kit26_cym",
+    "kit26_perc"
+   ]
+  },
+  {
+   "name": "Metal Clang",
+   "files": [
+    "kit27_kick",
+    "kit27_snare",
+    "kit27_chat",
+    "kit27_ohat",
+    "kit27_clap",
+    "kit27_tom",
+    "kit27_cym",
+    "kit27_perc"
+   ]
+  },
+  {
+   "name": "Dark Techno",
+   "files": [
+    "kit28_kick",
+    "kit28_snare",
+    "kit28_chat",
+    "kit28_ohat",
+    "kit28_clap",
+    "kit28_tom",
+    "kit28_cym",
+    "kit28_perc"
+   ]
+  },
+  {
+   "name": "Funk Machine",
+   "files": [
+    "kit29_kick",
+    "kit29_snare",
+    "kit29_chat",
+    "kit29_ohat",
+    "kit29_clap",
+    "kit29_tom",
+    "kit29_cym",
+    "kit29_perc"
+   ]
+  },
+  {
+   "name": "Reggaeton",
+   "files": [
+    "kit30_kick",
+    "kit30_snare",
+    "kit30_chat",
+    "kit30_ohat",
+    "kit30_clap",
+    "kit30_tom",
+    "kit30_cym",
+    "kit30_perc"
+   ]
+  },
+  {
+   "name": "Noise Kit",
+   "files": [
+    "kit31_kick",
+    "kit31_snare",
+    "kit31_chat",
+    "kit31_ohat",
+    "kit31_clap",
+    "kit31_tom",
+    "kit31_cym",
+    "kit31_perc"
+   ]
+  },
+  {
+   "name": "Crushed Rave",
+   "files": [
+    "kit32_kick",
+    "kit32_snare",
+    "kit32_chat",
+    "kit32_ohat",
+    "kit32_clap",
+    "kit32_tom",
+    "kit32_cym",
+    "kit32_perc"
+   ]
+  }
+ ]
+}

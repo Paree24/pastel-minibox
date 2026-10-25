@@ -1,0 +1,21 @@
+{
+  "family": "Deep",
+  "macros": "",
+  "name": "Deep Bass",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.400000005960464,
+    "cutoff": 200.0,
+    "decay": 1.355200052261353,
+    "envMod": 0.25,
+    "level": 1.177899956703186,
+    "oscWave": 0,
+    "reso": 0.300000011920929,
+    "sub": 0.6,
+    "sweep": 0.4,
+    "bassComp": 0.028799999505281,
+    "pw": 0.5
+  },
+  "version": 1
+}

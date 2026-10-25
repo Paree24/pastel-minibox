@@ -1,0 +1,20 @@
+{
+  "family": "Squelch",
+  "macros": "",
+  "name": "Slow Squelch",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.600000023841858,
+    "cutoff": 287.417205810546875,
+    "decay": 1.659600019454956,
+    "envMod": 0.600000023841858,
+    "level": 0.957899987697601,
+    "oscWave": 0.3,
+    "reso": 0.899999976158142,
+    "sweep": 0.4,
+    "bassComp": 0.323199987411499,
+    "pw": 0.5
+  },
+  "version": 1
+}

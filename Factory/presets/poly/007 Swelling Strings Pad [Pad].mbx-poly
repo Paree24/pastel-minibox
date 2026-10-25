@@ -1,0 +1,32 @@
+{
+  "family": "Pad",
+  "macros": "",
+  "name": "Swelling Strings Pad",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 2.0,
+    "aDecay": 1.0,
+    "aRelease": 3.75,
+    "aSustain": 1.0,
+    "chorusMix": 0.7,
+    "chorusMode": 3,
+    "cutoff": 1800.0,
+    "dcoWave": 1,
+    "engine": 0,
+    "envAmt": 0.429800003767014,
+    "fAttack": 2.5,
+    "fDecay": 3.157099962234497,
+    "fRelease": 3.0,
+    "fSustain": 0.600000023841858,
+    "hpf": 2,
+    "key": 0.400000005960464,
+    "level": 1.473999977111816,
+    "reso": 0.19760000705719,
+    "revPre": 0.033,
+    "revSize": 0.8,
+    "revTone": 0.55,
+    "reverb": 0.5
+  },
+  "version": 1
+}

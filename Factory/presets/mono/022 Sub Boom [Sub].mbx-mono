@@ -1,0 +1,25 @@
+{
+  "family": "Sub",
+  "macros": "",
+  "name": "Sub Boom",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 200,
+    "decay": 1.62,
+    "envAmt": 0.5,
+    "key": 0.2,
+    "level": 0.572899997234344,
+    "mixNoise": 0.0,
+    "mixPulse": 0.4,
+    "mixSaw": 0.0,
+    "mixSub": 1.0,
+    "pw": 0.5,
+    "release": 0.75,
+    "reso": 0.3,
+    "subType": 1,
+    "sustain": 0.0
+  },
+  "version": 1
+}

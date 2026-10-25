@@ -1,0 +1,133 @@
+#pragma once
+#include <juce_gui_basics/juce_gui_basics.h>
+#include "engine/Engine.h"
+#include <functional>
+#include <unordered_map>
+
+namespace mb::ui
+{
+/** Each device's colour, as in its editor mockup (03–10): the plugin shows every device in it. */
+inline juce::Colour deviceColour (DeviceType t)
+{
+    switch (t)
+    {
+        case DeviceType::Drums: case DeviceType::DrumSampler: return juce::Colour (0xff9EB9F3);
+        case DeviceType::Acid: case DeviceType::Mono: return juce::Colour (0xff8FD0C2);
+        case DeviceType::Poly: return juce::Colour (0xffE8B86A);
+        default: return juce::Colour (0xffE9A3B8);   // FM, Sampler
+    }
+}
+
+/** State shared by the views: the engine, what is focused, and the callbacks between views. */
+struct AppContext
+{
+    explicit AppContext (Engine& e, bool isStandalone) : engine (e), standalone (isStandalone) {}
+
+    Engine& engine;
+    const bool standalone;
+
+    int focusPattern() const { return engine.focusPattern.load(); }
+    int focusTrack() const { return engine.focusTrack.load(); }
+    DeviceProcessor* focusDevice() const { return engine.device (focusPattern(), focusTrack()); }
+
+    /** Step chosen as the parameter-lock target (shift-click a step); -1 when none. */
+    int lockStep = -1;
+    /** Bar shown by the step strip and the Seq view. */
+    int viewBar = 0;
+    /** Drum lane editor view: 0 Vel, 1 Prob, 2 Ratchet. */
+    int laneView = 0;
+    /** Last note played on each track, used when a step is switched on by clicking. */
+    std::array<int, kTracks> lastNote { 36, 36, 60, 60 };
+    /** The length (gate) of the note last clicked or resized: new notes on that track get it. */
+    std::array<int, kTracks> lastGate { 96, 96, 96, 96 };
+    std::array<int, kTracks> lastVel { 100, 100, 100, 100 };
+
+    /** Sub-selection per device: drum part, FM operator, sampler zone or drum-sampler pad. */
+    int selection (const DeviceProcessor* d) const { auto it = sel.find (d); return it == sel.end() ? 0 : it->second; }
+    void select (const DeviceProcessor* d, int i) { sel[d] = i; if (onSelectionChanged) onSelectionChanged(); }
+
+    /** Reference state for Compare: the state at the last preset load or save. */
+    std::unordered_map<const DeviceProcessor*, juce::ValueTree> reference;
+    std::unordered_map<const DeviceProcessor*, juce::ValueTree> comparing;   // edited state while comparing
+    void setReference (const DeviceProcessor& d)
+    {
+        juce::ValueTree t ("Device");
+        d.save (t);
+        reference[&d] = t;
+        comparing.erase (&d);
+    }
+
+    bool dirty = false;
+    void markDirty() { if (! dirty) { dirty = true; if (onDirtyChanged) onDirtyChanged(); } }
+
+    // ---- undo / redo of sequence edits: a snapshot of a pattern's tracks (and length) before each edit
+    struct PatternSnap { int pattern = 0; std::array<Track, kTracks> tracks; int lengthBars = 1, stepRes = 1; };
+    std::vector<PatternSnap> undoStack, redoStack;
+    PatternSnap capture (int pattern) const
+    {
+        const auto& pt = engine.project().patterns[(size_t) pattern];
+        PatternSnap snap;
+        snap.pattern = pattern; snap.lengthBars = pt.lengthBars; snap.stepRes = pt.stepRes;
+        for (int t = 0; t < kTracks; ++t) snap.tracks[(size_t) t] = pt.slots[(size_t) t].track;
+        return snap;
+    }
+    void restore (const PatternSnap& snap)
+    {
+        const Engine::ScopedEdit edit (engine);
+        auto& pt = engine.project().patterns[(size_t) snap.pattern];
+        pt.lengthBars = snap.lengthBars; pt.stepRes = snap.stepRes;
+        for (int t = 0; t < kTracks; ++t) pt.slots[(size_t) t].track = snap.tracks[(size_t) t];
+    }
+    /** Call before changing a pattern's notes, steps, lanes or length (once per gesture). */
+    void snapshot (int pattern)
+    {
+        undoStack.push_back (capture (pattern));
+        if (undoStack.size() > 64) undoStack.erase (undoStack.begin());
+        redoStack.clear();
+        markDirty();
+    }
+    bool undo()
+    {
+        if (undoStack.empty()) return false;
+        redoStack.push_back (capture (undoStack.back().pattern));
+        restore (undoStack.back());
+        undoStack.pop_back();
+        markDirty();
+        if (onSequenceRestored) onSequenceRestored();
+        return true;
+    }
+    bool redo()
+    {
+        if (redoStack.empty()) return false;
+        undoStack.push_back (capture (redoStack.back().pattern));
+        restore (redoStack.back());
+        redoStack.pop_back();
+        markDirty();
+        if (onSequenceRestored) onSequenceRestored();
+        return true;
+    }
+    /** The view follows the playing bar. */
+    bool followPlayhead = true;
+    /** Piano-roll toolbar settings (docs/sequencer.md). */
+    struct RollSettings
+    {
+        int tool = 0;               // 0 Select, 1 Draw, 2 Paint, 3 Erase
+        int lengthMode = 0;         // 0 last used; 1… fixed (PianoRoll::lengthChoices)
+        bool scale = false, fold = false, ghosts = false;
+        int viewSteps = 0;          // steps in view (time zoom); 0 = a bar
+        int start = 0;              // the first step in view
+        int rows = 18;              // rows in view (pitch zoom)
+        int grid = 3;               // PianoRoll::gridNames(): 0 Adaptive, 1 1/64 … 3 1/16 … 7 1 bar
+        bool triplet = false, dotted = false, snap = true;
+    } rollSettings;
+
+    std::function<void()> onSelectionChanged, onDirtyChanged, onDevicesChanged, onSequenceRestored;
+    std::function<void (int track)> openEditor;
+    std::function<void()> closeEditor;
+    std::function<void (int track, juce::Component* anchor)> showDevicePicker;
+    std::function<void (DeviceProcessor*, juce::Component* anchor)> showPresetBrowser;
+
+private:
+    std::unordered_map<const DeviceProcessor*, int> sel;
+};
+} // namespace mb::ui

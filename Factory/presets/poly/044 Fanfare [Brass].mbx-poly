@@ -1,0 +1,32 @@
+{
+  "family": "Brass",
+  "macros": "",
+  "name": "Fanfare",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.035,
+    "aDecay": 0.38730001449585,
+    "aRelease": 0.558200001716614,
+    "aSustain": 0.9,
+    "chorusMix": 0.5,
+    "chorusMode": 2,
+    "cutoff": 1200.0,
+    "dcoPw": 0.4,
+    "dcoWave": 2,
+    "engine": 0,
+    "envAmt": 0.692300021648407,
+    "fAttack": 0.06,
+    "fDecay": 0.400000005960464,
+    "fRelease": 0.45,
+    "fSustain": 0.600000023841858,
+    "key": 0.42739999294281,
+    "level": 2.0,
+    "reso": 0.150000005960464,
+    "revPre": 0.0255,
+    "revSize": 0.635,
+    "revTone": 0.55,
+    "reverb": 0.35
+  },
+  "version": 1
+}

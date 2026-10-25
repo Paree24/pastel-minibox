@@ -1,0 +1,20 @@
+{
+  "family": "Squelch",
+  "macros": "",
+  "name": "Liquid Squelch",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.600000023841858,
+    "cutoff": 416.2178955078125,
+    "decay": 1.045400023460388,
+    "envMod": 0.75,
+    "level": 1.091500043869019,
+    "oscWave": 0,
+    "reso": 0.920000016689301,
+    "sweep": 0.4,
+    "bassComp": 0.25,
+    "pw": 0.5
+  },
+  "version": 1
+}

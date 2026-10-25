@@ -1,0 +1,21 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Funk Bass",
+  "samples": [
+    "factory:src053_funk_bass"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.001,
+    "decay": 2.173895833333333,
+    "level": 0.481599986553192,
+    "playMode": 1,
+    "release": 0.4,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 36
+  },
+  "version": 1
+}

@@ -1,0 +1,31 @@
+{
+  "family": "Brass",
+  "macros": "",
+  "name": "Dark Tuba",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.04,
+    "aDecay": 0.6,
+    "aRelease": 0.3,
+    "aSustain": 0.9,
+    "cutoff": 300,
+    "dcoWave": 1,
+    "engine": 0,
+    "envAmt": 0.5,
+    "fAttack": 0.06,
+    "fDecay": 0.5,
+    "fRelease": 0.3,
+    "fSustain": 0.4,
+    "hpf": 0,
+    "key": 0.4,
+    "level": 0.275200009346008,
+    "reso": 0.2,
+    "revPre": 0.0155,
+    "revSize": 0.415,
+    "revTone": 0.55,
+    "reverb": 0.15,
+    "sub": 0.5
+  },
+  "version": 1
+}

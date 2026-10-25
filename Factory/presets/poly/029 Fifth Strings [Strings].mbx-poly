@@ -1,0 +1,31 @@
+{
+  "family": "Strings",
+  "macros": "",
+  "name": "Fifth Strings",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.4,
+    "aDecay": 1.0,
+    "aRelease": 1.5,
+    "aSustain": 0.9,
+    "cutoff": 1800,
+    "engine": 1,
+    "envAmt": 0.2,
+    "fAttack": 0.4,
+    "fDecay": 1.0,
+    "fRelease": 1.5,
+    "fSustain": 0.8,
+    "filterMode": 1,
+    "key": 0.5,
+    "level": 0.680299997329712,
+    "reso": 0.1,
+    "revPre": 0.0305,
+    "revSize": 0.745,
+    "revTone": 0.55,
+    "reverb": 0.45,
+    "vaWave": 0,
+    "voiceMode": 4
+  },
+  "version": 1
+}

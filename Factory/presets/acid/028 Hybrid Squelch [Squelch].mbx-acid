@@ -1,0 +1,24 @@
+{
+  "family": "Squelch",
+  "macros": "",
+  "name": "Hybrid Squelch",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.600000023841858,
+    "cutoff": 200.0,
+    "decay": 0.349999994039536,
+    "driveAmt": 0.35,
+    "driveMix": 1.0,
+    "driveTone": 0.6,
+    "driveType": 2,
+    "envMod": 0.850000023841858,
+    "level": 0.878199994564056,
+    "oscWave": 0.6,
+    "reso": 0.894900023937225,
+    "sweep": 0.4,
+    "bassComp": 0.25,
+    "pw": 0.5
+  },
+  "version": 1
+}

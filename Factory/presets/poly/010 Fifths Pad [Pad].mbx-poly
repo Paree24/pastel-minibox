@@ -1,0 +1,32 @@
+{
+  "family": "Pad",
+  "macros": "",
+  "name": "Fifths Pad",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.9,
+    "aDecay": 1.0,
+    "aRelease": 2.7,
+    "aSustain": 1.0,
+    "cutoff": 1000,
+    "engine": 1,
+    "envAmt": 0.3,
+    "fAttack": 1.2,
+    "fDecay": 2.0,
+    "fRelease": 2.7,
+    "fSustain": 0.6,
+    "filterMode": 1,
+    "key": 0.4,
+    "level": 0.383799999952316,
+    "reso": 0.3,
+    "revPre": 0.033,
+    "revSize": 0.8,
+    "revTone": 0.55,
+    "reverb": 0.5,
+    "vaPw": 0.4,
+    "vaWave": 1,
+    "voiceMode": 4
+  },
+  "version": 1
+}

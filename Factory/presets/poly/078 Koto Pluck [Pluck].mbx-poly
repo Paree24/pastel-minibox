@@ -1,0 +1,31 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Koto Pluck",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.001,
+    "aDecay": 2.43,
+    "aRelease": 1.2,
+    "aSustain": 0.0,
+    "cutoff": 3500,
+    "dcoPw": 0.1,
+    "dcoWave": 0,
+    "engine": 0,
+    "envAmt": 0.4,
+    "fAttack": 0.001,
+    "fDecay": 0.128,
+    "fRelease": 0.45,
+    "fSustain": 0.0,
+    "hpf": 2,
+    "key": 1.0,
+    "level": 1.122400045394897,
+    "reso": 0.5,
+    "revPre": 0.0255,
+    "revSize": 0.635,
+    "revTone": 0.55,
+    "reverb": 0.35
+  },
+  "version": 1
+}

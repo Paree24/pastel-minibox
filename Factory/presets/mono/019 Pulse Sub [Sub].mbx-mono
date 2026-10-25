@@ -1,0 +1,24 @@
+{
+  "family": "Sub",
+  "macros": "",
+  "name": "Pulse Sub",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.003,
+    "cutoff": 180,
+    "decay": 1.0,
+    "envAmt": 0.2,
+    "key": 0.2,
+    "level": 0.334500014781952,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 0.0,
+    "mixSub": 1.0,
+    "release": 0.18,
+    "reso": 0.0,
+    "subType": 2,
+    "sustain": 1.0
+  },
+  "version": 1
+}

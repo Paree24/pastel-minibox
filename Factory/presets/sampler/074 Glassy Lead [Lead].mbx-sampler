@@ -1,0 +1,26 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Glassy Lead",
+  "samples": [
+    "factory:src074_glassy_lead"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.005,
+    "decay": 1.0,
+    "level": 0.390799999237061,
+    "loopLen": 0.2,
+    "loopStart": 0.225,
+    "playMode": 2,
+    "release": 0.6,
+    "revPre": 0.0205,
+    "revSize": 0.525,
+    "reverb": 0.25,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

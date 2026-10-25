@@ -1,0 +1,31 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Singing Square",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.03,
+    "cutoff": 1800,
+    "decay": 0.5,
+    "envAmt": 0.2,
+    "fxDelay": 0.25,
+    "fxFeedback": 0.45,
+    "fxReverb": 0.3,
+    "fxTime": 9,
+    "key": 0.8,
+    "level": 0.270700007677078,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.0,
+    "pw": 0.5,
+    "release": 0.525,
+    "reso": 0.5,
+    "revPre": 0.023,
+    "revSize": 0.58,
+    "revTone": 0.55,
+    "sustain": 0.85
+  },
+  "version": 1
+}

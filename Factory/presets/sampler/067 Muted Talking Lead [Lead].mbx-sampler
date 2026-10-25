@@ -1,0 +1,29 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Muted Talking Lead",
+  "samples": [
+    "factory:src067_talking_lead"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.005,
+    "cutoff": 1400,
+    "decay": 1.0,
+    "filterType": 0,
+    "level": 0.560699999332428,
+    "loopLen": 0.2,
+    "loopStart": 0.225,
+    "playMode": 2,
+    "release": 0.6,
+    "reso": 0.15,
+    "revPre": 0.0155,
+    "revSize": 0.415,
+    "reverb": 0.15,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

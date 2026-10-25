@@ -1,0 +1,24 @@
+{
+  "family": "FX",
+  "macros": "",
+  "name": "Clicky Drop",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 4000,
+    "decay": 1.08,
+    "drive": 0.5,
+    "envAmt": -1.0,
+    "key": 0.8,
+    "level": 0.978900015354156,
+    "mixNoise": 0.3,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "release": 0.3,
+    "reso": 0.8,
+    "sustain": 0.0
+  },
+  "version": 1
+}

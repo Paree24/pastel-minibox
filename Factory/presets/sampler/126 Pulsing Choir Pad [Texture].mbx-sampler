@@ -1,0 +1,27 @@
+{
+  "family": "Texture",
+  "macros": "",
+  "name": "Pulsing Choir Pad",
+  "samples": [
+    "factory:src126_choir_pad"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.005,
+    "cutoff": 3000,
+    "decay": 1.0,
+    "level": 0.231499999761581,
+    "lfoCut": 0.5,
+    "lfoRate": 4.0,
+    "lfoShape": 2,
+    "loopLen": 0.2,
+    "loopStart": 0.225,
+    "playMode": 2,
+    "release": 0.6,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

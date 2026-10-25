@@ -1,0 +1,29 @@
+{
+  "family": "FX",
+  "macros": "",
+  "name": "Robot Voice",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.01,
+    "cutoff": 900,
+    "decay": 0.5,
+    "envAmt": 0.0,
+    "key": 0.8,
+    "level": 0.331800013780594,
+    "lfoCut": 0.5,
+    "lfoFade": 0.0,
+    "lfoPwm": 0.0,
+    "lfoRate": 6.0,
+    "lfoShape": 1,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.0,
+    "pw": 0.1,
+    "release": 0.3,
+    "reso": 0.85,
+    "sustain": 1.0
+  },
+  "version": 1
+}

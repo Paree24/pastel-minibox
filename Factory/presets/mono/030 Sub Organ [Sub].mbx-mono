@@ -1,0 +1,26 @@
+{
+  "family": "Sub",
+  "macros": "",
+  "name": "Sub Organ",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.004,
+    "cutoff": 700,
+    "decay": 0.2,
+    "envAmt": 0.0,
+    "fxChorus": 0.3,
+    "key": 0.3,
+    "level": 0.253899991512299,
+    "mixNoise": 0.0,
+    "mixPulse": 0.5,
+    "mixSaw": 0.0,
+    "mixSub": 0.6,
+    "pw": 0.5,
+    "release": 0.12,
+    "reso": 0.0,
+    "subType": 1,
+    "sustain": 1.0
+  },
+  "version": 1
+}

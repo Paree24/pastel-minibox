@@ -1,0 +1,22 @@
+{
+  "family": "Distorted",
+  "macros": "",
+  "name": "Overdriven Squelch",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 1.0,
+    "cutoff": 300,
+    "decay": 0.3,
+    "driveAmt": 0.8,
+    "driveMix": 1.0,
+    "driveTone": 0.6,
+    "driveType": 0,
+    "envMod": 0.92,
+    "level": 0.375699996948242,
+    "oscWave": 0,
+    "reso": 0.96,
+    "sweep": 0.5
+  },
+  "version": 1
+}

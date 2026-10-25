@@ -1,0 +1,27 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Funk Machine",
+  "samples": [],
+  "type": "drums",
+  "values": {
+    "kitComp": 0.4,
+    "kitLevel": 0.757499992847443,
+    "p1Decay": 0.4,
+    "p1Eng": 0,
+    "p2Click": 0.7,
+    "p2Eng": 0,
+    "p3Eng": 0,
+    "p3SendReverb": 0.2,
+    "p4Eng": 0,
+    "p5Eng": 2,
+    "p6Eng": 2,
+    "p7Eng": 0,
+    "p8Eng": 1,
+    "p8Pitch": 500,
+    "revPre": 0.008,
+    "revSize": 0.3,
+    "revTone": 0.55
+  },
+  "version": 1
+}

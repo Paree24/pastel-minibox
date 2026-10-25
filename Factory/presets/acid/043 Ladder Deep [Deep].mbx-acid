@@ -1,0 +1,25 @@
+{
+  "family": "Deep",
+  "macros": "",
+  "name": "Ladder Deep",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.474599987268448,
+    "cutoff": 433.179595947265625,
+    "decay": 0.600000023841858,
+    "driveAmt": 0.4,
+    "driveMix": 1.0,
+    "driveTone": 0.4,
+    "driveType": 0,
+    "envMod": 0.492399990558624,
+    "filterType": 0,
+    "level": 0.630500018596649,
+    "oscWave": 0,
+    "reso": 0.600000023841858,
+    "sweep": 0.4,
+    "bassComp": 0.25,
+    "pw": 0.5
+  },
+  "version": 1
+}

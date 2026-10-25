@@ -1,0 +1,27 @@
+{
+  "family": "Driven",
+  "macros": "",
+  "name": "Screech",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.005,
+    "cutoff": 2000,
+    "decay": 0.3,
+    "drive": 0.7,
+    "envAmt": 0.3,
+    "fxDelay": 0.25,
+    "fxFeedback": 0.4,
+    "fxTime": 9,
+    "key": 0.9,
+    "level": 0.366899996995926,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "release": 0.225,
+    "reso": 0.9,
+    "sustain": 0.8
+  },
+  "version": 1
+}

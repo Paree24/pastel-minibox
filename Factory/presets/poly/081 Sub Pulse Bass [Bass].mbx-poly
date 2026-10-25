@@ -1,0 +1,28 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Sub Pulse Bass",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.002,
+    "aDecay": 0.5,
+    "aRelease": 0.15,
+    "aSustain": 0.6,
+    "cutoff": 380,
+    "dcoPw": 0.5,
+    "dcoWave": 0,
+    "engine": 0,
+    "envAmt": 0.6,
+    "fAttack": 0.002,
+    "fDecay": 0.35,
+    "fRelease": 0.15,
+    "fSustain": 0.1,
+    "hpf": 0,
+    "key": 0.3,
+    "level": 0.239999994635582,
+    "reso": 0.3,
+    "sub": 0.8
+  },
+  "version": 1
+}

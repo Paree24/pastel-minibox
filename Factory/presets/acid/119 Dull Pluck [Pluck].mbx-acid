@@ -1,0 +1,20 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Dull Pluck",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "ampDecay": 0.25,
+    "ampMode": 1,
+    "cutoff": 400,
+    "decay": 0.3,
+    "envMod": 0.5,
+    "level": 1.162199974060059,
+    "oscWave": 1,
+    "reso": 0.4,
+    "sweep": 0.4
+  },
+  "version": 1
+}

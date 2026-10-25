@@ -1,0 +1,27 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Singing Acid",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 1800,
+    "decay": 1.0,
+    "delayDiv": 6,
+    "delayDuck": 0.5,
+    "delayFb": 0.5,
+    "delayMix": 0.3,
+    "delayTone": 0.5,
+    "envMod": 0.3,
+    "level": 0.748499989509583,
+    "oscWave": 1,
+    "reso": 0.88,
+    "revPre": 0.023,
+    "revSize": 0.58,
+    "revTone": 0.55,
+    "reverb": 0.3,
+    "sweep": 0.4
+  },
+  "version": 1
+}

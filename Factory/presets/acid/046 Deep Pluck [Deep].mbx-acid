@@ -1,0 +1,21 @@
+{
+  "family": "Deep",
+  "macros": "",
+  "name": "Deep Pluck",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "ampDecay": 0.35,
+    "ampMode": 1,
+    "cutoff": 260,
+    "decay": 0.5,
+    "envMod": 0.45,
+    "level": 1.524500012397766,
+    "oscWave": 0,
+    "reso": 0.5,
+    "sub": 0.5,
+    "sweep": 0.4
+  },
+  "version": 1
+}

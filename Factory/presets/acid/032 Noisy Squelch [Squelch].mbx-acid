@@ -1,0 +1,21 @@
+{
+  "family": "Squelch",
+  "macros": "",
+  "name": "Noisy Squelch",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.746900022029877,
+    "cutoff": 330.417694091796875,
+    "decay": 0.235300004482269,
+    "envMod": 0.717100024223328,
+    "level": 0.732699990272522,
+    "noise": 0.2,
+    "oscWave": 1,
+    "reso": 0.845300018787384,
+    "sweep": 0.4,
+    "bassComp": 0.25,
+    "pw": 0.535199999809265
+  },
+  "version": 1
+}

@@ -1,0 +1,29 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Pulse Harp",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 2200,
+    "decay": 1.8,
+    "envAmt": 0.4,
+    "fxChorus": 0.4,
+    "fxReverb": 0.4,
+    "key": 1.0,
+    "level": 0.492000013589859,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.0,
+    "pw": 0.15,
+    "release": 1.2,
+    "reso": 0.2,
+    "revPre": 0.028,
+    "revSize": 0.69,
+    "revTone": 0.55,
+    "sustain": 0.0
+  },
+  "version": 1
+}

@@ -1,0 +1,28 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Envelope Sweep Lead",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.01,
+    "cutoff": 400,
+    "decay": 1.2,
+    "envAmt": 0.7,
+    "fxReverb": 0.25,
+    "key": 0.7,
+    "level": 1.115800023078918,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "pw": 0.4,
+    "release": 0.45,
+    "reso": 0.55,
+    "revPre": 0.0205,
+    "revSize": 0.525,
+    "revTone": 0.55,
+    "sustain": 0.4
+  },
+  "version": 1
+}

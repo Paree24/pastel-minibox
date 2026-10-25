@@ -1,0 +1,25 @@
+{
+  "family": "Texture",
+  "macros": "",
+  "name": "Ping",
+  "samples": [
+    "factory:src120_ping"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.001,
+    "decay": 3.91025,
+    "drive": 0.3,
+    "level": 0.302100002765656,
+    "playMode": 0,
+    "release": 0.4,
+    "revPre": 0.023,
+    "revSize": 0.58,
+    "reverb": 0.3,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

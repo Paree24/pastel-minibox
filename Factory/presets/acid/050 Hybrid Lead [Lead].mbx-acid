@@ -1,0 +1,27 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Hybrid Lead",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 1100,
+    "decay": 0.6,
+    "delayDiv": 6,
+    "delayDuck": 0.5,
+    "delayFb": 0.45,
+    "delayMix": 0.2,
+    "delayTone": 0.5,
+    "envMod": 0.5,
+    "level": 1.014099955558777,
+    "oscWave": 0.5,
+    "reso": 0.8,
+    "revPre": 0.018,
+    "revSize": 0.47,
+    "revTone": 0.55,
+    "reverb": 0.2,
+    "sweep": 0.4
+  },
+  "version": 1
+}

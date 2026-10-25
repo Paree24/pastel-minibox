@@ -1,0 +1,28 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Lo-Fi Box",
+  "samples": [],
+  "type": "drums",
+  "values": {
+    "kitComp": 0.5,
+    "kitDrive": 0.4,
+    "kitLevel": 0.410400003194809,
+    "p1Drive": 0.4,
+    "p1DriveType": 2,
+    "p1Eng": 2,
+    "p2Drive": 0.3,
+    "p2Eng": 2,
+    "p2SendReverb": 0.2,
+    "p3Eng": 2,
+    "p4Eng": 2,
+    "p5Eng": 2,
+    "p6Eng": 2,
+    "p7Eng": 2,
+    "p8Eng": 3,
+    "revPre": 0.004,
+    "revSize": 0.2,
+    "revTone": 0.25
+  },
+  "version": 1
+}

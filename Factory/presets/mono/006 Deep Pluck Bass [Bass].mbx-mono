@@ -1,0 +1,25 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Deep Pluck Bass",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 150,
+    "decay": 1.8,
+    "envAmt": 0.65,
+    "key": 0.3,
+    "level": 0.616999983787537,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.7,
+    "pw": 0.5,
+    "release": 0.18,
+    "reso": 0.35,
+    "subType": 2,
+    "sustain": 0.0
+  },
+  "version": 1
+}

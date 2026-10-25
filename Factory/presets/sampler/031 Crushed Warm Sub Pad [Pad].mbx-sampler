@@ -1,0 +1,26 @@
+{
+  "family": "Pad",
+  "macros": "",
+  "name": "Crushed Warm Sub Pad",
+  "samples": [
+    "factory:src031_warm_sub_pad"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.005,
+    "bits": 8,
+    "character": 1,
+    "decay": 1.0,
+    "level": 0.188899993896484,
+    "loopLen": 0.220126266872526,
+    "loopStart": 0.247642050231591,
+    "playMode": 2,
+    "rate": 12,
+    "release": 0.6,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

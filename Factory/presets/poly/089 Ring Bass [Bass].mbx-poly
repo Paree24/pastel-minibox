@@ -1,0 +1,27 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Ring Bass",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.002,
+    "aDecay": 0.5,
+    "aRelease": 0.15,
+    "aSustain": 0.6,
+    "cutoff": 800,
+    "engine": 1,
+    "envAmt": 0.4,
+    "fAttack": 0.002,
+    "fDecay": 0.3,
+    "fRelease": 0.15,
+    "fSustain": 0.3,
+    "filterMode": 1,
+    "key": 0.3,
+    "level": 1.201599955558777,
+    "reso": 0.3,
+    "vaWave": 0,
+    "voiceMode": 5
+  },
+  "version": 1
+}

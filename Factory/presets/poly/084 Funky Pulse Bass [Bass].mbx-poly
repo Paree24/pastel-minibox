@@ -1,0 +1,27 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Funky Pulse Bass",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.001,
+    "aDecay": 0.3,
+    "aRelease": 0.12,
+    "aSustain": 0.4,
+    "cutoff": 350,
+    "dcoPw": 0.25,
+    "dcoWave": 0,
+    "engine": 0,
+    "envAmt": 0.8,
+    "fAttack": 0.001,
+    "fDecay": 0.18,
+    "fRelease": 0.12,
+    "fSustain": 0.1,
+    "hpf": 0,
+    "key": 0.5,
+    "level": 0.504499971866608,
+    "reso": 0.45
+  },
+  "version": 1
+}

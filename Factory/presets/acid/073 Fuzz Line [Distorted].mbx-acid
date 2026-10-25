@@ -1,0 +1,22 @@
+{
+  "family": "Distorted",
+  "macros": "",
+  "name": "Fuzz Line",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 500,
+    "decay": 0.45,
+    "driveAmt": 0.6,
+    "driveMix": 1.0,
+    "driveTone": 0.5,
+    "driveType": 2,
+    "envMod": 0.6,
+    "level": 0.967199981212616,
+    "oscWave": 0,
+    "reso": 0.8,
+    "sweep": 0.4
+  },
+  "version": 1
+}

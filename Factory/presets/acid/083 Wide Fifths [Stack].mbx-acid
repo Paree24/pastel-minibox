@@ -1,0 +1,24 @@
+{
+  "family": "Stack",
+  "macros": "",
+  "name": "Wide Fifths",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.600000023841858,
+    "cutoff": 768.34271240234375,
+    "decay": 0.62389999628067,
+    "envMod": 0.550000011920929,
+    "level": 1.657400012016296,
+    "oscWave": 0,
+    "reso": 0.75,
+    "stack": 1,
+    "stackMix": 0.8,
+    "stackMode": 1,
+    "stackSpread": 1.0,
+    "sweep": 0.4,
+    "bassComp": 0.25,
+    "pw": 0.38060000538826
+  },
+  "version": 1
+}

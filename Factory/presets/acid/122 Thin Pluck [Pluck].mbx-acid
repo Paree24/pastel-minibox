@@ -1,0 +1,22 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Thin Pluck",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.600000023841858,
+    "ampDecay": 0.15,
+    "ampMode": 1,
+    "cutoff": 900.0,
+    "decay": 0.200000002980232,
+    "envMod": 0.840099990367889,
+    "level": 1.223399996757507,
+    "oscWave": 1,
+    "pw": 0.150000005960464,
+    "reso": 0.765799999237061,
+    "sweep": 0.4,
+    "bassComp": 0.25
+  },
+  "version": 1
+}

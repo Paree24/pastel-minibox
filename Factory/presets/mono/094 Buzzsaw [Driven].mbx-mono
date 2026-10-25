@@ -1,0 +1,25 @@
+{
+  "family": "Driven",
+  "macros": "",
+  "name": "Buzzsaw",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.002,
+    "cutoff": 2271.983154296875,
+    "decay": 0.300000011920929,
+    "drive": 0.8,
+    "envAmt": 0.100000001490116,
+    "key": 0.881200015544891,
+    "level": 0.417600005865097,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "pw": 0.15,
+    "release": 0.180099993944168,
+    "reso": 0.200000002980232,
+    "sustain": 0.899999976158142
+  },
+  "version": 1
+}

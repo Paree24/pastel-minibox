@@ -1,0 +1,29 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Screamer",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.668799996376038,
+    "cutoff": 1611.187255859375,
+    "decay": 0.800000011920929,
+    "delayDiv": 9,
+    "delayDuck": 0.5,
+    "delayFb": 0.45,
+    "delayMix": 0.3,
+    "delayTone": 0.5,
+    "envMod": 0.400000005960464,
+    "level": 1.059200048446655,
+    "oscWave": 0,
+    "reso": 0.934899985790253,
+    "revPre": 0.018,
+    "revSize": 0.47,
+    "revTone": 0.55,
+    "reverb": 0.2,
+    "sweep": 0.4,
+    "bassComp": 0.25,
+    "pw": 0.5
+  },
+  "version": 1
+}

@@ -1,0 +1,25 @@
+{
+  "family": "Keys",
+  "macros": "",
+  "name": "Mallet Keys",
+  "samples": [
+    "factory:src008_mallet_keys"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.001,
+    "decay": 2.6961875,
+    "drive": 0.3,
+    "level": 0.209900006651878,
+    "playMode": 1,
+    "release": 0.4,
+    "revPre": 0.023,
+    "revSize": 0.58,
+    "reverb": 0.3,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

@@ -1,0 +1,30 @@
+{
+  "family": "Sub",
+  "macros": "",
+  "name": "Wobbly Sub",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.003,
+    "cutoff": 150,
+    "decay": 1.0,
+    "envAmt": 0.0,
+    "key": 0.2,
+    "level": 0.303700000047684,
+    "lfoCut": 0.35,
+    "lfoFade": 0.0,
+    "lfoPwm": 0.0,
+    "lfoRate": 2.0,
+    "lfoShape": 0,
+    "mixNoise": 0.0,
+    "mixPulse": 0.4,
+    "mixSaw": 0.0,
+    "mixSub": 1.0,
+    "pw": 0.5,
+    "release": 0.18,
+    "reso": 0.4,
+    "subType": 0,
+    "sustain": 1.0
+  },
+  "version": 1
+}

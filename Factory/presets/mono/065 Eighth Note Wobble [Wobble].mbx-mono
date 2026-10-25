@@ -1,0 +1,31 @@
+{
+  "family": "Wobble",
+  "macros": "",
+  "name": "Eighth Note Wobble",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.003,
+    "cutoff": 220,
+    "decay": 0.4,
+    "drive": 0.3,
+    "envAmt": 0.0,
+    "key": 0.3,
+    "level": 0.326700001955032,
+    "lfoCut": 0.7,
+    "lfoDiv": 7,
+    "lfoFade": 0.0,
+    "lfoPwm": 0.0,
+    "lfoShape": 0,
+    "lfoSync": 1,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.6,
+    "release": 0.15,
+    "reso": 0.6,
+    "subType": 0,
+    "sustain": 1.0
+  },
+  "version": 1
+}

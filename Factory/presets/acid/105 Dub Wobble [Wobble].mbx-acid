@@ -1,0 +1,28 @@
+{
+  "family": "Wobble",
+  "macros": "",
+  "name": "Dub Wobble",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 260,
+    "decay": 2.0,
+    "delayDiv": 6,
+    "delayDuck": 0.5,
+    "delayFb": 0.5,
+    "delayMix": 0.3,
+    "delayTone": 0.5,
+    "envMod": 0.1,
+    "level": 0.696600019931793,
+    "lfoCut": 0.75,
+    "lfoDiv": 3,
+    "lfoShape": 0,
+    "lfoSync": 1,
+    "oscWave": 1,
+    "reso": 0.8,
+    "sub": 0.5,
+    "sweep": 0.4
+  },
+  "version": 1
+}

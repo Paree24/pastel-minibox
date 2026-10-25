@@ -1,0 +1,31 @@
+{
+  "family": "Wobble",
+  "macros": "",
+  "name": "Square LFO Wobble",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.003,
+    "cutoff": 200,
+    "decay": 0.4,
+    "envAmt": 0.0,
+    "key": 0.3,
+    "level": 0.3783999979496,
+    "lfoCut": 0.7,
+    "lfoDiv": 7,
+    "lfoFade": 0.0,
+    "lfoPwm": 0.0,
+    "lfoShape": 1,
+    "lfoSync": 1,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.7,
+    "pw": 0.5,
+    "release": 0.15,
+    "reso": 0.72,
+    "subType": 0,
+    "sustain": 1.0
+  },
+  "version": 1
+}

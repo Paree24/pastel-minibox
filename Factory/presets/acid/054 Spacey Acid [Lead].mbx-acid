@@ -1,0 +1,27 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Spacey Acid",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 1200,
+    "decay": 0.8,
+    "delayDiv": 6,
+    "delayDuck": 0.4,
+    "delayFb": 0.6,
+    "delayMix": 0.45,
+    "delayTone": 0.5,
+    "envMod": 0.5,
+    "level": 1.289899945259094,
+    "oscWave": 0,
+    "reso": 0.85,
+    "revPre": 0.028,
+    "revSize": 0.69,
+    "revTone": 0.55,
+    "reverb": 0.4,
+    "sweep": 0.4
+  },
+  "version": 1
+}

@@ -1,0 +1,29 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Long Pluck",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 507.262298583984375,
+    "decay": 1.671599984169006,
+    "envAmt": 0.699999988079071,
+    "fxChorus": 0.3,
+    "fxReverb": 0.35,
+    "key": 0.899999976158142,
+    "level": 0.543699979782104,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.0,
+    "pw": 0.35,
+    "release": 0.899999976158142,
+    "reso": 0.5,
+    "revPre": 0.0255,
+    "revSize": 0.635,
+    "revTone": 0.55,
+    "sustain": 0.148599997162819
+  },
+  "version": 1
+}

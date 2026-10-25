@@ -1,0 +1,28 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Driven Pluck",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 400,
+    "decay": 1.8,
+    "drive": 0.6,
+    "envAmt": 0.8,
+    "fxDelay": 0.2,
+    "fxFeedback": 0.4,
+    "fxTime": 9,
+    "key": 0.8,
+    "level": 0.431699991226196,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.3,
+    "release": 0.225,
+    "reso": 0.5,
+    "subType": 0,
+    "sustain": 0.0
+  },
+  "version": 1
+}

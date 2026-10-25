@@ -1,0 +1,26 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Screaming Lead",
+  "samples": [
+    "factory:src069_screaming_lead"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.005,
+    "decay": 1.0,
+    "level": 0.425700008869171,
+    "loopLen": 0.2124128775307,
+    "loopStart": 0.238964487222038,
+    "playMode": 2,
+    "release": 0.6,
+    "revPre": 0.0255,
+    "revSize": 0.635,
+    "reverb": 0.35,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

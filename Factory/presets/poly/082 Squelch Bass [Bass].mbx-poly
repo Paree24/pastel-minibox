@@ -1,0 +1,27 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Squelch Bass",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.001,
+    "aDecay": 0.4,
+    "aRelease": 0.12,
+    "aSustain": 0.5,
+    "cutoff": 220,
+    "engine": 1,
+    "envAmt": 0.7,
+    "fAttack": 0.001,
+    "fDecay": 0.25,
+    "fRelease": 0.15,
+    "fSustain": 0.0,
+    "filterDrive": 0.4,
+    "filterMode": 1,
+    "key": 0.3,
+    "level": 0.707099974155426,
+    "reso": 0.75,
+    "vaWave": 0
+  },
+  "version": 1
+}

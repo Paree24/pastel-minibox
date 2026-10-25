@@ -1,0 +1,26 @@
+{
+  "family": "Wobble",
+  "macros": "",
+  "name": "Overdriven Wobble",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 300,
+    "decay": 1.5,
+    "driveAmt": 0.7,
+    "driveMix": 1.0,
+    "driveTone": 0.55,
+    "driveType": 0,
+    "envMod": 0.15,
+    "level": 0.399699985980988,
+    "lfoCut": 0.7,
+    "lfoDiv": 9,
+    "lfoShape": 0,
+    "lfoSync": 1,
+    "oscWave": 0,
+    "reso": 0.85,
+    "sweep": 0.4
+  },
+  "version": 1
+}

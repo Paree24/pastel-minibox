@@ -1,0 +1,27 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Distortion Lead",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 1400,
+    "decay": 0.7,
+    "delayDiv": 9,
+    "delayDuck": 0.5,
+    "delayFb": 0.45,
+    "delayMix": 0.25,
+    "delayTone": 0.5,
+    "driveAmt": 0.5,
+    "driveMix": 1.0,
+    "driveTone": 0.6,
+    "driveType": 1,
+    "envMod": 0.45,
+    "level": 0.696399986743927,
+    "oscWave": 0,
+    "reso": 0.85,
+    "sweep": 0.4
+  },
+  "version": 1
+}

@@ -1,0 +1,28 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Soft Sub Bass",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.005,
+    "aDecay": 0.8,
+    "aRelease": 0.225,
+    "aSustain": 0.9,
+    "cutoff": 200,
+    "dcoPw": 0.5,
+    "dcoWave": 0,
+    "engine": 0,
+    "envAmt": 0.2,
+    "fAttack": 0.005,
+    "fDecay": 0.6,
+    "fRelease": 0.225,
+    "fSustain": 0.7,
+    "hpf": 0,
+    "key": 0.2,
+    "level": 0.160899996757507,
+    "reso": 0.0,
+    "sub": 1.0
+  },
+  "version": 1
+}

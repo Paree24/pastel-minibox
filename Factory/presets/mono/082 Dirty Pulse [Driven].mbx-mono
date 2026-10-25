@@ -1,0 +1,27 @@
+{
+  "family": "Driven",
+  "macros": "",
+  "name": "Dirty Pulse",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.003,
+    "cutoff": 608.525390625,
+    "decay": 0.5,
+    "drive": 0.7,
+    "envAmt": 0.5,
+    "key": 0.459399998188019,
+    "level": 0.245900005102158,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.0,
+    "pw": 0.2,
+    "pwm": 0.4,
+    "pwmSrc": 1,
+    "release": 0.180000007152557,
+    "reso": 0.5,
+    "sustain": 0.612600028514862
+  },
+  "version": 1
+}

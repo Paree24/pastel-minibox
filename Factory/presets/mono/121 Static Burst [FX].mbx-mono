@@ -1,0 +1,28 @@
+{
+  "family": "FX",
+  "macros": "",
+  "name": "Static Burst",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 2500,
+    "decay": 0.675,
+    "envAmt": 0.3,
+    "key": 0.0,
+    "level": 1.793599963188171,
+    "lfoCut": 0.4,
+    "lfoFade": 0.0,
+    "lfoPwm": 0.0,
+    "lfoRate": 25.0,
+    "lfoShape": 3,
+    "mixNoise": 1.0,
+    "mixPulse": 0.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.0,
+    "release": 0.3,
+    "reso": 0.4,
+    "sustain": 0.0
+  },
+  "version": 1
+}

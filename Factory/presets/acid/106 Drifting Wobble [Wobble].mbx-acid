@@ -1,0 +1,24 @@
+{
+  "family": "Wobble",
+  "macros": "",
+  "name": "Drifting Wobble",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.582099974155426,
+    "cutoff": 386.184814453125,
+    "decay": 1.5,
+    "envMod": 0.200000002980232,
+    "level": 0.903999984264374,
+    "lfoCut": 0.8,
+    "lfoRate": 0.7,
+    "lfoShape": 0,
+    "lfoSync": 0,
+    "oscWave": 0,
+    "reso": 0.888199985027313,
+    "sweep": 0.4,
+    "bassComp": 0.25,
+    "pw": 0.5
+  },
+  "version": 1
+}

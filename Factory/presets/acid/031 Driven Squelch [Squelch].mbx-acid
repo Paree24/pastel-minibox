@@ -1,0 +1,22 @@
+{
+  "family": "Squelch",
+  "macros": "",
+  "name": "Driven Squelch",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 300,
+    "decay": 0.3,
+    "driveAmt": 0.4,
+    "driveMix": 1.0,
+    "driveTone": 0.6,
+    "driveType": 1,
+    "envMod": 0.85,
+    "level": 0.547800004482269,
+    "oscWave": 0,
+    "reso": 0.92,
+    "sweep": 0.4
+  },
+  "version": 1
+}

@@ -1,0 +1,25 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Long Pluck",
+  "samples": [
+    "factory:src096_long_pluck"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.001,
+    "decay": 1.947791666666667,
+    "drive": 0.3,
+    "level": 0.222699999809265,
+    "playMode": 1,
+    "release": 0.4,
+    "revPre": 0.023,
+    "revSize": 0.58,
+    "reverb": 0.3,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

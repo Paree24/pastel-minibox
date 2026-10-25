@@ -1,0 +1,27 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Distant Lead",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 900,
+    "decay": 0.9,
+    "delayDiv": 4,
+    "delayDuck": 0.5,
+    "delayFb": 0.55,
+    "delayMix": 0.35,
+    "delayTone": 0.5,
+    "envMod": 0.5,
+    "level": 1.32889997959137,
+    "oscWave": 0,
+    "reso": 0.85,
+    "revPre": 0.0305,
+    "revSize": 0.745,
+    "revTone": 0.55,
+    "reverb": 0.45,
+    "sweep": 0.4
+  },
+  "version": 1
+}

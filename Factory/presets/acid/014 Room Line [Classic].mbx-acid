@@ -1,0 +1,20 @@
+{
+  "family": "Classic",
+  "macros": "",
+  "name": "Room Line",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.600000023841858,
+    "cutoff": 640.67279052734375,
+    "decay": 0.449999988079071,
+    "envMod": 0.755200028419495,
+    "level": 0.785899996757507,
+    "oscWave": 1,
+    "reso": 0.699999988079071,
+    "sweep": 0.4,
+    "bassComp": 0.058699999004602,
+    "pw": 0.5
+  },
+  "version": 1
+}

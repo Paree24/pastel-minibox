@@ -1,0 +1,24 @@
+{
+  "family": "Wobble",
+  "macros": "",
+  "name": "Slow Breathing",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.600000023841858,
+    "cutoff": 329.383514404296875,
+    "decay": 1.483800053596497,
+    "envMod": 0.200000002980232,
+    "level": 1.048799991607666,
+    "lfoCut": 0.6,
+    "lfoDiv": 1,
+    "lfoShape": 0,
+    "lfoSync": 1,
+    "oscWave": 0,
+    "reso": 0.800000011920929,
+    "sweep": 0.4,
+    "bassComp": 0.352800011634827,
+    "pw": 0.5
+  },
+  "version": 1
+}

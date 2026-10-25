@@ -1,0 +1,26 @@
+{
+  "family": "Driven",
+  "macros": "",
+  "name": "Saturated Square",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.003,
+    "cutoff": 1500,
+    "decay": 0.5,
+    "drive": 1.0,
+    "envAmt": 0.2,
+    "fxChorus": 0.2,
+    "key": 0.6,
+    "level": 0.145300000905991,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.0,
+    "pw": 0.5,
+    "release": 0.225,
+    "reso": 0.3,
+    "sustain": 0.9
+  },
+  "version": 1
+}

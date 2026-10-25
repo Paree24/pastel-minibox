@@ -1,0 +1,33 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Short Saw Pluck",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.001,
+    "aDecay": 1.8,
+    "aRelease": 0.375,
+    "aSustain": 0.0,
+    "cutoff": 300,
+    "dcoWave": 1,
+    "delayDiv": 10,
+    "delayFb": 0.4,
+    "delayMix": 0.3,
+    "delayTone": 0.5,
+    "engine": 0,
+    "envAmt": 0.9,
+    "fAttack": 0.001,
+    "fDecay": 0.24,
+    "fRelease": 0.225,
+    "fSustain": 0.0,
+    "key": 0.8,
+    "level": 1.221199989318848,
+    "reso": 0.5,
+    "revPre": 0.018,
+    "revSize": 0.47,
+    "revTone": 0.55,
+    "reverb": 0.2
+  },
+  "version": 1
+}

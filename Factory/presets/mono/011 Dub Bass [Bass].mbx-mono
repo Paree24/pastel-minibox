@@ -1,0 +1,28 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Dub Bass",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.003,
+    "cutoff": 260,
+    "decay": 0.8,
+    "envAmt": 0.3,
+    "fxDelay": 0.18,
+    "fxFeedback": 0.45,
+    "fxTime": 6,
+    "key": 0.2,
+    "level": 0.334899991750717,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.6,
+    "pw": 0.5,
+    "release": 0.3,
+    "reso": 0.2,
+    "subType": 1,
+    "sustain": 0.7
+  },
+  "version": 1
+}

@@ -1,0 +1,22 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Round Low",
+  "samples": [
+    "factory:src058_round_low"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.00179999996908,
+    "decay": 2.063800096511841,
+    "level": 0.370799988508224,
+    "playMode": 1,
+    "release": 0.297800004482269,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 36,
+    "cutoff": 2254.810791015625
+  },
+  "version": 1
+}

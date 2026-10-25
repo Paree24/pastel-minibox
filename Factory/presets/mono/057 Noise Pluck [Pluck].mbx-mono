@@ -1,0 +1,27 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Noise Pluck",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 900,
+    "decay": 1.8,
+    "envAmt": 0.8,
+    "fxReverb": 0.25,
+    "key": 1.0,
+    "level": 1.073199987411499,
+    "mixNoise": 0.6,
+    "mixPulse": 0.0,
+    "mixSaw": 0.5,
+    "mixSub": 0.0,
+    "release": 0.225,
+    "reso": 0.65,
+    "revPre": 0.0205,
+    "revSize": 0.525,
+    "revTone": 0.55,
+    "sustain": 0.0
+  },
+  "version": 1
+}

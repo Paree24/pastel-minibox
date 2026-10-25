@@ -1,0 +1,27 @@
+{
+  "family": "Stack",
+  "macros": "",
+  "name": "Heavy Stack",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 400,
+    "decay": 0.6,
+    "driveAmt": 0.4,
+    "driveMix": 1.0,
+    "driveTone": 0.6,
+    "driveType": 1,
+    "envMod": 0.5,
+    "level": 0.552799999713898,
+    "oscWave": 0,
+    "reso": 0.7,
+    "stack": 1,
+    "stackMix": 0.6,
+    "stackMode": 2,
+    "stackSpread": 0.5,
+    "sub": 0.4,
+    "sweep": 0.4
+  },
+  "version": 1
+}

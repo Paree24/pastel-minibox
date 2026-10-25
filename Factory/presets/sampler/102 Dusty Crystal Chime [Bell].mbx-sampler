@@ -1,0 +1,24 @@
+{
+  "family": "Bell",
+  "macros": "",
+  "name": "Dusty Crystal Chime",
+  "samples": [
+    "factory:src102_crystal_chime"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.001,
+    "bits": 12,
+    "character": 1,
+    "decay": 4.205041666666666,
+    "level": 0.364600002765656,
+    "playMode": 1,
+    "rate": 20,
+    "release": 0.4,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 72
+  },
+  "version": 1
+}

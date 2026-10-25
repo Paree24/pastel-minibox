@@ -1,0 +1,27 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Crying Acid",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 1600,
+    "decay": 1.4,
+    "delayDiv": 6,
+    "delayDuck": 0.5,
+    "delayFb": 0.55,
+    "delayMix": 0.3,
+    "delayTone": 0.5,
+    "envMod": 0.5,
+    "level": 1.019000053405762,
+    "oscWave": 0.3,
+    "reso": 0.93,
+    "revPre": 0.0255,
+    "revSize": 0.635,
+    "revTone": 0.55,
+    "reverb": 0.35,
+    "sweep": 0.4
+  },
+  "version": 1
+}

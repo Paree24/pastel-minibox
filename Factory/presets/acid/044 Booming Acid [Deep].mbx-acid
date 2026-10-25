@@ -1,0 +1,19 @@
+{
+  "family": "Deep",
+  "macros": "",
+  "name": "Booming Acid",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 200,
+    "decay": 2.0,
+    "envMod": 0.5,
+    "level": 0.700100004673004,
+    "oscWave": 1,
+    "reso": 0.6,
+    "sub": 0.6,
+    "sweep": 0.4
+  },
+  "version": 1
+}

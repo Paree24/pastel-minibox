@@ -1,0 +1,26 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Buzz Lead",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.004,
+    "cutoff": 3800,
+    "decay": 0.3,
+    "drive": 0.35,
+    "envAmt": 0.1,
+    "fxChorus": 0.2,
+    "key": 0.9,
+    "level": 0.514400005340576,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "pw": 0.5,
+    "release": 0.225,
+    "reso": 0.15,
+    "sustain": 0.9
+  },
+  "version": 1
+}

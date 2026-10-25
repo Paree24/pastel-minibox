@@ -1,0 +1,33 @@
+{
+  "family": "Stab",
+  "macros": "",
+  "name": "Dub Chord",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.002,
+    "chord": 1,
+    "cutoff": 700,
+    "decay": 0.54,
+    "envAmt": 0.5,
+    "fxDelay": 0.45,
+    "fxFeedback": 0.6,
+    "fxReverb": 0.3,
+    "fxTime": 6,
+    "key": 0.5,
+    "level": 0.486799985170364,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.0,
+    "pw": 0.5,
+    "release": 0.3,
+    "reso": 0.4,
+    "revPre": 0.023,
+    "revSize": 0.58,
+    "revTone": 0.55,
+    "sustain": 0.0,
+    "voiceMode": 3
+  },
+  "version": 1
+}

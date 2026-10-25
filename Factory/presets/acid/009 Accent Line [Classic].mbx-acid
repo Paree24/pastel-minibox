@@ -1,0 +1,23 @@
+{
+  "family": "Classic",
+  "macros": "",
+  "name": "Accent Line",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.95,
+    "cutoff": 420,
+    "decay": 0.4,
+    "delayDiv": 6,
+    "delayDuck": 0.5,
+    "delayFb": 0.4,
+    "delayMix": 0.2,
+    "delayTone": 0.5,
+    "envMod": 0.4,
+    "level": 1.02240002155304,
+    "oscWave": 0.3,
+    "reso": 0.75,
+    "sweep": 0.8
+  },
+  "version": 1
+}

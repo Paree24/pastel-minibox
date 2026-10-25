@@ -1,0 +1,20 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Resonant Blip",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "ampDecay": 0.16,
+    "ampMode": 1,
+    "cutoff": 500,
+    "decay": 0.2,
+    "envMod": 0.85,
+    "level": 1.380699992179871,
+    "oscWave": 0,
+    "reso": 0.95,
+    "sweep": 0.4
+  },
+  "version": 1
+}

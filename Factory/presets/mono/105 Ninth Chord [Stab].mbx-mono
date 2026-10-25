@@ -1,0 +1,29 @@
+{
+  "family": "Stab",
+  "macros": "",
+  "name": "Ninth Chord",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.004,
+    "chord": 6,
+    "cutoff": 2118.0927734375,
+    "decay": 1.612800002098083,
+    "envAmt": 0.400000005960464,
+    "fxReverb": 0.4,
+    "key": 0.5,
+    "level": 0.5314000248909,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "release": 0.75,
+    "reso": 0.25,
+    "revPre": 0.028,
+    "revSize": 0.69,
+    "revTone": 0.55,
+    "sustain": 0.442900002002716,
+    "voiceMode": 3
+  },
+  "version": 1
+}

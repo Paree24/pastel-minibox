@@ -1,0 +1,23 @@
+{
+  "family": "Squelch",
+  "macros": "",
+  "name": "Wet Squelch",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 330,
+    "decay": 0.4,
+    "delayDiv": 9,
+    "delayDuck": 0.5,
+    "delayFb": 0.5,
+    "delayMix": 0.3,
+    "delayTone": 0.5,
+    "envMod": 0.85,
+    "level": 1.013700008392334,
+    "oscWave": 0,
+    "reso": 0.93,
+    "sweep": 0.4
+  },
+  "version": 1
+}

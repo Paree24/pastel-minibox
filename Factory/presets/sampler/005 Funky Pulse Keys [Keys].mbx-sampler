@@ -1,0 +1,24 @@
+{
+  "family": "Keys",
+  "macros": "",
+  "name": "Funky Pulse Keys",
+  "samples": [
+    "factory:src005_funky_pulse_keys"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.001,
+    "decay": 3.512125,
+    "level": 0.364399999380112,
+    "playMode": 1,
+    "release": 0.4,
+    "revPre": 0.0255,
+    "revSize": 0.635,
+    "reverb": 0.35,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

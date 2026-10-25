@@ -1,0 +1,23 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Pulse Lead",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 2200,
+    "decay": 0.6,
+    "envMod": 0.3,
+    "level": 0.880400002002716,
+    "oscWave": 1,
+    "pw": 0.3,
+    "reso": 0.7,
+    "revPre": 0.0205,
+    "revSize": 0.525,
+    "revTone": 0.55,
+    "reverb": 0.25,
+    "sweep": 0.4
+  },
+  "version": 1
+}

@@ -1,0 +1,28 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Dark Lead",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.02,
+    "cutoff": 800,
+    "decay": 0.7,
+    "envAmt": 0.3,
+    "fxReverb": 0.3,
+    "key": 0.7,
+    "level": 1.327399969100952,
+    "mixNoise": 0.0,
+    "mixPulse": 0.5,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "pw": 0.5,
+    "release": 0.45,
+    "reso": 0.4,
+    "revPre": 0.023,
+    "revSize": 0.58,
+    "revTone": 0.55,
+    "sustain": 0.8
+  },
+  "version": 1
+}

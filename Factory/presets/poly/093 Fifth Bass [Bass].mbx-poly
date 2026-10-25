@@ -1,0 +1,27 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Fifth Bass",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.001,
+    "aDecay": 0.4,
+    "aRelease": 0.15,
+    "aSustain": 0.6,
+    "cutoff": 400,
+    "engine": 1,
+    "envAmt": 0.6,
+    "fAttack": 0.001,
+    "fDecay": 0.25,
+    "fRelease": 0.15,
+    "fSustain": 0.2,
+    "filterMode": 1,
+    "key": 0.3,
+    "level": 1.137799978256226,
+    "reso": 0.35,
+    "vaWave": 0,
+    "voiceMode": 4
+  },
+  "version": 1
+}

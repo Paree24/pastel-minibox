@@ -1,0 +1,24 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Warm Fingered Bass",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.004,
+    "cutoff": 600.0,
+    "decay": 0.600000023841858,
+    "envAmt": 0.103799998760223,
+    "key": 0.423299998044968,
+    "level": 0.561500012874603,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.4,
+    "release": 0.180000007152557,
+    "reso": 0.100000001490116,
+    "subType": 0,
+    "sustain": 0.590300023555756
+  },
+  "version": 1
+}

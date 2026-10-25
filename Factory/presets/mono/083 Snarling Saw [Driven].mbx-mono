@@ -1,0 +1,24 @@
+{
+  "family": "Driven",
+  "macros": "",
+  "name": "Snarling Saw",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 650,
+    "decay": 0.25,
+    "drive": 1.0,
+    "envAmt": 0.6,
+    "key": 0.5,
+    "level": 0.42739999294281,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "release": 0.15,
+    "reso": 0.8,
+    "sustain": 0.6
+  },
+  "version": 1
+}

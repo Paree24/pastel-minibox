@@ -1,0 +1,21 @@
+{
+  "family": "Texture",
+  "macros": "",
+  "name": "Static Burst",
+  "samples": [
+    "factory:src121_static_burst"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.001,
+    "decay": 0.613354166666667,
+    "level": 0.400200009346008,
+    "playMode": 0,
+    "release": 0.4,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

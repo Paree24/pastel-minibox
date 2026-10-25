@@ -1,0 +1,32 @@
+{
+  "family": "Wobble",
+  "macros": "",
+  "name": "Plucked Wobble",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 450,
+    "decay": 1.8,
+    "envAmt": 0.6,
+    "fxDelay": 0.2,
+    "fxFeedback": 0.35,
+    "fxTime": 9,
+    "key": 0.5,
+    "level": 0.568599998950958,
+    "lfoCut": 0.4,
+    "lfoDiv": 10,
+    "lfoFade": 0.0,
+    "lfoPwm": 0.0,
+    "lfoShape": 0,
+    "lfoSync": 1,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "release": 0.225,
+    "reso": 0.7,
+    "sustain": 0.15
+  },
+  "version": 1
+}

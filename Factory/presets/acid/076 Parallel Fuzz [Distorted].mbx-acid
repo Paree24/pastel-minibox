@@ -1,0 +1,22 @@
+{
+  "family": "Distorted",
+  "macros": "",
+  "name": "Parallel Fuzz",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 450,
+    "decay": 0.5,
+    "driveAmt": 1.0,
+    "driveMix": 0.45,
+    "driveTone": 0.5,
+    "driveType": 2,
+    "envMod": 0.6,
+    "level": 1.052000045776367,
+    "oscWave": 0.5,
+    "reso": 0.8,
+    "sweep": 0.4
+  },
+  "version": 1
+}

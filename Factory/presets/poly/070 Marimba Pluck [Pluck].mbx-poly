@@ -1,0 +1,30 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Marimba Pluck",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.001,
+    "aDecay": 1.799999952316284,
+    "aRelease": 0.589100003242493,
+    "aSustain": 0.0,
+    "cutoff": 1274.1549072265625,
+    "engine": 1,
+    "envAmt": 0.699999988079071,
+    "fAttack": 0.001,
+    "fDecay": 0.19200000166893,
+    "fRelease": 0.3,
+    "fSustain": 0.0,
+    "filterMode": 1,
+    "key": 0.899999976158142,
+    "level": 0.898899972438812,
+    "reso": 0.358500003814697,
+    "revPre": 0.023,
+    "revSize": 0.58,
+    "revTone": 0.55,
+    "reverb": 0.3,
+    "vaWave": 2
+  },
+  "version": 1
+}

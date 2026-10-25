@@ -1,0 +1,20 @@
+{
+  "family": "Classic",
+  "macros": "",
+  "name": "Gentle Line",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.199200004339218,
+    "cutoff": 930.156494140625,
+    "decay": 0.603100001811981,
+    "envMod": 0.349999994039536,
+    "level": 0.752900004386902,
+    "oscWave": 1,
+    "reso": 0.461400002241135,
+    "sweep": 0.4,
+    "bassComp": 0.487899988889694,
+    "pw": 0.416000008583069
+  },
+  "version": 1
+}

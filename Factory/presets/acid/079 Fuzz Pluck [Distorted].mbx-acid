@@ -1,0 +1,24 @@
+{
+  "family": "Distorted",
+  "macros": "",
+  "name": "Fuzz Pluck",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "ampDecay": 0.2,
+    "ampMode": 1,
+    "cutoff": 600,
+    "decay": 0.25,
+    "driveAmt": 0.7,
+    "driveMix": 1.0,
+    "driveTone": 0.6,
+    "driveType": 2,
+    "envMod": 0.8,
+    "level": 1.079900026321411,
+    "oscWave": 0,
+    "reso": 0.8,
+    "sweep": 0.4
+  },
+  "version": 1
+}

@@ -1,0 +1,21 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Square Thump",
+  "samples": [
+    "factory:src050_square_thump"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.001,
+    "decay": 2.235145833333333,
+    "level": 0.279300004243851,
+    "playMode": 1,
+    "release": 0.4,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 36
+  },
+  "version": 1
+}

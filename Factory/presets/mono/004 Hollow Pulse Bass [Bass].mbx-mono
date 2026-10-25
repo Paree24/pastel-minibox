@@ -1,0 +1,26 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Hollow Pulse Bass",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.002,
+    "cutoff": 420,
+    "decay": 0.4,
+    "envAmt": 0.45,
+    "fxChorus": 0.25,
+    "key": 0.4,
+    "level": 0.590900003910065,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.5,
+    "pw": 0.18,
+    "release": 0.12,
+    "reso": 0.3,
+    "subType": 0,
+    "sustain": 0.5
+  },
+  "version": 1
+}

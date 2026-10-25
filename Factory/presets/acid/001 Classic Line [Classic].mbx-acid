@@ -1,0 +1,20 @@
+{
+  "family": "Classic",
+  "macros": "",
+  "name": "Classic Line",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.664699971675873,
+    "cutoff": 440.19488525390625,
+    "decay": 0.647899985313416,
+    "envMod": 0.364800006151199,
+    "level": 1.145699977874756,
+    "oscWave": 0,
+    "reso": 0.801100015640259,
+    "sweep": 0.4,
+    "bassComp": 0.25,
+    "pw": 0.5
+  },
+  "version": 1
+}

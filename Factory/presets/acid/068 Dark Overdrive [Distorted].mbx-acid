@@ -1,0 +1,22 @@
+{
+  "family": "Distorted",
+  "macros": "",
+  "name": "Dark Overdrive",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 380,
+    "decay": 0.6,
+    "driveAmt": 0.75,
+    "driveMix": 1.0,
+    "driveTone": 0.1,
+    "driveType": 0,
+    "envMod": 0.55,
+    "level": 0.540700018405914,
+    "oscWave": 0.3,
+    "reso": 0.75,
+    "sweep": 0.4
+  },
+  "version": 1
+}

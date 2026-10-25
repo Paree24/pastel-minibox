@@ -1,0 +1,26 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Gated Square Bass",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "ampMode": 1,
+    "attack": 0.002,
+    "cutoff": 900,
+    "decay": 0.1,
+    "envAmt": 0.1,
+    "key": 0.4,
+    "level": 0.233799993991852,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.5,
+    "pw": 0.5,
+    "release": 0.045,
+    "reso": 0.15,
+    "subType": 0,
+    "sustain": 1.0
+  },
+  "version": 1
+}

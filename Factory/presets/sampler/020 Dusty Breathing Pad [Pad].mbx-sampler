@@ -1,0 +1,29 @@
+{
+  "family": "Pad",
+  "macros": "",
+  "name": "Dusty Breathing Pad",
+  "samples": [
+    "factory:src020_breathing_pad"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.005,
+    "bits": 12,
+    "character": 1,
+    "decay": 1.0,
+    "level": 0.316100001335144,
+    "loopLen": 0.225131033296724,
+    "loopStart": 0.253272412458814,
+    "playMode": 2,
+    "rate": 20,
+    "release": 0.6,
+    "revPre": 0.018,
+    "revSize": 0.47,
+    "reverb": 0.2,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

@@ -1,0 +1,32 @@
+{
+  "family": "Keys",
+  "macros": "",
+  "name": "Tine Keys",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.001,
+    "aDecay": 3.78,
+    "aRelease": 0.9,
+    "aSustain": 0.1,
+    "chorusMix": 0.5,
+    "chorusMode": 1,
+    "cutoff": 4500,
+    "dcoPw": 0.5,
+    "dcoWave": 0,
+    "engine": 0,
+    "envAmt": 0.4,
+    "fAttack": 0.001,
+    "fDecay": 0.24,
+    "fRelease": 0.45,
+    "fSustain": 0.1,
+    "key": 0.9,
+    "level": 1.259400010108948,
+    "reso": 0.4,
+    "revPre": 0.023,
+    "revSize": 0.58,
+    "revTone": 0.55,
+    "reverb": 0.3
+  },
+  "version": 1
+}

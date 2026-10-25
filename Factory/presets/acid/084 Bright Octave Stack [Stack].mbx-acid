@@ -1,0 +1,22 @@
+{
+  "family": "Stack",
+  "macros": "",
+  "name": "Bright Octave Stack",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 900,
+    "decay": 0.8,
+    "envMod": 0.3,
+    "level": 0.917800009250641,
+    "oscWave": 1,
+    "reso": 0.4,
+    "stack": 1,
+    "stackMix": 0.8,
+    "stackMode": 2,
+    "stackSpread": 0.7,
+    "sweep": 0.4
+  },
+  "version": 1
+}

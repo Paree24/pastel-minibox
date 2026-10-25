@@ -1,0 +1,24 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Key Lead",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 800,
+    "decay": 0.8,
+    "delayDiv": 6,
+    "delayDuck": 0.5,
+    "delayFb": 0.45,
+    "delayMix": 0.2,
+    "delayTone": 0.5,
+    "envMod": 0.4,
+    "key": 1.0,
+    "level": 1.310500025749207,
+    "oscWave": 0,
+    "reso": 0.85,
+    "sweep": 0.4
+  },
+  "version": 1
+}

@@ -1,0 +1,24 @@
+{
+  "family": "Bell",
+  "macros": "",
+  "name": "Dusty Wood Block",
+  "samples": [
+    "factory:src110_wood_block"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.001,
+    "bits": 12,
+    "character": 1,
+    "decay": 0.317208333333333,
+    "level": 0.461600005626678,
+    "playMode": 1,
+    "rate": 20,
+    "release": 0.4,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 72
+  },
+  "version": 1
+}

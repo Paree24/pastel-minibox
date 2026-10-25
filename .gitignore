@@ -1,0 +1,7 @@
+# build output and tooling
+build/
+.cache/
+.claude/
+compile_commands.json
+# design mockups live outside the repository
+mockups/

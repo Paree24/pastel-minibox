@@ -1,0 +1,20 @@
+{
+  "family": "Classic",
+  "macros": "",
+  "name": "Hybrid Line",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.129399999976158,
+    "cutoff": 480.0,
+    "decay": 0.547699987888336,
+    "envMod": 0.613699972629547,
+    "level": 0.891300022602081,
+    "oscWave": 0.5,
+    "reso": 0.617299973964691,
+    "sweep": 0.4,
+    "bassComp": 1.0,
+    "pw": 0.529299974441528
+  },
+  "version": 1
+}

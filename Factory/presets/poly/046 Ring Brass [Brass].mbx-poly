@@ -1,0 +1,31 @@
+{
+  "family": "Brass",
+  "macros": "",
+  "name": "Ring Brass",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.035,
+    "aDecay": 0.6,
+    "aRelease": 0.45,
+    "aSustain": 0.85,
+    "cutoff": 1500,
+    "engine": 1,
+    "envAmt": 0.5,
+    "fAttack": 0.06,
+    "fDecay": 0.5,
+    "fRelease": 0.45,
+    "fSustain": 0.5,
+    "filterMode": 1,
+    "key": 0.5,
+    "level": 0.864799976348877,
+    "reso": 0.2,
+    "revPre": 0.023,
+    "revSize": 0.58,
+    "revTone": 0.55,
+    "reverb": 0.3,
+    "vaWave": 0,
+    "voiceMode": 5
+  },
+  "version": 1
+}

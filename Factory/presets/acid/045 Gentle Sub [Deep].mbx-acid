@@ -1,0 +1,21 @@
+{
+  "family": "Deep",
+  "macros": "",
+  "name": "Gentle Sub",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.333600014448166,
+    "cutoff": 220.0,
+    "decay": 1.200000047683716,
+    "envMod": 0.016400000080466,
+    "level": 2.0,
+    "oscWave": 0,
+    "reso": 0.062199998646975,
+    "sub": 0.8,
+    "sweep": 0.4,
+    "bassComp": 0.25,
+    "pw": 0.5
+  },
+  "version": 1
+}

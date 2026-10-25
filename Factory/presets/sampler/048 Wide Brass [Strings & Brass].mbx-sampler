@@ -1,0 +1,27 @@
+{
+  "family": "Strings & Brass",
+  "macros": "",
+  "name": "Wide Brass",
+  "samples": [
+    "factory:src048_wide_brass"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.005,
+    "decay": 1.0,
+    "drive": 0.3,
+    "level": 0.179000005125999,
+    "loopLen": 0.205185201017377,
+    "loopStart": 0.230833351144549,
+    "playMode": 2,
+    "release": 0.6,
+    "revPre": 0.023,
+    "revSize": 0.58,
+    "reverb": 0.3,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

@@ -1,0 +1,30 @@
+{
+  "family": "Sub",
+  "macros": "",
+  "name": "Sub Drone",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.6,
+    "cutoff": 240,
+    "decay": 1.0,
+    "envAmt": 0.0,
+    "key": 0.2,
+    "level": 0.275000005960464,
+    "lfoCut": 0.2,
+    "lfoFade": 0.0,
+    "lfoPwm": 0.0,
+    "lfoRate": 0.6,
+    "lfoShape": 2,
+    "mixNoise": 0.0,
+    "mixPulse": 0.5,
+    "mixSaw": 0.0,
+    "mixSub": 1.0,
+    "pw": 0.5,
+    "release": 2.25,
+    "reso": 0.3,
+    "subType": 1,
+    "sustain": 1.0
+  },
+  "version": 1
+}

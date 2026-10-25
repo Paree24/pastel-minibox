@@ -1,0 +1,24 @@
+{
+  "family": "Distorted",
+  "macros": "",
+  "name": "Screaming Overdrive",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 1.0,
+    "cutoff": 420.0,
+    "decay": 0.349999994039536,
+    "driveAmt": 0.9,
+    "driveMix": 1.0,
+    "driveTone": 0.75,
+    "driveType": 0,
+    "envMod": 0.800000011920929,
+    "level": 0.316599994897842,
+    "oscWave": 0,
+    "reso": 0.992200016975403,
+    "sweep": 0.7,
+    "bassComp": 0.25,
+    "pw": 0.354999989271164
+  },
+  "version": 1
+}

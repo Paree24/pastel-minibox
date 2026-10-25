@@ -1,0 +1,30 @@
+{
+  "family": "Wobble",
+  "macros": "",
+  "name": "Triplet Wobble",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.003,
+    "cutoff": 380,
+    "decay": 0.4,
+    "drive": 0.5,
+    "envAmt": 0.0,
+    "key": 0.4,
+    "level": 0.264699995517731,
+    "lfoCut": 0.5,
+    "lfoDiv": 8,
+    "lfoFade": 0.0,
+    "lfoPwm": 0.0,
+    "lfoShape": 0,
+    "lfoSync": 1,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "release": 0.15,
+    "reso": 0.75,
+    "sustain": 1.0
+  },
+  "version": 1
+}

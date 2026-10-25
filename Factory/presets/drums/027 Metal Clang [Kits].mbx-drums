@@ -1,0 +1,31 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Metal Clang",
+  "samples": [],
+  "type": "drums",
+  "values": {
+    "kitLevel": 0.608500003814697,
+    "p1Eng": 1,
+    "p2Eng": 2,
+    "p2ResSend": 0.5,
+    "p3Eng": 1,
+    "p3ResSend": 0.4,
+    "p4Eng": 2,
+    "p5Eng": 2,
+    "p5Tone": 0.9,
+    "p6Eng": 2,
+    "p7Eng": 0,
+    "p8Eng": 1,
+    "p8Pitch": 700,
+    "p8ResSend": 0.6,
+    "resDecay": 0.7,
+    "resMix": 0.4,
+    "resTune": 220,
+    "resType": 1,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

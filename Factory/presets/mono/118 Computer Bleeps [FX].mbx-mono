@@ -1,0 +1,32 @@
+{
+  "family": "FX",
+  "macros": "",
+  "name": "Computer Bleeps",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 2000,
+    "decay": 0.4,
+    "envAmt": 0.0,
+    "fxDelay": 0.3,
+    "fxFeedback": 0.5,
+    "fxTime": 10,
+    "key": 1.0,
+    "level": 0.235300004482269,
+    "lfoCut": 0.6,
+    "lfoFade": 0.0,
+    "lfoPwm": 0.0,
+    "lfoRate": 12.0,
+    "lfoShape": 2,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.0,
+    "pw": 0.5,
+    "release": 0.3,
+    "reso": 0.6,
+    "sustain": 1.0
+  },
+  "version": 1
+}

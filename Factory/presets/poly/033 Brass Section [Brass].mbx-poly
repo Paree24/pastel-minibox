@@ -1,0 +1,32 @@
+{
+  "family": "Brass",
+  "macros": "",
+  "name": "Brass Section",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.03,
+    "aDecay": 0.800000011920929,
+    "aRelease": 0.449999988079071,
+    "aSustain": 0.85,
+    "chorusMix": 0.5,
+    "chorusMode": 1,
+    "cutoff": 520.0,
+    "dcoWave": 1,
+    "engine": 0,
+    "envAmt": 0.550000011920929,
+    "fAttack": 0.06,
+    "fDecay": 0.600000023841858,
+    "fRelease": 0.45,
+    "fSustain": 0.325100004673004,
+    "hpf": 1,
+    "key": 0.5,
+    "level": 1.171900033950806,
+    "reso": 0.012799999676645,
+    "revPre": 0.018,
+    "revSize": 0.47,
+    "revTone": 0.55,
+    "reverb": 0.2
+  },
+  "version": 1
+}

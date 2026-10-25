@@ -1,0 +1,24 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Funk Bass",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 280,
+    "decay": 0.486,
+    "envAmt": 0.8,
+    "key": 0.6,
+    "level": 1.22790002822876,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "pw": 0.3,
+    "release": 0.075,
+    "reso": 0.45,
+    "sustain": 0.15
+  },
+  "version": 1
+}

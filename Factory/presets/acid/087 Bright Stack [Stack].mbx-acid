@@ -1,0 +1,27 @@
+{
+  "family": "Stack",
+  "macros": "",
+  "name": "Bright Stack",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 1200,
+    "decay": 0.5,
+    "delayDiv": 9,
+    "delayDuck": 0.5,
+    "delayFb": 0.45,
+    "delayMix": 0.2,
+    "delayTone": 0.5,
+    "envMod": 0.4,
+    "level": 1.908400058746338,
+    "oscWave": 0,
+    "reso": 0.6,
+    "stack": 1,
+    "stackMix": 0.6,
+    "stackMode": 1,
+    "stackSpread": 0.5,
+    "sweep": 0.4
+  },
+  "version": 1
+}

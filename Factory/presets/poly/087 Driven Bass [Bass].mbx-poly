@@ -1,0 +1,29 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Driven Bass",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.002,
+    "aDecay": 0.5,
+    "aRelease": 0.15,
+    "aSustain": 0.7,
+    "cutoff": 600,
+    "dcoWave": 1,
+    "driveAmt": 0.55,
+    "driveTone": 0.6,
+    "driveType": 1,
+    "engine": 0,
+    "envAmt": 0.5,
+    "fAttack": 0.002,
+    "fDecay": 0.3,
+    "fRelease": 0.15,
+    "fSustain": 0.3,
+    "key": 0.4,
+    "level": 0.328700006008148,
+    "reso": 0.35,
+    "sub": 0.4
+  },
+  "version": 1
+}

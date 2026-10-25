@@ -1,0 +1,20 @@
+{
+  "family": "Classic",
+  "macros": "",
+  "name": "Square Line",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.600000023841858,
+    "cutoff": 515.37530517578125,
+    "decay": 0.356700003147125,
+    "envMod": 0.350899994373322,
+    "level": 0.75220000743866,
+    "oscWave": 1,
+    "reso": 0.629999995231628,
+    "sweep": 0.4,
+    "bassComp": 0.25,
+    "pw": 0.541700005531311
+  },
+  "version": 1
+}

@@ -1,0 +1,21 @@
+{
+  "family": "Classic",
+  "macros": "",
+  "name": "Key Tracked Line",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.479200005531311,
+    "cutoff": 350.0,
+    "decay": 0.449999988079071,
+    "envMod": 0.5,
+    "key": 0.8,
+    "level": 1.250399947166443,
+    "oscWave": 0,
+    "reso": 0.759999990463257,
+    "sweep": 0.4,
+    "bassComp": 0.25,
+    "pw": 0.447200000286102
+  },
+  "version": 1
+}

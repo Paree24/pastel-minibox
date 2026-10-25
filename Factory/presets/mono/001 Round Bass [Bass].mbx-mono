@@ -1,0 +1,24 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Round Bass",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.002,
+    "cutoff": 320.0,
+    "decay": 0.944999992847443,
+    "envAmt": 0.407599985599518,
+    "key": 0.260699987411499,
+    "level": 0.66839998960495,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.6,
+    "release": 0.119999997317791,
+    "reso": 0.166500002145767,
+    "subType": 0,
+    "sustain": 0.035900000482798
+  },
+  "version": 1
+}

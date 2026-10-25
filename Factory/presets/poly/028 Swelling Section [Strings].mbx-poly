@@ -1,0 +1,32 @@
+{
+  "family": "Strings",
+  "macros": "",
+  "name": "Swelling Section",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.9,
+    "aDecay": 1.0,
+    "aRelease": 1.5,
+    "aSustain": 1.0,
+    "chorusMix": 0.7,
+    "chorusMode": 3,
+    "cutoff": 1200,
+    "dcoWave": 1,
+    "engine": 0,
+    "envAmt": 0.5,
+    "fAttack": 1.2,
+    "fDecay": 1.5,
+    "fRelease": 1.5,
+    "fSustain": 0.6,
+    "hpf": 2,
+    "key": 0.5,
+    "level": 1.072800040245056,
+    "reso": 0.1,
+    "revPre": 0.0305,
+    "revSize": 0.745,
+    "revTone": 0.55,
+    "reverb": 0.45
+  },
+  "version": 1
+}

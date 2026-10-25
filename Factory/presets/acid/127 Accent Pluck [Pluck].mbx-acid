@@ -1,0 +1,20 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Accent Pluck",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 1.0,
+    "ampDecay": 0.2,
+    "ampMode": 1,
+    "cutoff": 450,
+    "decay": 0.3,
+    "envMod": 0.6,
+    "level": 1.419999957084656,
+    "oscWave": 0,
+    "reso": 0.85,
+    "sweep": 0.9
+  },
+  "version": 1
+}

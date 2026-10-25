@@ -1,0 +1,29 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Dusty Hybrid Lead",
+  "samples": [
+    "factory:src076_hybrid_lead"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.005,
+    "bits": 12,
+    "character": 1,
+    "decay": 1.0,
+    "level": 0.340900003910065,
+    "loopLen": 0.171428571428571,
+    "loopStart": 0.192857142857143,
+    "playMode": 2,
+    "rate": 20,
+    "release": 0.6,
+    "revPre": 0.018,
+    "revSize": 0.47,
+    "reverb": 0.2,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 48
+  },
+  "version": 1
+}

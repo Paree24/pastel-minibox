@@ -1,0 +1,27 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Wah Lead",
+  "samples": [
+    "factory:src072_wah_lead"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.005,
+    "decay": 1.0,
+    "drive": 0.3,
+    "level": 0.229699999094009,
+    "loopLen": 0.228055588549709,
+    "loopStart": 0.256562537118423,
+    "playMode": 2,
+    "release": 0.6,
+    "revPre": 0.023,
+    "revSize": 0.58,
+    "reverb": 0.3,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

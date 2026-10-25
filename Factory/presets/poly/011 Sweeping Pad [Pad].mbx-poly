@@ -1,0 +1,33 @@
+{
+  "family": "Pad",
+  "macros": "",
+  "name": "Sweeping Pad",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 1.0,
+    "aDecay": 1.0,
+    "aRelease": 3.0,
+    "aSustain": 1.0,
+    "chorusMix": 0.6,
+    "chorusMode": 2,
+    "cutoff": 700,
+    "dcoPw": 0.3,
+    "dcoWave": 2,
+    "engine": 0,
+    "envAmt": 0.5,
+    "fAttack": 3.0,
+    "fDecay": 3.0,
+    "fRelease": 3.0,
+    "fSustain": 0.3,
+    "key": 0.4,
+    "level": 2.0,
+    "reso": 0.55,
+    "revPre": 0.0305,
+    "revSize": 0.745,
+    "revTone": 0.55,
+    "reverb": 0.45,
+    "sub": 0.2
+  },
+  "version": 1
+}

@@ -1,0 +1,25 @@
+{
+  "family": "Squelch",
+  "macros": "",
+  "name": "Low Squelch",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.600000023841858,
+    "bassComp": 1.0,
+    "cutoff": 220.0,
+    "decay": 0.5,
+    "delayDiv": 6,
+    "delayDuck": 0.5,
+    "delayFb": 0.45,
+    "delayMix": 0.25,
+    "delayTone": 0.5,
+    "envMod": 0.848999977111816,
+    "level": 1.042199969291687,
+    "oscWave": 0,
+    "reso": 0.949999988079071,
+    "sweep": 0.4,
+    "pw": 0.5
+  },
+  "version": 1
+}

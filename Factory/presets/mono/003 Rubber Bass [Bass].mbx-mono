@@ -1,0 +1,24 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Rubber Bass",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.002,
+    "cutoff": 240,
+    "decay": 0.594,
+    "drive": 0.15,
+    "envAmt": 0.7,
+    "key": 0.5,
+    "level": 0.500400006771088,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "release": 0.09,
+    "reso": 0.62,
+    "sustain": 0.25
+  },
+  "version": 1
+}

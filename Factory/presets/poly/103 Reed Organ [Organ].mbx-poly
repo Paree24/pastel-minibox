@@ -1,0 +1,33 @@
+{
+  "family": "Organ",
+  "macros": "",
+  "name": "Reed Organ",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.02,
+    "aDecay": 0.2,
+    "aRelease": 0.225,
+    "aSustain": 1.0,
+    "chorusMix": 0.5,
+    "chorusMode": 1,
+    "cutoff": 1800,
+    "dcoPw": 0.2,
+    "dcoWave": 0,
+    "engine": 0,
+    "envAmt": 0.0,
+    "fAttack": 0.02,
+    "fDecay": 0.2,
+    "fRelease": 0.225,
+    "fSustain": 1.0,
+    "hpf": 2,
+    "key": 0.5,
+    "level": 1.055199980735779,
+    "reso": 0.15,
+    "revPre": 0.0255,
+    "revSize": 0.635,
+    "revTone": 0.55,
+    "reverb": 0.35
+  },
+  "version": 1
+}

@@ -1,0 +1,21 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Squelch Bass",
+  "samples": [
+    "factory:src061_squelch_bass"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.001,
+    "decay": 2.221645833333334,
+    "level": 0.434700012207031,
+    "playMode": 1,
+    "release": 0.4,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 36
+  },
+  "version": 1
+}

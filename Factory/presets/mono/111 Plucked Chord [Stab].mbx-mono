@@ -1,0 +1,32 @@
+{
+  "family": "Stab",
+  "macros": "",
+  "name": "Plucked Chord",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "chord": 5,
+    "cutoff": 2400,
+    "decay": 1.8,
+    "envAmt": 0.5,
+    "fxDelay": 0.3,
+    "fxFeedback": 0.45,
+    "fxReverb": 0.3,
+    "fxTime": 9,
+    "key": 0.5,
+    "level": 0.517400026321411,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "release": 0.6,
+    "reso": 0.2,
+    "revPre": 0.023,
+    "revSize": 0.58,
+    "revTone": 0.55,
+    "sustain": 0.0,
+    "voiceMode": 3
+  },
+  "version": 1
+}

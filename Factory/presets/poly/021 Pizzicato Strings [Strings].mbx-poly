@@ -1,0 +1,32 @@
+{
+  "family": "Strings",
+  "macros": "",
+  "name": "Pizzicato Strings",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.001,
+    "aDecay": 1.8,
+    "aRelease": 0.45,
+    "aSustain": 0.0,
+    "chorusMix": 0.6,
+    "chorusMode": 3,
+    "cutoff": 1600,
+    "dcoWave": 1,
+    "engine": 0,
+    "envAmt": 0.6,
+    "fAttack": 0.001,
+    "fDecay": 0.4,
+    "fRelease": 0.375,
+    "fSustain": 0.0,
+    "hpf": 2,
+    "key": 0.7,
+    "level": 1.926900029182434,
+    "reso": 0.1,
+    "revPre": 0.0305,
+    "revSize": 0.745,
+    "revTone": 0.55,
+    "reverb": 0.45
+  },
+  "version": 1
+}

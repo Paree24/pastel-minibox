@@ -1,0 +1,25 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Dusty Poly Saw Bass",
+  "samples": [
+    "factory:src062_poly_saw_bass"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.001000000047497,
+    "bits": 12,
+    "character": 1,
+    "decay": 2.127700090408325,
+    "level": 0.358999997377396,
+    "playMode": 1,
+    "rate": 20,
+    "release": 0.400000005960464,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 36,
+    "cutoff": 11143.2998046875
+  },
+  "version": 1
+}

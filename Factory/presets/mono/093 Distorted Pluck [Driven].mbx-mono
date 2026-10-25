@@ -1,0 +1,28 @@
+{
+  "family": "Driven",
+  "macros": "",
+  "name": "Distorted Pluck",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 500,
+    "decay": 1.8,
+    "drive": 0.9,
+    "envAmt": 0.9,
+    "fxReverb": 0.15,
+    "key": 0.7,
+    "level": 0.400400012731552,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "release": 0.225,
+    "reso": 0.7,
+    "revPre": 0.0155,
+    "revSize": 0.415,
+    "revTone": 0.55,
+    "sustain": 0.0
+  },
+  "version": 1
+}

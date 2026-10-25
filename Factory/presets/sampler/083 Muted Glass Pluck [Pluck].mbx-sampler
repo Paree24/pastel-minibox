@@ -1,0 +1,27 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Muted Glass Pluck",
+  "samples": [
+    "factory:src083_glass_pluck"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 1400,
+    "decay": 3.454375,
+    "filterType": 0,
+    "level": 0.365000009536743,
+    "playMode": 1,
+    "release": 0.4,
+    "reso": 0.15,
+    "revPre": 0.0155,
+    "revSize": 0.415,
+    "reverb": 0.15,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

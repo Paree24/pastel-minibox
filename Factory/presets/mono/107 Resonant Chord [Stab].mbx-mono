@@ -1,0 +1,29 @@
+{
+  "family": "Stab",
+  "macros": "",
+  "name": "Resonant Chord",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "chord": 1,
+    "cutoff": 600,
+    "decay": 0.675,
+    "envAmt": 0.7,
+    "fxReverb": 0.25,
+    "key": 0.5,
+    "level": 0.759199976921082,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "release": 0.375,
+    "reso": 0.75,
+    "revPre": 0.0205,
+    "revSize": 0.525,
+    "revTone": 0.55,
+    "sustain": 0.0,
+    "voiceMode": 3
+  },
+  "version": 1
+}

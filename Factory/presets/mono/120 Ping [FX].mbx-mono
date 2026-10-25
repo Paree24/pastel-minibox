@@ -1,0 +1,31 @@
+{
+  "family": "FX",
+  "macros": "",
+  "name": "Ping",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 3000,
+    "decay": 0.81,
+    "envAmt": 0.2,
+    "fxDelay": 0.4,
+    "fxFeedback": 0.6,
+    "fxReverb": 0.4,
+    "fxTime": 6,
+    "key": 1.0,
+    "level": 1.759600043296814,
+    "mixNoise": 0.0,
+    "mixPulse": 0.1,
+    "mixSaw": 0.0,
+    "mixSub": 0.0,
+    "pw": 0.5,
+    "release": 0.9,
+    "reso": 0.97,
+    "revPre": 0.028,
+    "revSize": 0.69,
+    "revTone": 0.55,
+    "sustain": 0.0
+  },
+  "version": 1
+}

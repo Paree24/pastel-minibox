@@ -1,0 +1,32 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Electro",
+  "samples": [],
+  "type": "drums",
+  "values": {
+    "kitLevel": 0.51910001039505,
+    "p1Click": 0.9,
+    "p1Decay": 0.3,
+    "p1Eng": 0,
+    "p2Click": 0.9,
+    "p2Eng": 0,
+    "p2SendReverb": 0.2,
+    "p2Tone": 0.7,
+    "p3Eng": 0,
+    "p3SendReverb": 0.25,
+    "p4Eng": 0,
+    "p5Decay": 0.06,
+    "p5Eng": 0,
+    "p6Decay": 0.35,
+    "p6Eng": 0,
+    "p7Eng": 0,
+    "p8Decay": 0.25,
+    "p8Eng": 1,
+    "p8Pitch": 560,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

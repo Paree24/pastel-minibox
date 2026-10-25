@@ -1,0 +1,30 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Wobble Bass",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.002,
+    "aDecay": 0.5,
+    "aRelease": 0.15,
+    "aSustain": 1.0,
+    "cutoff": 250,
+    "dcoWave": 1,
+    "engine": 0,
+    "envAmt": 0.0,
+    "fAttack": 0.002,
+    "fDecay": 0.5,
+    "fRelease": 0.15,
+    "fSustain": 1.0,
+    "key": 0.3,
+    "level": 0.608699977397919,
+    "lfoCut": 0.7,
+    "lfoDiv": 10,
+    "lfoShape": 0,
+    "lfoSync": 1,
+    "reso": 0.6,
+    "sub": 0.5
+  },
+  "version": 1
+}

@@ -1,0 +1,28 @@
+{
+  "family": "FX",
+  "macros": "",
+  "name": "Thunder Rumble",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.01,
+    "cutoff": 150,
+    "decay": 6.75,
+    "envAmt": 0.3,
+    "fxReverb": 0.5,
+    "key": 0.0,
+    "level": 0.704299986362457,
+    "mixNoise": 1.0,
+    "mixPulse": 0.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.5,
+    "release": 3.0,
+    "reso": 0.5,
+    "revPre": 0.033,
+    "revSize": 0.8,
+    "revTone": 0.55,
+    "subType": 1,
+    "sustain": 0.0
+  },
+  "version": 1
+}

@@ -1,0 +1,32 @@
+{
+  "family": "FX",
+  "macros": "",
+  "name": "Siren Filter",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.01,
+    "cutoff": 800,
+    "decay": 0.5,
+    "envAmt": 0.0,
+    "fxReverb": 0.3,
+    "key": 0.5,
+    "level": 0.228499993681908,
+    "lfoCut": 0.8,
+    "lfoFade": 0.0,
+    "lfoPwm": 0.0,
+    "lfoRate": 0.4,
+    "lfoShape": 0,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "release": 0.6,
+    "reso": 0.9,
+    "revPre": 0.023,
+    "revSize": 0.58,
+    "revTone": 0.55,
+    "sustain": 1.0
+  },
+  "version": 1
+}

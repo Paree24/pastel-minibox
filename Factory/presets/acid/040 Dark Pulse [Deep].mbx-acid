@@ -1,0 +1,20 @@
+{
+  "family": "Deep",
+  "macros": "",
+  "name": "Dark Pulse",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.600000023841858,
+    "cutoff": 246.003494262695312,
+    "decay": 0.699999988079071,
+    "envMod": 0.349999994039536,
+    "level": 0.745400011539459,
+    "oscWave": 1,
+    "pw": 0.501399993896484,
+    "reso": 0.449999988079071,
+    "sweep": 0.4,
+    "bassComp": 0.25
+  },
+  "version": 1
+}

@@ -1,0 +1,23 @@
+{
+  "family": "Classic",
+  "macros": "",
+  "name": "Echo Line",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 460,
+    "decay": 0.4,
+    "delayDiv": 9,
+    "delayDuck": 0.6,
+    "delayFb": 0.5,
+    "delayMix": 0.3,
+    "delayTone": 0.5,
+    "envMod": 0.55,
+    "level": 1.23800003528595,
+    "oscWave": 0,
+    "reso": 0.75,
+    "sweep": 0.4
+  },
+  "version": 1
+}

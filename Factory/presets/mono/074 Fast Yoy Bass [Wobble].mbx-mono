@@ -1,0 +1,31 @@
+{
+  "family": "Wobble",
+  "macros": "",
+  "name": "Fast Yoy Bass",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.003,
+    "cutoff": 300,
+    "decay": 0.4,
+    "drive": 0.6,
+    "envAmt": 0.0,
+    "key": 0.3,
+    "level": 0.446299999952316,
+    "lfoCut": 0.55,
+    "lfoDiv": 11,
+    "lfoFade": 0.0,
+    "lfoPwm": 0.0,
+    "lfoShape": 0,
+    "lfoSync": 1,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "pw": 0.5,
+    "release": 0.15,
+    "reso": 0.7,
+    "sustain": 1.0
+  },
+  "version": 1
+}

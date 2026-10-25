@@ -1,0 +1,32 @@
+{
+  "family": "Keys",
+  "macros": "",
+  "name": "Soft Keys",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.003,
+    "aDecay": 1.5,
+    "aRelease": 1.05,
+    "aSustain": 0.35,
+    "chorusMix": 0.6,
+    "chorusMode": 2,
+    "cutoff": 1200,
+    "dcoWave": 1,
+    "engine": 0,
+    "envAmt": 0.4,
+    "fAttack": 0.004,
+    "fDecay": 1.0,
+    "fRelease": 0.9,
+    "fSustain": 0.3,
+    "hpf": 1,
+    "key": 0.7,
+    "level": 1.585299968719482,
+    "reso": 0.1,
+    "revPre": 0.0255,
+    "revSize": 0.635,
+    "revTone": 0.55,
+    "reverb": 0.35
+  },
+  "version": 1
+}

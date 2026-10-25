@@ -1,0 +1,26 @@
+{
+  "family": "Strings & Brass",
+  "macros": "",
+  "name": "Bowed Strings",
+  "samples": [
+    "factory:src034_bowed_strings"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.005,
+    "decay": 1.0,
+    "level": 0.264699995517731,
+    "loopLen": 0.292022315371933,
+    "loopStart": 0.328525104793425,
+    "playMode": 2,
+    "release": 0.6,
+    "revPre": 0.0205,
+    "revSize": 0.525,
+    "reverb": 0.25,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

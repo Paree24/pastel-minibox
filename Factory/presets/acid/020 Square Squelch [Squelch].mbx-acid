@@ -1,0 +1,20 @@
+{
+  "family": "Squelch",
+  "macros": "",
+  "name": "Square Squelch",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.800000011920929,
+    "cutoff": 261.074798583984375,
+    "decay": 0.233500003814697,
+    "envMod": 0.850000023841858,
+    "level": 0.7117999792099,
+    "oscWave": 1,
+    "reso": 0.898100018501282,
+    "sweep": 0.4,
+    "bassComp": 0.172600001096725,
+    "pw": 0.528800010681152
+  },
+  "version": 1
+}

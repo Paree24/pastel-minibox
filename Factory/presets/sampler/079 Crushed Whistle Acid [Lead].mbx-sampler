@@ -1,0 +1,26 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Crushed Whistle Acid",
+  "samples": [
+    "factory:src079_whistle_acid"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.005,
+    "bits": 8,
+    "character": 1,
+    "decay": 1.0,
+    "level": 0.311100006103516,
+    "loopLen": 0.386706948640483,
+    "loopStart": 0.435045317220544,
+    "playMode": 2,
+    "rate": 12,
+    "release": 0.6,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 48
+  },
+  "version": 1
+}

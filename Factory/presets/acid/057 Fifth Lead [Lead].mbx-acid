@@ -1,0 +1,27 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Fifth Lead",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 1300,
+    "decay": 0.7,
+    "delayDiv": 9,
+    "delayDuck": 0.5,
+    "delayFb": 0.45,
+    "delayMix": 0.25,
+    "delayTone": 0.5,
+    "envMod": 0.45,
+    "level": 1.933300018310547,
+    "oscWave": 0,
+    "reso": 0.8,
+    "stack": 1,
+    "stackMix": 0.5,
+    "stackMode": 1,
+    "stackSpread": 0.5,
+    "sweep": 0.4
+  },
+  "version": 1
+}

@@ -1,0 +1,22 @@
+{
+  "family": "Stack",
+  "macros": "",
+  "name": "Dark Stack",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 300,
+    "decay": 0.9,
+    "envMod": 0.4,
+    "level": 1.878900051116943,
+    "oscWave": 0,
+    "reso": 0.6,
+    "stack": 1,
+    "stackMix": 0.5,
+    "stackMode": 2,
+    "stackSpread": 0.5,
+    "sweep": 0.4
+  },
+  "version": 1
+}

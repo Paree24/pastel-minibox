@@ -1,0 +1,31 @@
+{
+  "family": "Stab",
+  "macros": "",
+  "name": "Major Seventh",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.01,
+    "chord": 5,
+    "cutoff": 2000,
+    "decay": 0.6,
+    "envAmt": 0.3,
+    "fxChorus": 0.4,
+    "fxReverb": 0.35,
+    "key": 0.5,
+    "level": 0.409200012683868,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.0,
+    "pw": 0.25,
+    "release": 0.75,
+    "reso": 0.15,
+    "revPre": 0.0255,
+    "revSize": 0.635,
+    "revTone": 0.55,
+    "sustain": 0.4,
+    "voiceMode": 3
+  },
+  "version": 1
+}

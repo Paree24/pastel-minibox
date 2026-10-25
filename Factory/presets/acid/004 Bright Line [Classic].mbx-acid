@@ -1,0 +1,23 @@
+{
+  "family": "Classic",
+  "macros": "",
+  "name": "Bright Line",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 900,
+    "decay": 0.4,
+    "delayDiv": 9,
+    "delayDuck": 0.5,
+    "delayFb": 0.45,
+    "delayMix": 0.15,
+    "delayTone": 0.5,
+    "envMod": 0.5,
+    "level": 1.31879997253418,
+    "oscWave": 0,
+    "reso": 0.7,
+    "sweep": 0.4
+  },
+  "version": 1
+}

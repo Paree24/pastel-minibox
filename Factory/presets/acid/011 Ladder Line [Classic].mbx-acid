@@ -1,0 +1,22 @@
+{
+  "family": "Classic",
+  "macros": "",
+  "name": "Ladder Line",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.880200028419495,
+    "cutoff": 500.0,
+    "decay": 0.479499995708466,
+    "envMod": 0.55349999666214,
+    "filterType": 0,
+    "level": 0.741299986839294,
+    "noise": 0.08,
+    "oscWave": 1,
+    "reso": 0.63510000705719,
+    "sweep": 0.4,
+    "bassComp": 0.611299991607666,
+    "pw": 0.511900007724762
+  },
+  "version": 1
+}

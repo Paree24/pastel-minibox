@@ -1,0 +1,21 @@
+{
+  "family": "Bell",
+  "macros": "",
+  "name": "Tubular Bell",
+  "samples": [
+    "factory:src097_tubular_bell"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.001,
+    "decay": 4.025604166666667,
+    "level": 0.329199999570847,
+    "playMode": 1,
+    "release": 0.4,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 72
+  },
+  "version": 1
+}

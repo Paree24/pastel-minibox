@@ -1,0 +1,24 @@
+{
+  "family": "Classic",
+  "macros": "",
+  "name": "Tight Line",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.600000023841858,
+    "bassComp": 1.0,
+    "cutoff": 600.0,
+    "decay": 0.25,
+    "driveAmt": 0.3,
+    "driveMix": 1.0,
+    "driveTone": 0.6,
+    "driveType": 1,
+    "envMod": 0.546700000762939,
+    "level": 0.525499999523163,
+    "oscWave": 1,
+    "reso": 0.740199983119965,
+    "sweep": 0.4,
+    "pw": 0.5
+  },
+  "version": 1
+}

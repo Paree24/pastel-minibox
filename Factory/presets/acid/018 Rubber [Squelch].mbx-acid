@@ -1,0 +1,27 @@
+{
+  "family": "Squelch",
+  "macros": "",
+  "name": "Rubber",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.699999988079071,
+    "accDecay": 0.3,
+    "cutoff": 303.181396484375,
+    "decay": 0.462799996137619,
+    "delayDiv": 10,
+    "delayDuck": 0.5,
+    "delayFb": 0.4,
+    "delayMix": 0.25,
+    "delayTone": 0.5,
+    "envMod": 0.699999988079071,
+    "filterType": 0,
+    "level": 0.972800016403198,
+    "oscWave": 0.4,
+    "reso": 0.850000023841858,
+    "sweep": 0.4,
+    "bassComp": 0.140599995851517,
+    "pw": 0.5
+  },
+  "version": 1
+}

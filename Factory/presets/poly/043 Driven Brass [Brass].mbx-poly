@@ -1,0 +1,30 @@
+{
+  "family": "Brass",
+  "macros": "",
+  "name": "Driven Brass",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.035,
+    "aDecay": 0.6,
+    "aRelease": 0.45,
+    "aSustain": 0.9,
+    "chorusMix": 0.4,
+    "chorusMode": 1,
+    "cutoff": 800,
+    "dcoWave": 1,
+    "driveAmt": 0.55,
+    "driveTone": 0.6,
+    "driveType": 1,
+    "engine": 0,
+    "envAmt": 0.6,
+    "fAttack": 0.06,
+    "fDecay": 0.5,
+    "fRelease": 0.45,
+    "fSustain": 0.5,
+    "key": 0.5,
+    "level": 0.565400004386902,
+    "reso": 0.3
+  },
+  "version": 1
+}

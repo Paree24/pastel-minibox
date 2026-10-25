@@ -1,0 +1,23 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Ladder Pluck",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.773100018501282,
+    "ampDecay": 0.2,
+    "ampMode": 1,
+    "cutoff": 550.0,
+    "decay": 0.25,
+    "envMod": 0.800000011920929,
+    "filterType": 0,
+    "level": 1.783900022506714,
+    "oscWave": 0,
+    "reso": 0.745199978351593,
+    "sweep": 0.4,
+    "bassComp": 0.25,
+    "pw": 0.543099999427795
+  },
+  "version": 1
+}

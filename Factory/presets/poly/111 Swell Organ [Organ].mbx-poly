@@ -1,0 +1,32 @@
+{
+  "family": "Organ",
+  "macros": "",
+  "name": "Swell Organ",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.5,
+    "aDecay": 1.0,
+    "aRelease": 0.75,
+    "aSustain": 1.0,
+    "cutoff": 1500,
+    "engine": 1,
+    "envAmt": 0.4,
+    "fAttack": 0.6,
+    "fDecay": 1.0,
+    "fRelease": 0.75,
+    "fSustain": 1.0,
+    "filterMode": 1,
+    "key": 0.5,
+    "level": 0.356099992990494,
+    "reso": 0.1,
+    "revPre": 0.0305,
+    "revSize": 0.745,
+    "revTone": 0.55,
+    "reverb": 0.45,
+    "vaPw": 0.5,
+    "vaWave": 1,
+    "voiceMode": 3
+  },
+  "version": 1
+}

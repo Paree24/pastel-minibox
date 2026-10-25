@@ -1,0 +1,24 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Dusty Deep Pluck Bass",
+  "samples": [
+    "factory:src054_deep_pluck_bass"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.001,
+    "bits": 12,
+    "character": 1,
+    "decay": 1.728229166666667,
+    "level": 0.432900011539459,
+    "playMode": 1,
+    "rate": 20,
+    "release": 0.4,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 36
+  },
+  "version": 1
+}

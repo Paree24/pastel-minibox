@@ -1,0 +1,32 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "PWM Bass",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.002,
+    "cutoff": 500.0,
+    "decay": 0.400000005960464,
+    "envAmt": 0.400000005960464,
+    "key": 0.400000005960464,
+    "level": 0.401600003242493,
+    "lfoCut": 0.0,
+    "lfoFade": 0.0,
+    "lfoPwm": 0.0,
+    "lfoRate": 0.7,
+    "lfoShape": 0,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.4,
+    "pw": 0.35,
+    "pwm": 0.45,
+    "pwmSrc": 0,
+    "release": 0.204899996519089,
+    "reso": 0.213200002908707,
+    "subType": 0,
+    "sustain": 0.598699986934662
+  },
+  "version": 1
+}

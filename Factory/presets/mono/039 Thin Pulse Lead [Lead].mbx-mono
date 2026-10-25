@@ -1,0 +1,27 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Thin Pulse Lead",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.005,
+    "cutoff": 3000,
+    "decay": 0.4,
+    "envAmt": 0.2,
+    "fxDelay": 0.35,
+    "fxFeedback": 0.5,
+    "fxTime": 6,
+    "key": 0.8,
+    "level": 0.393999993801117,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.0,
+    "pw": 0.08,
+    "release": 0.3,
+    "reso": 0.25,
+    "sustain": 0.8
+  },
+  "version": 1
+}

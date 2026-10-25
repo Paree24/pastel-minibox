@@ -1,0 +1,22 @@
+{
+  "family": "Distorted",
+  "macros": "",
+  "name": "Saturated Distortion",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 420,
+    "decay": 0.45,
+    "driveAmt": 1.0,
+    "driveMix": 1.0,
+    "driveTone": 0.35,
+    "driveType": 1,
+    "envMod": 0.65,
+    "level": 0.678600013256073,
+    "oscWave": 1,
+    "reso": 0.78,
+    "sweep": 0.4
+  },
+  "version": 1
+}

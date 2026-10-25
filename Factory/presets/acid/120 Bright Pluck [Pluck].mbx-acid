@@ -1,0 +1,25 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Bright Pluck",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "ampDecay": 0.2,
+    "ampMode": 1,
+    "cutoff": 1500,
+    "decay": 0.25,
+    "delayDiv": 10,
+    "delayDuck": 0.5,
+    "delayFb": 0.45,
+    "delayMix": 0.25,
+    "delayTone": 0.5,
+    "envMod": 0.6,
+    "level": 1.691799998283386,
+    "oscWave": 0,
+    "reso": 0.65,
+    "sweep": 0.4
+  },
+  "version": 1
+}

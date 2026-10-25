@@ -1,0 +1,32 @@
+{
+  "family": "Pad",
+  "macros": "",
+  "name": "Silk Pad",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 1.2,
+    "aDecay": 1.0,
+    "aRelease": 3.75,
+    "aSustain": 1.0,
+    "chorusMix": 0.7,
+    "chorusMode": 3,
+    "cutoff": 2600,
+    "dcoWave": 1,
+    "engine": 0,
+    "envAmt": 0.1,
+    "fAttack": 0.8,
+    "fDecay": 2.0,
+    "fRelease": 3.0,
+    "fSustain": 0.9,
+    "hpf": 2,
+    "key": 0.4,
+    "level": 1.146000027656555,
+    "reso": 0.05,
+    "revPre": 0.0305,
+    "revSize": 0.745,
+    "revTone": 0.55,
+    "reverb": 0.45
+  },
+  "version": 1
+}

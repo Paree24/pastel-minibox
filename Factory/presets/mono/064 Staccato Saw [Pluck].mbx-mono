@@ -1,0 +1,26 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Staccato Saw",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 2000,
+    "decay": 1.8,
+    "envAmt": 0.4,
+    "fxDelay": 0.3,
+    "fxFeedback": 0.4,
+    "fxTime": 7,
+    "key": 0.8,
+    "level": 0.561500012874603,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "release": 0.09,
+    "reso": 0.1,
+    "sustain": 0.0
+  },
+  "version": 1
+}

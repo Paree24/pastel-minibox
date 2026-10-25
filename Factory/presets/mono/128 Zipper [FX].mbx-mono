@@ -1,0 +1,27 @@
+{
+  "family": "FX",
+  "macros": "",
+  "name": "Zipper",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 2500,
+    "decay": 0.135,
+    "envAmt": -0.8,
+    "fxDelay": 0.35,
+    "fxFeedback": 0.5,
+    "fxTime": 12,
+    "key": 1.0,
+    "level": 1.283300042152405,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.0,
+    "pw": 0.2,
+    "release": 0.075,
+    "reso": 0.8,
+    "sustain": 0.0
+  },
+  "version": 1
+}

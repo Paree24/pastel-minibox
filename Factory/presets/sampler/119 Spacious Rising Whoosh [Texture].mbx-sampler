@@ -1,0 +1,24 @@
+{
+  "family": "Texture",
+  "macros": "",
+  "name": "Spacious Rising Whoosh",
+  "samples": [
+    "factory:src119_rising_whoosh"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.001,
+    "decay": 4.0,
+    "level": 0.504899978637695,
+    "playMode": 0,
+    "release": 0.4,
+    "revPre": 0.0305,
+    "revSize": 0.745,
+    "reverb": 0.45,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

@@ -1,0 +1,20 @@
+{
+  "family": "Deep",
+  "macros": "",
+  "name": "Soft Deep",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.014600000344217,
+    "cutoff": 227.28729248046875,
+    "decay": 0.995400011539459,
+    "envMod": 0.349999994039536,
+    "level": 1.271399974822998,
+    "oscWave": 0,
+    "reso": 0.474700003862381,
+    "sweep": 0.4,
+    "bassComp": 0.136000007390976,
+    "pw": 0.485000014305115
+  },
+  "version": 1
+}

@@ -1,0 +1,26 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Snap Pluck",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 180,
+    "decay": 1.8,
+    "envAmt": 1.0,
+    "fxDelay": 0.2,
+    "fxFeedback": 0.4,
+    "fxTime": 6,
+    "key": 1.0,
+    "level": 0.588199973106384,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "release": 0.12,
+    "reso": 0.8,
+    "sustain": 0.0
+  },
+  "version": 1
+}

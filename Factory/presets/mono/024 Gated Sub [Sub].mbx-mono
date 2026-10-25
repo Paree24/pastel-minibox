@@ -1,0 +1,25 @@
+{
+  "family": "Sub",
+  "macros": "",
+  "name": "Gated Sub",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "ampMode": 1,
+    "attack": 0.002,
+    "cutoff": 130.41729736328125,
+    "decay": 0.100000001490116,
+    "envAmt": 0.0,
+    "key": 0.200000002980232,
+    "level": 0.527700006961823,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 0.0,
+    "mixSub": 1.0,
+    "release": 0.029999999329448,
+    "reso": 0.031599998474121,
+    "subType": 0,
+    "sustain": 1.0
+  },
+  "version": 1
+}

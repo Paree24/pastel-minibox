@@ -1,0 +1,32 @@
+{
+  "family": "Strings",
+  "macros": "",
+  "name": "String Ensemble",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.35,
+    "aDecay": 1.0,
+    "aRelease": 1.355000019073486,
+    "aSustain": 0.9,
+    "chorusMix": 0.7,
+    "chorusMode": 3,
+    "cutoff": 3254.3232421875,
+    "dcoWave": 1,
+    "engine": 0,
+    "envAmt": -0.190500006079674,
+    "fAttack": 0.3,
+    "fDecay": 1.0,
+    "fRelease": 1.35,
+    "fSustain": 1.0,
+    "hpf": 2,
+    "key": 0.643800020217896,
+    "level": 1.967100024223328,
+    "reso": 0.0,
+    "revPre": 0.0255,
+    "revSize": 0.635,
+    "revTone": 0.55,
+    "reverb": 0.35
+  },
+  "version": 1
+}

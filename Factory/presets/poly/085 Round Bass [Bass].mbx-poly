@@ -1,0 +1,26 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Round Bass",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.002,
+    "aDecay": 0.8,
+    "aRelease": 0.15,
+    "aSustain": 0.8,
+    "cutoff": 600,
+    "engine": 1,
+    "envAmt": 0.3,
+    "fAttack": 0.002,
+    "fDecay": 0.5,
+    "fRelease": 0.15,
+    "fSustain": 0.5,
+    "filterMode": 1,
+    "key": 0.3,
+    "level": 0.622200012207031,
+    "reso": 0.1,
+    "vaWave": 2
+  },
+  "version": 1
+}

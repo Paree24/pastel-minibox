@@ -1,0 +1,27 @@
+{
+  "family": "FX",
+  "macros": "",
+  "name": "Rising Whoosh",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 1.5,
+    "cutoff": 200,
+    "decay": 2.0,
+    "envAmt": 0.8,
+    "fxReverb": 0.45,
+    "key": 0.0,
+    "level": 1.391299962997437,
+    "mixNoise": 1.0,
+    "mixPulse": 0.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.0,
+    "release": 1.2,
+    "reso": 0.75,
+    "revPre": 0.0305,
+    "revSize": 0.745,
+    "revTone": 0.55,
+    "sustain": 1.0
+  },
+  "version": 1
+}

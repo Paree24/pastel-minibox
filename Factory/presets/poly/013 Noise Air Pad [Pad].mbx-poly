@@ -1,0 +1,33 @@
+{
+  "family": "Pad",
+  "macros": "",
+  "name": "Noise Air Pad",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 1.5,
+    "aDecay": 1.005699992179871,
+    "aRelease": 4.5,
+    "aSustain": 1.0,
+    "chorusMix": 0.7,
+    "chorusMode": 3,
+    "cutoff": 3000.0,
+    "dcoWave": 1,
+    "engine": 0,
+    "envAmt": 0.100000001490116,
+    "fAttack": 1.0,
+    "fDecay": 2.0,
+    "fRelease": 3.0,
+    "fSustain": 0.800000011920929,
+    "hpf": 3,
+    "key": 0.093299999833107,
+    "level": 1.527500033378601,
+    "noise": 0.25,
+    "reso": 0.100000001490116,
+    "revPre": 0.0355,
+    "revSize": 0.855,
+    "revTone": 0.55,
+    "reverb": 0.55
+  },
+  "version": 1
+}

@@ -1,0 +1,33 @@
+{
+  "family": "Organ",
+  "macros": "",
+  "name": "Percussive Organ",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.002,
+    "aDecay": 0.2,
+    "aRelease": 0.12,
+    "aSustain": 1.0,
+    "chorusMix": 0.5,
+    "chorusMode": 2,
+    "cutoff": 3500,
+    "dcoPw": 0.5,
+    "dcoWave": 0,
+    "engine": 0,
+    "envAmt": 0.5,
+    "fAttack": 0.001,
+    "fDecay": 0.15,
+    "fRelease": 0.12,
+    "fSustain": 0.5,
+    "hpf": 2,
+    "key": 0.6,
+    "level": 1.022300004959106,
+    "reso": 0.1,
+    "revPre": 0.0205,
+    "revSize": 0.525,
+    "revTone": 0.55,
+    "reverb": 0.25
+  },
+  "version": 1
+}

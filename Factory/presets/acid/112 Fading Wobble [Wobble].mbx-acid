@@ -1,0 +1,25 @@
+{
+  "family": "Wobble",
+  "macros": "",
+  "name": "Fading Wobble",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.600000023841858,
+    "cutoff": 340.0,
+    "decay": 1.5,
+    "envMod": 0.019500000402331,
+    "level": 0.791800022125244,
+    "lfoCut": 0.5,
+    "lfoDiv": 11,
+    "lfoFade": 2.0,
+    "lfoShape": 0,
+    "lfoSync": 1,
+    "oscWave": 0.3,
+    "reso": 0.899100005626678,
+    "sweep": 0.4,
+    "bassComp": 0.373800009489059,
+    "pw": 0.5
+  },
+  "version": 1
+}

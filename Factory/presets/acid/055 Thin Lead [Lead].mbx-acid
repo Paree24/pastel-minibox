@@ -1,0 +1,25 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Thin Lead",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.51419997215271,
+    "cutoff": 2000.0,
+    "decay": 0.5,
+    "delayDiv": 9,
+    "delayDuck": 0.5,
+    "delayFb": 0.45,
+    "delayMix": 0.2,
+    "delayTone": 0.5,
+    "envMod": 0.575299978256226,
+    "level": 1.019999980926514,
+    "oscWave": 1,
+    "pw": 0.150000005960464,
+    "reso": 0.75,
+    "sweep": 0.4,
+    "bassComp": 0.25
+  },
+  "version": 1
+}

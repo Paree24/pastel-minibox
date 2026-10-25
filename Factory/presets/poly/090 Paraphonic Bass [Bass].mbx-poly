@@ -1,0 +1,28 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Paraphonic Bass",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.002,
+    "aDecay": 0.5,
+    "aRelease": 0.15,
+    "aSustain": 0.7,
+    "cutoff": 260,
+    "engine": 1,
+    "envAmt": 0.6,
+    "fAttack": 0.002,
+    "fDecay": 0.3,
+    "fRelease": 0.15,
+    "fSustain": 0.2,
+    "filterDrive": 0.3,
+    "filterMode": 0,
+    "key": 0.3,
+    "level": 0.321299999952316,
+    "reso": 0.6,
+    "vaPw": 0.4,
+    "vaWave": 1
+  },
+  "version": 1
+}

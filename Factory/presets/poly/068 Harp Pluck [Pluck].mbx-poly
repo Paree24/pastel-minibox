@@ -1,0 +1,33 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Harp Pluck",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.001,
+    "aDecay": 4.05,
+    "aRelease": 1.8,
+    "aSustain": 0.0,
+    "chorusMix": 0.5,
+    "chorusMode": 2,
+    "cutoff": 2500,
+    "dcoPw": 0.25,
+    "dcoWave": 0,
+    "engine": 0,
+    "envAmt": 0.4,
+    "fAttack": 0.001,
+    "fDecay": 0.8,
+    "fRelease": 1.2,
+    "fSustain": 0.0,
+    "hpf": 2,
+    "key": 0.9,
+    "level": 1.353800058364868,
+    "reso": 0.15,
+    "revPre": 0.0305,
+    "revSize": 0.745,
+    "revTone": 0.55,
+    "reverb": 0.45
+  },
+  "version": 1
+}

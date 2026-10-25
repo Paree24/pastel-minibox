@@ -1,0 +1,26 @@
+{
+  "family": "Pad",
+  "macros": "",
+  "name": "Crushed Swelling Strings Pad",
+  "samples": [
+    "factory:src023_swelling_strings_pad"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.005,
+    "bits": 8,
+    "character": 1,
+    "decay": 1.0,
+    "level": 0.491100013256073,
+    "loopLen": 0.2,
+    "loopStart": 0.225,
+    "playMode": 2,
+    "rate": 12,
+    "release": 0.6,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

@@ -1,0 +1,27 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Envelope PWM Bass",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.002,
+    "cutoff": 700,
+    "decay": 0.45,
+    "envAmt": 0.35,
+    "key": 0.4,
+    "level": 0.548200011253357,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.5,
+    "pw": 0.12,
+    "pwm": 0.6,
+    "pwmSrc": 1,
+    "release": 0.12,
+    "reso": 0.25,
+    "subType": 0,
+    "sustain": 0.35
+  },
+  "version": 1
+}

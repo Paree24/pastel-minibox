@@ -1,0 +1,30 @@
+{
+  "family": "Stab",
+  "macros": "",
+  "name": "Sus Stab",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.003,
+    "chord": 2,
+    "cutoff": 1800,
+    "decay": 1.8,
+    "envAmt": 0.4,
+    "fxChorus": 0.3,
+    "fxReverb": 0.3,
+    "key": 0.5,
+    "level": 0.642199993133545,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "release": 0.6,
+    "reso": 0.3,
+    "revPre": 0.023,
+    "revSize": 0.58,
+    "revTone": 0.55,
+    "sustain": 0.3,
+    "voiceMode": 3
+  },
+  "version": 1
+}

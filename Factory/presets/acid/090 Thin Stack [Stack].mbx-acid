@@ -1,0 +1,24 @@
+{
+  "family": "Stack",
+  "macros": "",
+  "name": "Thin Stack",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.600000023841858,
+    "cutoff": 683.64990234375,
+    "decay": 0.400000005960464,
+    "envMod": 0.449999988079071,
+    "level": 1.467000007629395,
+    "oscWave": 1,
+    "pw": 0.100000001490116,
+    "reso": 0.699999988079071,
+    "stack": 1,
+    "stackMix": 0.4,
+    "stackMode": 1,
+    "stackSpread": 0.5,
+    "sweep": 0.4,
+    "bassComp": 0.25
+  },
+  "version": 1
+}

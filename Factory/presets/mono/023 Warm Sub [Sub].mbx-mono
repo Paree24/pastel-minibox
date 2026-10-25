@@ -1,0 +1,25 @@
+{
+  "family": "Sub",
+  "macros": "",
+  "name": "Warm Sub",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.004,
+    "cutoff": 220,
+    "decay": 1.0,
+    "drive": 0.25,
+    "envAmt": 0.2,
+    "key": 0.3,
+    "level": 0.20100000500679,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 0.3,
+    "mixSub": 0.9,
+    "release": 0.225,
+    "reso": 0.1,
+    "subType": 0,
+    "sustain": 0.9
+  },
+  "version": 1
+}

@@ -1,0 +1,31 @@
+{
+  "family": "Stab",
+  "macros": "",
+  "name": "Seventh Pad Stab",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.08,
+    "chord": 4,
+    "cutoff": 1200,
+    "decay": 0.8,
+    "envAmt": 0.3,
+    "fxChorus": 0.5,
+    "fxReverb": 0.4,
+    "key": 0.5,
+    "level": 1.30019998550415,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "pw": 0.3,
+    "release": 1.2,
+    "reso": 0.2,
+    "revPre": 0.028,
+    "revSize": 0.69,
+    "revTone": 0.55,
+    "sustain": 0.6,
+    "voiceMode": 3
+  },
+  "version": 1
+}

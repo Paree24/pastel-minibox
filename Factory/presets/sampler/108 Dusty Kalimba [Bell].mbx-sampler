@@ -1,0 +1,27 @@
+{
+  "family": "Bell",
+  "macros": "",
+  "name": "Dusty Kalimba",
+  "samples": [
+    "factory:src108_kalimba"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.001,
+    "bits": 12,
+    "character": 1,
+    "decay": 1.369166666666667,
+    "level": 0.400499999523163,
+    "playMode": 1,
+    "rate": 20,
+    "release": 0.4,
+    "revPre": 0.018,
+    "revSize": 0.47,
+    "reverb": 0.2,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 72
+  },
+  "version": 1
+}

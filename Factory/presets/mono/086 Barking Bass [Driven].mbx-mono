@@ -1,0 +1,25 @@
+{
+  "family": "Driven",
+  "macros": "",
+  "name": "Barking Bass",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 300.0,
+    "decay": 0.486000001430511,
+    "drive": 0.75,
+    "envAmt": 0.899999976158142,
+    "key": 0.570299983024597,
+    "level": 0.439099997282028,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.5,
+    "release": 0.119999997317791,
+    "reso": 0.850000023841858,
+    "subType": 0,
+    "sustain": 0.204799994826317
+  },
+  "version": 1
+}

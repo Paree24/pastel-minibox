@@ -1,0 +1,32 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Big Room",
+  "samples": [],
+  "type": "drums",
+  "values": {
+    "kitComp": 0.6,
+    "kitDrive": 0.25,
+    "kitLevel": 0.535899996757507,
+    "p1Bend": 0.5,
+    "p1Decay": 0.7,
+    "p1Drive": 0.5,
+    "p1DriveType": 1,
+    "p1Eng": 1,
+    "p2Eng": 1,
+    "p2SendReverb": 0.45,
+    "p3Eng": 0,
+    "p3SendReverb": 0.5,
+    "p4Eng": 1,
+    "p5Eng": 1,
+    "p6Eng": 1,
+    "p7Decay": 2.8,
+    "p7Eng": 1,
+    "p7SendReverb": 0.3,
+    "p8Eng": 2,
+    "revPre": 0.025,
+    "revSize": 0.75,
+    "revTone": 0.6
+  },
+  "version": 1
+}

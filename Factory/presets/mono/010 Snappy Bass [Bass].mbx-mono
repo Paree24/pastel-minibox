@@ -1,0 +1,23 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Snappy Bass",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 160,
+    "decay": 0.324,
+    "envAmt": 0.95,
+    "key": 0.5,
+    "level": 0.634999990463257,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "release": 0.075,
+    "reso": 0.55,
+    "sustain": 0.1
+  },
+  "version": 1
+}

@@ -1,0 +1,26 @@
+{
+  "family": "Strings & Brass",
+  "macros": "",
+  "name": "Synth Brass Swell",
+  "samples": [
+    "factory:src045_synth_brass_swell"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.005,
+    "decay": 1.0,
+    "level": 0.262199997901917,
+    "loopLen": 0.302088659874916,
+    "loopStart": 0.339849742359281,
+    "playMode": 2,
+    "release": 0.6,
+    "revPre": 0.0255,
+    "revSize": 0.635,
+    "reverb": 0.35,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

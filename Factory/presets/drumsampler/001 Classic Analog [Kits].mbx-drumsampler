@@ -1,0 +1,41 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Classic Analog",
+  "samples": [
+    "factory:kit01_kick",
+    "factory:kit01_snare",
+    "factory:kit01_chat",
+    "factory:kit01_ohat",
+    "factory:kit01_clap",
+    "factory:kit01_tom",
+    "factory:kit01_cym",
+    "factory:kit01_perc"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 0.616299986839294,
+    "pd1Decay": 1.155895833333333,
+    "pd1Pan": 0,
+    "pd2Decay": 0.3069375,
+    "pd2Pan": 0.05,
+    "pd2SendReverb": 0.2,
+    "pd3Decay": 0.177875,
+    "pd3Pan": 0.25,
+    "pd4Decay": 0.984333333333333,
+    "pd4Pan": 0.25,
+    "pd5Decay": 0.3749375,
+    "pd5Pan": -0.15,
+    "pd5SendReverb": 0.2,
+    "pd6Decay": 0.530791666666667,
+    "pd6Pan": -0.3,
+    "pd7Decay": 2.812958333333333,
+    "pd7Pan": -0.2,
+    "pd8Decay": 0.262416666666667,
+    "pd8Pan": 0.35,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

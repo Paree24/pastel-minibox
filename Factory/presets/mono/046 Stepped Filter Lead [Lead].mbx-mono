@@ -1,0 +1,31 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Stepped Filter Lead",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.01,
+    "cutoff": 900,
+    "decay": 0.5,
+    "envAmt": 0.2,
+    "fxDelay": 0.25,
+    "fxFeedback": 0.4,
+    "fxTime": 10,
+    "key": 0.7,
+    "level": 0.44980001449585,
+    "lfoCut": 0.35,
+    "lfoFade": 0.0,
+    "lfoPwm": 0.0,
+    "lfoRate": 8.0,
+    "lfoShape": 2,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "release": 0.3,
+    "reso": 0.6,
+    "sustain": 0.9
+  },
+  "version": 1
+}

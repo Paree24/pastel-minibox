@@ -1,0 +1,28 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Glass Pluck",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 600,
+    "decay": 1.8,
+    "envAmt": 0.9,
+    "fxReverb": 0.3,
+    "key": 1.0,
+    "level": 0.492000013589859,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.0,
+    "pw": 0.3,
+    "release": 0.45,
+    "reso": 0.55,
+    "revPre": 0.023,
+    "revSize": 0.58,
+    "revTone": 0.55,
+    "sustain": 0.0
+  },
+  "version": 1
+}

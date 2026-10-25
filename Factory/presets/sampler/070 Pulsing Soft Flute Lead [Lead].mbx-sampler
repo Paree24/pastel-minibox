@@ -1,0 +1,27 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Pulsing Soft Flute Lead",
+  "samples": [
+    "factory:src070_soft_flute_lead"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.005,
+    "cutoff": 3000,
+    "decay": 1.0,
+    "level": 0.156599998474121,
+    "lfoCut": 0.5,
+    "lfoRate": 4.0,
+    "lfoShape": 2,
+    "loopLen": 0.324672579540554,
+    "loopStart": 0.365256651983124,
+    "playMode": 2,
+    "release": 0.6,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

@@ -1,0 +1,33 @@
+{
+  "family": "Keys",
+  "macros": "",
+  "name": "Vintage Piano",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.001,
+    "aDecay": 5.4,
+    "aRelease": 0.75,
+    "aSustain": 0.0,
+    "chorusMix": 0.4,
+    "chorusMode": 2,
+    "cutoff": 2000,
+    "dcoWave": 1,
+    "engine": 0,
+    "envAmt": 0.6,
+    "fAttack": 0.001,
+    "fDecay": 1.92,
+    "fRelease": 0.6,
+    "fSustain": 0.1,
+    "hpf": 1,
+    "key": 0.8,
+    "level": 1.246099948883057,
+    "reso": 0.0,
+    "revPre": 0.0255,
+    "revSize": 0.635,
+    "revTone": 0.55,
+    "reverb": 0.35,
+    "sub": 0.3
+  },
+  "version": 1
+}

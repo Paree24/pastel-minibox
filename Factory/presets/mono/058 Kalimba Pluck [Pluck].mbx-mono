@@ -1,0 +1,32 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Kalimba Pluck",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 1800,
+    "decay": 1.8,
+    "envAmt": 0.3,
+    "fxDelay": 0.2,
+    "fxFeedback": 0.3,
+    "fxReverb": 0.3,
+    "fxTime": 7,
+    "key": 1.0,
+    "level": 0.578199982643127,
+    "mixNoise": 0.0,
+    "mixPulse": 0.6,
+    "mixSaw": 0.0,
+    "mixSub": 0.3,
+    "pw": 0.5,
+    "release": 0.6,
+    "reso": 0.25,
+    "revPre": 0.023,
+    "revSize": 0.58,
+    "revTone": 0.55,
+    "subType": 0,
+    "sustain": 0.0
+  },
+  "version": 1
+}

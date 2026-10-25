@@ -1,0 +1,28 @@
+{
+  "family": "Stab",
+  "macros": "",
+  "name": "Gated Chord",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "ampMode": 1,
+    "attack": 0.002,
+    "chord": 1,
+    "cutoff": 1800,
+    "decay": 0.1,
+    "envAmt": 0.0,
+    "fxChorus": 0.3,
+    "key": 0.5,
+    "level": 0.453000009059906,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.5,
+    "mixSub": 0.0,
+    "pw": 0.5,
+    "release": 0.06,
+    "reso": 0.2,
+    "sustain": 1.0,
+    "voiceMode": 3
+  },
+  "version": 1
+}

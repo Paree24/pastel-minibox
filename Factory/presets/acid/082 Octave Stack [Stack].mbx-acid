@@ -1,0 +1,24 @@
+{
+  "family": "Stack",
+  "macros": "",
+  "name": "Octave Stack",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.600000023841858,
+    "cutoff": 500.0,
+    "decay": 0.449999988079071,
+    "envMod": 0.533999979496002,
+    "level": 1.027799963951111,
+    "oscWave": 1,
+    "reso": 0.682399988174438,
+    "stack": 1,
+    "stackMix": 0.7,
+    "stackMode": 2,
+    "stackSpread": 0.6,
+    "sweep": 0.4,
+    "bassComp": 0.686999976634979,
+    "pw": 0.277200013399124
+  },
+  "version": 1
+}

@@ -1,0 +1,33 @@
+{
+  "family": "Brass",
+  "macros": "",
+  "name": "Soft Horns",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.1,
+    "aDecay": 0.8,
+    "aRelease": 0.6,
+    "aSustain": 0.9,
+    "chorusMix": 0.5,
+    "chorusMode": 2,
+    "cutoff": 450,
+    "dcoPw": 0.45,
+    "dcoWave": 2,
+    "engine": 0,
+    "envAmt": 0.45,
+    "fAttack": 0.15,
+    "fDecay": 0.8,
+    "fRelease": 0.6,
+    "fSustain": 0.6,
+    "hpf": 1,
+    "key": 0.5,
+    "level": 1.998600006103516,
+    "reso": 0.1,
+    "revPre": 0.023,
+    "revSize": 0.58,
+    "revTone": 0.55,
+    "reverb": 0.3
+  },
+  "version": 1
+}

@@ -1,0 +1,29 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Poly Saw Bass",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.002,
+    "aDecay": 0.6,
+    "aRelease": 0.15,
+    "aSustain": 0.7,
+    "chorusMix": 0.3,
+    "chorusMode": 1,
+    "cutoff": 500,
+    "dcoWave": 1,
+    "engine": 0,
+    "envAmt": 0.5,
+    "fAttack": 0.002,
+    "fDecay": 0.3,
+    "fRelease": 0.15,
+    "fSustain": 0.3,
+    "hpf": 0,
+    "key": 0.4,
+    "level": 0.67519998550415,
+    "reso": 0.2,
+    "sub": 0.5
+  },
+  "version": 1
+}

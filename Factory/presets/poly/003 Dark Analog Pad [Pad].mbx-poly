@@ -1,0 +1,32 @@
+{
+  "family": "Pad",
+  "macros": "",
+  "name": "Dark Analog Pad",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.8,
+    "aDecay": 1.0,
+    "aRelease": 3.0,
+    "aSustain": 1.0,
+    "chorusMix": 0.6,
+    "chorusMode": 1,
+    "cutoff": 500,
+    "dcoWave": 1,
+    "engine": 0,
+    "envAmt": 0.35,
+    "fAttack": 1.5,
+    "fDecay": 2.5,
+    "fRelease": 3.0,
+    "fSustain": 0.5,
+    "key": 0.3,
+    "level": 1.070999979972839,
+    "reso": 0.35,
+    "revPre": 0.028,
+    "revSize": 0.69,
+    "revTone": 0.55,
+    "reverb": 0.4,
+    "sub": 0.5
+  },
+  "version": 1
+}

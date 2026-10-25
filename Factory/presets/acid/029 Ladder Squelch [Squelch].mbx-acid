@@ -1,0 +1,21 @@
+{
+  "family": "Squelch",
+  "macros": "",
+  "name": "Ladder Squelch",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.600000023841858,
+    "cutoff": 318.0701904296875,
+    "decay": 0.302500009536743,
+    "envMod": 0.784200012683868,
+    "filterType": 0,
+    "level": 1.164700031280518,
+    "oscWave": 0,
+    "reso": 0.899999976158142,
+    "sweep": 0.4,
+    "bassComp": 0.25,
+    "pw": 0.622699975967407
+  },
+  "version": 1
+}

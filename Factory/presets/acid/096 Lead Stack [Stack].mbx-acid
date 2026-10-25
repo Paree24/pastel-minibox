@@ -1,0 +1,27 @@
+{
+  "family": "Stack",
+  "macros": "",
+  "name": "Lead Stack",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 1400,
+    "decay": 0.8,
+    "delayDiv": 9,
+    "delayDuck": 0.5,
+    "delayFb": 0.5,
+    "delayMix": 0.3,
+    "delayTone": 0.5,
+    "envMod": 0.4,
+    "level": 1.846500039100647,
+    "oscWave": 0,
+    "reso": 0.85,
+    "stack": 1,
+    "stackMix": 0.5,
+    "stackMode": 2,
+    "stackSpread": 0.5,
+    "sweep": 0.4
+  },
+  "version": 1
+}

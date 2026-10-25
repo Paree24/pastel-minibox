@@ -1,0 +1,20 @@
+{
+  "family": "Classic",
+  "macros": "",
+  "name": "Warm Line",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.600000023841858,
+    "bassComp": 0.220699995756149,
+    "cutoff": 371.875701904296875,
+    "decay": 0.617699980735779,
+    "envMod": 0.449999988079071,
+    "level": 1.26010000705719,
+    "oscWave": 0,
+    "reso": 0.600000023841858,
+    "sweep": 0.4,
+    "pw": 0.395900011062622
+  },
+  "version": 1
+}

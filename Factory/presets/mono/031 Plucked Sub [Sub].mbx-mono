@@ -1,0 +1,24 @@
+{
+  "family": "Sub",
+  "macros": "",
+  "name": "Plucked Sub",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 400,
+    "decay": 1.8,
+    "envAmt": 0.7,
+    "key": 0.4,
+    "level": 0.622399985790253,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 0.4,
+    "mixSub": 1.0,
+    "release": 0.45,
+    "reso": 0.5,
+    "subType": 0,
+    "sustain": 0.0
+  },
+  "version": 1
+}

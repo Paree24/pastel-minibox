@@ -1,0 +1,32 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Soft Pluck",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.002,
+    "aDecay": 2.16,
+    "aRelease": 0.9,
+    "aSustain": 0.0,
+    "chorusMix": 0.6,
+    "chorusMode": 3,
+    "cutoff": 800,
+    "dcoPw": 0.45,
+    "dcoWave": 2,
+    "engine": 0,
+    "envAmt": 0.6,
+    "fAttack": 0.002,
+    "fDecay": 0.64,
+    "fRelease": 0.75,
+    "fSustain": 0.0,
+    "key": 0.7,
+    "level": 2.0,
+    "reso": 0.2,
+    "revPre": 0.0255,
+    "revSize": 0.635,
+    "revTone": 0.55,
+    "reverb": 0.35
+  },
+  "version": 1
+}

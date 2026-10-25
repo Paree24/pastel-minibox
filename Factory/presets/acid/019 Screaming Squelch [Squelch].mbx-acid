@@ -1,0 +1,23 @@
+{
+  "family": "Squelch",
+  "macros": "",
+  "name": "Screaming Squelch",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 1.0,
+    "cutoff": 260,
+    "decay": 0.35,
+    "delayDiv": 6,
+    "delayDuck": 0.5,
+    "delayFb": 0.45,
+    "delayMix": 0.25,
+    "delayTone": 0.5,
+    "envMod": 1.0,
+    "level": 0.818700015544891,
+    "oscWave": 0,
+    "reso": 1.0,
+    "sweep": 1.0
+  },
+  "version": 1
+}

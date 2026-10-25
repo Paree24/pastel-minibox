@@ -1,0 +1,32 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Dark Pluck",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.001,
+    "aDecay": 2.16,
+    "aRelease": 0.75,
+    "aSustain": 0.0,
+    "chorusMix": 0.5,
+    "chorusMode": 1,
+    "cutoff": 220,
+    "dcoWave": 1,
+    "engine": 0,
+    "envAmt": 0.7,
+    "fAttack": 0.001,
+    "fDecay": 0.56,
+    "fRelease": 0.45,
+    "fSustain": 0.0,
+    "key": 0.6,
+    "level": 1.612499952316284,
+    "reso": 0.4,
+    "revPre": 0.023,
+    "revSize": 0.58,
+    "revTone": 0.55,
+    "reverb": 0.3,
+    "sub": 0.4
+  },
+  "version": 1
+}

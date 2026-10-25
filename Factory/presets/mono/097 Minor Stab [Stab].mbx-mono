@@ -1,0 +1,29 @@
+{
+  "family": "Stab",
+  "macros": "",
+  "name": "Minor Stab",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.002,
+    "chord": 1,
+    "cutoff": 1400,
+    "decay": 1.8,
+    "envAmt": 0.5,
+    "fxChorus": 0.4,
+    "fxDelay": 0.25,
+    "fxFeedback": 0.35,
+    "fxTime": 7,
+    "key": 0.5,
+    "level": 0.66210001707077,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "release": 0.45,
+    "reso": 0.2,
+    "sustain": 0.2,
+    "voiceMode": 3
+  },
+  "version": 1
+}

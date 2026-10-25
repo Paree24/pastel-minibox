@@ -1,0 +1,24 @@
+{
+  "family": "Texture",
+  "macros": "",
+  "name": "Dusty Computer Bleeps",
+  "samples": [
+    "factory:src118_computer_bleeps"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.001,
+    "bits": 12,
+    "character": 1,
+    "decay": 2.3465625,
+    "level": 0.204099997878075,
+    "playMode": 0,
+    "rate": 20,
+    "release": 0.4,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

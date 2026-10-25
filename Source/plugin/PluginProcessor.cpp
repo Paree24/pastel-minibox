@@ -1,0 +1,158 @@
+#include "PluginProcessor.h"
+#include "PluginEditor.h"
+#include "app/presets/PresetBank.h"
+
+namespace mb
+{
+MiniboxProcessor::MiniboxProcessor()
+    : AudioProcessor (BusesProperties().withOutput ("Output", juce::AudioChannelSet::stereo(), true))
+{
+    for (int m = 0; m < 8; ++m)
+    {
+        macroParams[(size_t) m] = new juce::AudioParameterFloat (juce::ParameterID ("macro" + juce::String (m + 1), 1), "Macro " + juce::String (m + 1), 0.0f, 1.0f, 0.5f);
+        addParameter (macroParams[(size_t) m]);
+    }
+    levelParam = new juce::AudioParameterFloat (juce::ParameterID ("level", 1), "Level", 0.0f, 1.0f, 0.8f);
+    panParam = new juce::AudioParameterFloat (juce::ParameterID ("pan", 1), "Pan", -1.0f, 1.0f, 0.0f);
+    muteParam = new juce::AudioParameterBool (juce::ParameterID ("mute", 1), "Mute", false);
+    masterParam = new juce::AudioParameterFloat (juce::ParameterID ("masterVolume", 1), "Master Volume", 0.0f, 1.2f, 0.8f);
+    delayParam = new juce::AudioParameterFloat (juce::ParameterID ("delayReturn", 1), "Delay Send Return", 0.0f, 1.0f, 0.8f);
+    reverbParam = new juce::AudioParameterFloat (juce::ParameterID ("reverbReturn", 1), "Reverb Return", 0.0f, 1.0f, 0.8f);
+    for (auto* p : std::initializer_list<juce::AudioProcessorParameter*> { levelParam, panParam, muteParam, masterParam, delayParam, reverbParam }) addParameter (p);
+    eng.project().master.glue = 0.0f;   // the plugin is one instrument: no bus compression by default
+    switchInstrument (DeviceType::Poly);
+}
+
+MiniboxProcessor::~MiniboxProcessor() = default;
+
+bool MiniboxProcessor::isBusesLayoutSupported (const BusesLayout& l) const
+{
+    return l.getMainOutputChannelSet() == juce::AudioChannelSet::stereo();
+}
+
+void MiniboxProcessor::prepareToPlay (double sr, int block)
+{
+    sampleRate = sr;
+    eng.prepare (sr, std::max (512, block));
+    setLatencySamples (eng.master().latency());
+}
+
+void MiniboxProcessor::switchInstrument (DeviceType t)
+{
+    auto d = createDevice (t);
+    presets::loadDefault (*d);
+    auto old = eng.setDevice (0, 0, std::move (d));
+    old.reset();
+    if (auto* dev = eng.pluginDevice())
+        for (int m = 0; m < 8; ++m)
+        {
+            lastMacro[(size_t) m] = dev->getMacro (m);
+            macroParams[(size_t) m]->setValueNotifyingHost (lastMacro[(size_t) m]);
+            lastHost[(size_t) m] = macroParams[(size_t) m]->get();
+        }
+}
+
+void MiniboxProcessor::macroChangedByUi (int m, float v)
+{
+    lastMacro[(size_t) m] = v;
+    macroParams[(size_t) m]->setValueNotifyingHost (v);
+    lastHost[(size_t) m] = macroParams[(size_t) m]->get();
+}
+
+void MiniboxProcessor::syncHostParameters()
+{
+    auto* dev = eng.pluginDevice();
+    for (int m = 0; m < 8 && dev != nullptr; ++m)
+    {
+        const float hv = macroParams[(size_t) m]->get();
+        if (std::abs (hv - lastHost[(size_t) m]) > 1.0e-5f) { dev->setMacro (m, hv); lastMacro[(size_t) m] = hv; }   // host automation
+        lastHost[(size_t) m] = hv;
+    }
+    auto& mixer = eng.pluginMixer();
+    auto& master = eng.project().master;
+    mixer.level = levelParam->get();
+    mixer.pan = panParam->get();
+    mixer.mute = muteParam->get();
+    master.volume = masterParam->get();
+    master.delayReturn = delayParam->get();
+    master.reverbReturn = reverbParam->get();
+}
+
+void MiniboxProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi)
+{
+    juce::ScopedNoDenormals noDenormals;
+    syncHostParameters();
+    if (auto* ph = getPlayHead())
+        if (auto pos = ph->getPosition())
+        {
+            const double bpm = pos->getBpm().orFallback (120.0);
+            eng.project().bpm = bpm;
+            // "playing" without a position would pin every synced step to beat 0
+            const auto ppq = pos->getPpqPosition();
+            eng.setHostTransport (bpm, ppq.orFallback (0.0), pos->getIsPlaying() && ppq.hasValue());
+        }
+    const int n = buffer.getNumSamples();
+    float* l = buffer.getWritePointer (0);
+    float* r = buffer.getNumChannels() > 1 ? buffer.getWritePointer (1) : l;
+    const int maxBlock = eng.getMaxBlock();
+    for (int pos = 0; pos < n; pos += maxBlock)
+    {
+        const int len = std::min (maxBlock, n - pos);
+        chunk.clear();
+        chunk.addEvents (midi, pos, len, -pos);
+        eng.process (l + pos, r + pos, len, &chunk);
+    }
+    midi.clear();
+}
+
+juce::AudioProcessorEditor* MiniboxProcessor::createEditor() { return new MiniboxEditor (*this); }
+
+void MiniboxProcessor::getStateInformation (juce::MemoryBlock& out)
+{
+    juce::ValueTree state ("MiniboxPlugin");
+    state.setProperty ("version", 1, nullptr);
+    {
+        const Engine::ScopedEdit edit (eng);
+        if (auto* d = eng.pluginDevice())
+        {
+            juce::ValueTree dt ("Device");
+            d->save (dt);
+            state.setProperty ("instrument", deviceTypeId (d->type()), nullptr);
+            state.setProperty ("preset", d->presetName, nullptr);
+            state.appendChild (dt, nullptr);
+        }
+    }
+    for (auto* p : getParameters())
+        if (auto* pw = dynamic_cast<juce::AudioProcessorParameterWithID*> (p)) state.setProperty ("p_" + pw->paramID, p->getValue(), nullptr);
+    juce::MemoryOutputStream os (out, false);
+    state.writeToStream (os);
+}
+
+void MiniboxProcessor::setStateInformation (const void* data, int size)
+{
+    auto state = juce::ValueTree::readFromData (data, (size_t) size);
+    if (! state.isValid()) return;
+    // Sessions saved by the older four-slot rack keep slot 1 and drop the rest.
+    auto dt = state.getChildWithName ("Device");
+    if (! dt.isValid())
+        if (auto slots = state.getChildWithName ("Slots"); slots.isValid() && slots.getNumChildren() > 0) dt = slots.getChild (0).getChildWithName ("Device");
+    if (dt.isValid())
+    {
+        const auto type = deviceTypeFromId (dt.getProperty ("type").toString());
+        if (type != DeviceType::Count)
+        {
+            auto d = createDevice (type);
+            d->load (dt);
+            auto old = eng.setDevice (0, 0, std::move (d));
+            old.reset();
+        }
+    }
+    for (auto* p : getParameters())
+        if (auto* pw = dynamic_cast<juce::AudioProcessorParameterWithID*> (p))
+            if (state.hasProperty ("p_" + pw->paramID)) p->setValueNotifyingHost ((float) state.getProperty ("p_" + pw->paramID));
+    if (auto* d = eng.pluginDevice())
+        for (int m = 0; m < 8; ++m) { lastMacro[(size_t) m] = d->getMacro (m); lastHost[(size_t) m] = macroParams[(size_t) m]->get(); }
+}
+} // namespace mb
+
+juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter() { return new mb::MiniboxProcessor(); }

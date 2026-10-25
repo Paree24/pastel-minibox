@@ -1,0 +1,27 @@
+{
+  "family": "Strings & Brass",
+  "macros": "",
+  "name": "Pulsing String Machine Wash",
+  "samples": [
+    "factory:src038_string_machine_wash"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.004900000058115,
+    "cutoff": 3000.0,
+    "decay": 1.0,
+    "level": 0.406399995088577,
+    "lfoCut": 0.5,
+    "lfoRate": 4.0,
+    "lfoShape": 2,
+    "loopLen": 0.245593389444601,
+    "loopStart": 0.276292563125176,
+    "playMode": 2,
+    "release": 0.343100011348724,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

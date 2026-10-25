@@ -1,0 +1,33 @@
+{
+  "family": "FX",
+  "macros": "",
+  "name": "Underwater Bubbles",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.002,
+    "cutoff": 600,
+    "decay": 0.3,
+    "envAmt": 0.0,
+    "fxReverb": 0.35,
+    "key": 1.0,
+    "level": 0.220400005578995,
+    "lfoCut": 0.7,
+    "lfoFade": 0.0,
+    "lfoPwm": 0.0,
+    "lfoRate": 9.0,
+    "lfoShape": 2,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.0,
+    "pw": 0.5,
+    "release": 0.45,
+    "reso": 0.9,
+    "revPre": 0.0255,
+    "revSize": 0.635,
+    "revTone": 0.55,
+    "sustain": 1.0
+  },
+  "version": 1
+}

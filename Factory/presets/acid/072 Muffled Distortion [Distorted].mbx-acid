@@ -1,0 +1,27 @@
+{
+  "family": "Distorted",
+  "macros": "",
+  "name": "Muffled Distortion",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 550,
+    "decay": 0.4,
+    "delayDiv": 6,
+    "delayDuck": 0.5,
+    "delayFb": 0.45,
+    "delayMix": 0.25,
+    "delayTone": 0.5,
+    "driveAmt": 0.7,
+    "driveMix": 1.0,
+    "driveTone": 0.08,
+    "driveType": 1,
+    "envMod": 0.7,
+    "level": 0.997200012207031,
+    "oscWave": 0,
+    "reso": 0.8,
+    "sweep": 0.4
+  },
+  "version": 1
+}

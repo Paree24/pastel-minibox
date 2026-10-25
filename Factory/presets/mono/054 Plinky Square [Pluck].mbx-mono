@@ -1,0 +1,27 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Plinky Square",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 1500,
+    "decay": 1.8,
+    "envAmt": 0.5,
+    "fxDelay": 0.3,
+    "fxFeedback": 0.4,
+    "fxTime": 10,
+    "key": 1.0,
+    "level": 0.43520000576973,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.0,
+    "pw": 0.5,
+    "release": 0.18,
+    "reso": 0.4,
+    "sustain": 0.0
+  },
+  "version": 1
+}

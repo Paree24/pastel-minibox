@@ -1,0 +1,23 @@
+{
+  "family": "Deep",
+  "macros": "",
+  "name": "Night Bass",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 240,
+    "decay": 1.4,
+    "delayDiv": 6,
+    "delayDuck": 0.7,
+    "delayFb": 0.5,
+    "delayMix": 0.2,
+    "delayTone": 0.5,
+    "envMod": 0.4,
+    "level": 1.25380003452301,
+    "oscWave": 0,
+    "reso": 0.55,
+    "sweep": 0.4
+  },
+  "version": 1
+}

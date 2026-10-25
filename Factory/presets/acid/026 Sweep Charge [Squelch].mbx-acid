@@ -1,0 +1,21 @@
+{
+  "family": "Squelch",
+  "macros": "",
+  "name": "Sweep Charge",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 1.0,
+    "accDecay": 0.6,
+    "cutoff": 300.0,
+    "decay": 0.507300019264221,
+    "envMod": 0.838800013065338,
+    "level": 0.952600002288818,
+    "oscWave": 0.3,
+    "reso": 0.948800027370453,
+    "sweep": 1.0,
+    "bassComp": 0.25,
+    "pw": 0.148699998855591
+  },
+  "version": 1
+}

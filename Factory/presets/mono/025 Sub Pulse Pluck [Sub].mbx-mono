@@ -1,0 +1,25 @@
+{
+  "family": "Sub",
+  "macros": "",
+  "name": "Sub Pulse Pluck",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 260,
+    "decay": 1.8,
+    "envAmt": 0.6,
+    "key": 0.4,
+    "level": 0.525600016117096,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.9,
+    "pw": 0.2,
+    "release": 0.15,
+    "reso": 0.3,
+    "subType": 2,
+    "sustain": 0.1
+  },
+  "version": 1
+}

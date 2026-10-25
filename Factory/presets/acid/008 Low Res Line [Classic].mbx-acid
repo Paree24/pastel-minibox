@@ -1,0 +1,22 @@
+{
+  "family": "Classic",
+  "macros": "",
+  "name": "Low Res Line",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.600000023841858,
+    "cutoff": 650.0,
+    "decay": 0.5,
+    "envMod": 0.690400004386902,
+    "filterType": 0,
+    "level": 0.95959997177124,
+    "oscWave": 0,
+    "reso": 0.298099994659424,
+    "sub": 0.4,
+    "sweep": 0.4,
+    "bassComp": 0.41159999370575,
+    "pw": 0.5
+  },
+  "version": 1
+}

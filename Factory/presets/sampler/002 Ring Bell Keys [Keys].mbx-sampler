@@ -1,0 +1,24 @@
+{
+  "family": "Keys",
+  "macros": "",
+  "name": "Ring Bell Keys",
+  "samples": [
+    "factory:src002_ring_bell_keys"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.001,
+    "decay": 3.816395833333333,
+    "level": 0.379200011491776,
+    "playMode": 1,
+    "release": 0.4,
+    "revPre": 0.0205,
+    "revSize": 0.525,
+    "reverb": 0.25,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

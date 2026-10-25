@@ -1,0 +1,22 @@
+{
+  "family": "Wobble",
+  "macros": "",
+  "name": "Triplet Wobble",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 380,
+    "decay": 1.5,
+    "envMod": 0.15,
+    "level": 0.805999994277954,
+    "lfoCut": 0.6,
+    "lfoDiv": 8,
+    "lfoShape": 0,
+    "lfoSync": 1,
+    "oscWave": 0.5,
+    "reso": 0.84,
+    "sweep": 0.4
+  },
+  "version": 1
+}

@@ -1,0 +1,23 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Bright Lead",
+  "samples": [
+    "factory:src065_bright_lead"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.005,
+    "decay": 1.0,
+    "level": 0.316399991512299,
+    "loopLen": 0.211057430705558,
+    "loopStart": 0.237439609543753,
+    "playMode": 2,
+    "release": 0.6,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

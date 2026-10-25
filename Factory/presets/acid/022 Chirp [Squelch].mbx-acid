@@ -1,0 +1,23 @@
+{
+  "family": "Squelch",
+  "macros": "",
+  "name": "Chirp",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.8,
+    "cutoff": 420,
+    "decay": 0.2,
+    "delayDiv": 10,
+    "delayDuck": 0.5,
+    "delayFb": 0.4,
+    "delayMix": 0.3,
+    "delayTone": 0.5,
+    "envMod": 0.95,
+    "level": 0.888199985027313,
+    "oscWave": 0,
+    "reso": 0.97,
+    "sweep": 0.3
+  },
+  "version": 1
+}

@@ -1,0 +1,24 @@
+{
+  "family": "Keys",
+  "macros": "",
+  "name": "Bright Tine Piano",
+  "samples": [
+    "factory:src013_bright_tine_piano"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.001,
+    "decay": 3.472,
+    "level": 0.33390000462532,
+    "playMode": 1,
+    "release": 0.4,
+    "revPre": 0.0255,
+    "revSize": 0.635,
+    "reverb": 0.35,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

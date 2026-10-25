@@ -1,0 +1,24 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Bright Acid Lead",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 2500,
+    "decay": 0.6,
+    "delayDiv": 9,
+    "delayDuck": 0.5,
+    "delayFb": 0.45,
+    "delayMix": 0.25,
+    "delayTone": 0.5,
+    "envMod": 0.4,
+    "key": 0.6,
+    "level": 1.379500031471252,
+    "oscWave": 0,
+    "reso": 0.7,
+    "sweep": 0.4
+  },
+  "version": 1
+}

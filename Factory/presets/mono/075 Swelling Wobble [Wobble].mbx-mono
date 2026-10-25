@@ -1,0 +1,30 @@
+{
+  "family": "Wobble",
+  "macros": "",
+  "name": "Swelling Wobble",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.3,
+    "cutoff": 240,
+    "decay": 0.4,
+    "envAmt": 0.0,
+    "key": 0.3,
+    "level": 0.419999986886978,
+    "lfoCut": 0.7,
+    "lfoDiv": 7,
+    "lfoFade": 2.0,
+    "lfoPwm": 0.0,
+    "lfoShape": 0,
+    "lfoSync": 1,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.5,
+    "release": 0.45,
+    "reso": 0.65,
+    "subType": 0,
+    "sustain": 1.0
+  },
+  "version": 1
+}

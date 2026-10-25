@@ -1,0 +1,31 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Whistle Lead",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.04,
+    "cutoff": 1000,
+    "decay": 0.5,
+    "envAmt": 0.1,
+    "fxDelay": 0.3,
+    "fxFeedback": 0.45,
+    "fxReverb": 0.35,
+    "fxTime": 6,
+    "key": 1.0,
+    "level": 0.988399982452393,
+    "mixNoise": 0.0,
+    "mixPulse": 0.2,
+    "mixSaw": 0.0,
+    "mixSub": 0.0,
+    "pw": 0.5,
+    "release": 0.6,
+    "reso": 0.92,
+    "revPre": 0.0255,
+    "revSize": 0.635,
+    "revTone": 0.55,
+    "sustain": 0.9
+  },
+  "version": 1
+}

@@ -1,0 +1,26 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Crushed Thin Pulse Lead",
+  "samples": [
+    "factory:src071_thin_pulse_lead"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.005,
+    "bits": 8,
+    "character": 1,
+    "decay": 1.0,
+    "level": 0.365099996328354,
+    "loopLen": 0.2,
+    "loopStart": 0.225,
+    "playMode": 2,
+    "rate": 12,
+    "release": 0.6,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

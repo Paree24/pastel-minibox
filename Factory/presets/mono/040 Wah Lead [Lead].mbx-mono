@@ -1,0 +1,30 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Wah Lead",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.01,
+    "cutoff": 600,
+    "decay": 0.35,
+    "envAmt": 0.8,
+    "fxDelay": 0.2,
+    "fxFeedback": 0.35,
+    "fxReverb": 0.2,
+    "fxTime": 7,
+    "key": 0.7,
+    "level": 0.596199989318848,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "release": 0.3,
+    "reso": 0.7,
+    "revPre": 0.018,
+    "revSize": 0.47,
+    "revTone": 0.55,
+    "sustain": 0.5
+  },
+  "version": 1
+}

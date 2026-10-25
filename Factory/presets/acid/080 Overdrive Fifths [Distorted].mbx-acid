@@ -1,0 +1,26 @@
+{
+  "family": "Distorted",
+  "macros": "",
+  "name": "Overdrive Fifths",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 550,
+    "decay": 0.5,
+    "driveAmt": 0.6,
+    "driveMix": 1.0,
+    "driveTone": 0.5,
+    "driveType": 0,
+    "envMod": 0.5,
+    "level": 0.499599993228912,
+    "oscWave": 0,
+    "reso": 0.75,
+    "stack": 1,
+    "stackMix": 0.5,
+    "stackMode": 1,
+    "stackSpread": 0.5,
+    "sweep": 0.4
+  },
+  "version": 1
+}

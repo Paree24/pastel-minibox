@@ -1,0 +1,27 @@
+{
+  "family": "Strings & Brass",
+  "macros": "",
+  "name": "Slow Strings",
+  "samples": [
+    "factory:src040_slow_strings"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.005,
+    "decay": 1.0,
+    "drive": 0.3,
+    "level": 0.179800003767014,
+    "loopLen": 0.2,
+    "loopStart": 0.225,
+    "playMode": 2,
+    "release": 0.6,
+    "revPre": 0.023,
+    "revSize": 0.58,
+    "reverb": 0.3,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

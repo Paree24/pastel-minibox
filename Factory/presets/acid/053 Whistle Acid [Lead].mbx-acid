@@ -1,0 +1,22 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Whistle Acid",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 1300,
+    "decay": 1.2,
+    "envMod": 0.2,
+    "level": 0.675700008869171,
+    "oscWave": 1,
+    "reso": 0.97,
+    "revPre": 0.0255,
+    "revSize": 0.635,
+    "revTone": 0.55,
+    "reverb": 0.35,
+    "sweep": 0.4
+  },
+  "version": 1
+}

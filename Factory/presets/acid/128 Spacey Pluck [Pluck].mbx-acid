@@ -1,0 +1,25 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Spacey Pluck",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "ampDecay": 0.25,
+    "ampMode": 1,
+    "cutoff": 800,
+    "decay": 0.3,
+    "delayDiv": 4,
+    "delayDuck": 0.6,
+    "delayFb": 0.6,
+    "delayMix": 0.4,
+    "delayTone": 0.5,
+    "envMod": 0.7,
+    "level": 1.440400004386902,
+    "oscWave": 0,
+    "reso": 0.85,
+    "sweep": 0.4
+  },
+  "version": 1
+}

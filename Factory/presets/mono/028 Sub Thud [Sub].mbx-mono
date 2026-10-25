@@ -1,0 +1,24 @@
+{
+  "family": "Sub",
+  "macros": "",
+  "name": "Sub Thud",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 300,
+    "decay": 0.54,
+    "envAmt": 0.8,
+    "key": 0.2,
+    "level": 0.603100001811981,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 0.0,
+    "mixSub": 1.0,
+    "release": 0.3,
+    "reso": 0.0,
+    "subType": 1,
+    "sustain": 0.0
+  },
+  "version": 1
+}

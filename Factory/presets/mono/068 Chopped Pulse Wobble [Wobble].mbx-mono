@@ -1,0 +1,31 @@
+{
+  "family": "Wobble",
+  "macros": "",
+  "name": "Chopped Pulse Wobble",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.003,
+    "cutoff": 260,
+    "decay": 0.4,
+    "envAmt": 0.0,
+    "key": 0.3,
+    "level": 0.372000008821487,
+    "lfoCut": 0.65,
+    "lfoDiv": 10,
+    "lfoFade": 0.0,
+    "lfoPwm": 0.0,
+    "lfoShape": 1,
+    "lfoSync": 1,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.5,
+    "pw": 0.35,
+    "release": 0.12,
+    "reso": 0.5,
+    "subType": 0,
+    "sustain": 1.0
+  },
+  "version": 1
+}

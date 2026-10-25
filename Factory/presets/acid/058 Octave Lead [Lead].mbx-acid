@@ -1,0 +1,26 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Octave Lead",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 1500,
+    "decay": 0.7,
+    "envMod": 0.4,
+    "level": 1.118299961090088,
+    "oscWave": 1,
+    "reso": 0.8,
+    "revPre": 0.0205,
+    "revSize": 0.525,
+    "revTone": 0.55,
+    "reverb": 0.25,
+    "stack": 1,
+    "stackMix": 0.6,
+    "stackMode": 2,
+    "stackSpread": 0.5,
+    "sweep": 0.4
+  },
+  "version": 1
+}

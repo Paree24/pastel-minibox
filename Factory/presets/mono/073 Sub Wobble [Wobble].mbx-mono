@@ -1,0 +1,31 @@
+{
+  "family": "Wobble",
+  "macros": "",
+  "name": "Sub Wobble",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.003,
+    "cutoff": 120,
+    "decay": 0.4,
+    "envAmt": 0.0,
+    "key": 0.1,
+    "level": 0.247899994254112,
+    "lfoCut": 0.9,
+    "lfoDiv": 2,
+    "lfoFade": 0.0,
+    "lfoPwm": 0.0,
+    "lfoShape": 0,
+    "lfoSync": 1,
+    "mixNoise": 0.0,
+    "mixPulse": 0.3,
+    "mixSaw": 0.0,
+    "mixSub": 1.0,
+    "pw": 0.5,
+    "release": 0.225,
+    "reso": 0.2,
+    "subType": 1,
+    "sustain": 1.0
+  },
+  "version": 1
+}

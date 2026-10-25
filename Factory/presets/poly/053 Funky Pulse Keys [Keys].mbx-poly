@@ -1,0 +1,29 @@
+{
+  "family": "Keys",
+  "macros": "",
+  "name": "Funky Pulse Keys",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.001,
+    "aDecay": 1.8,
+    "aRelease": 0.15,
+    "aSustain": 0.2,
+    "chorusMix": 0.3,
+    "chorusMode": 1,
+    "cutoff": 2200,
+    "dcoPw": 0.15,
+    "dcoWave": 0,
+    "engine": 0,
+    "envAmt": 0.6,
+    "fAttack": 0.001,
+    "fDecay": 0.32,
+    "fRelease": 0.15,
+    "fSustain": 0.1,
+    "hpf": 2,
+    "key": 0.8,
+    "level": 2.0,
+    "reso": 0.35
+  },
+  "version": 1
+}

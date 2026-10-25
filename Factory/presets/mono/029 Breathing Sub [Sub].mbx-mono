@@ -1,0 +1,29 @@
+{
+  "family": "Sub",
+  "macros": "",
+  "name": "Breathing Sub",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.05,
+    "cutoff": 170,
+    "decay": 1.0,
+    "envAmt": 0.1,
+    "key": 0.2,
+    "level": 0.237499997019768,
+    "lfoCut": 0.2,
+    "lfoFade": 0.0,
+    "lfoPwm": 0.0,
+    "lfoRate": 0.4,
+    "lfoShape": 0,
+    "mixNoise": 0.15,
+    "mixPulse": 0.0,
+    "mixSaw": 0.0,
+    "mixSub": 1.0,
+    "release": 0.45,
+    "reso": 0.15,
+    "subType": 0,
+    "sustain": 1.0
+  },
+  "version": 1
+}

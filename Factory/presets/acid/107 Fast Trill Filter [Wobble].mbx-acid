@@ -1,0 +1,22 @@
+{
+  "family": "Wobble",
+  "macros": "",
+  "name": "Fast Trill Filter",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 520,
+    "decay": 1.5,
+    "envMod": 0.2,
+    "level": 0.741999983787537,
+    "lfoCut": 0.4,
+    "lfoRate": 11.0,
+    "lfoShape": 0,
+    "lfoSync": 0,
+    "oscWave": 1,
+    "reso": 0.75,
+    "sweep": 0.4
+  },
+  "version": 1
+}

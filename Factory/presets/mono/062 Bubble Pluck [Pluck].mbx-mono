@@ -1,0 +1,31 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Bubble Pluck",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 300,
+    "decay": 1.8,
+    "envAmt": 0.6,
+    "fxDelay": 0.25,
+    "fxFeedback": 0.35,
+    "fxReverb": 0.2,
+    "fxTime": 10,
+    "key": 1.0,
+    "level": 0.481299996376038,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.0,
+    "pw": 0.5,
+    "release": 0.3,
+    "reso": 0.85,
+    "revPre": 0.018,
+    "revSize": 0.47,
+    "revTone": 0.55,
+    "sustain": 0.0
+  },
+  "version": 1
+}

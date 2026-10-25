@@ -1,0 +1,31 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Warehouse",
+  "samples": [],
+  "type": "drums",
+  "values": {
+    "kitComp": 0.35,
+    "kitLevel": 0.706799983978271,
+    "p1Bend": 0.45,
+    "p1Click": 0.5,
+    "p1Decay": 0.45,
+    "p1Eng": 1,
+    "p2Click": 0.7,
+    "p2Eng": 1,
+    "p2SendReverb": 0.2,
+    "p2Tone": 0.45,
+    "p3Eng": 1,
+    "p3SendReverb": 0.3,
+    "p4Eng": 1,
+    "p5Eng": 1,
+    "p6Eng": 1,
+    "p7Decay": 2.0,
+    "p7Eng": 1,
+    "p8Eng": 2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

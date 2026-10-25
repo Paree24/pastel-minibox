@@ -1,0 +1,26 @@
+{
+  "family": "Strings & Brass",
+  "macros": "",
+  "name": "Crushed Pulse Brass",
+  "samples": [
+    "factory:src047_pulse_brass"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.005,
+    "bits": 8,
+    "character": 1,
+    "decay": 1.0,
+    "level": 0.23759999871254,
+    "loopLen": 0.332697972621729,
+    "loopStart": 0.374285219199445,
+    "playMode": 2,
+    "rate": 12,
+    "release": 0.6,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

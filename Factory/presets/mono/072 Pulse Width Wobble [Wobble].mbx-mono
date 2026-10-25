@@ -1,0 +1,33 @@
+{
+  "family": "Wobble",
+  "macros": "",
+  "name": "Pulse Width Wobble",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.003,
+    "cutoff": 950,
+    "decay": 0.4,
+    "envAmt": 0.0,
+    "key": 0.4,
+    "level": 0.308200001716614,
+    "lfoCut": 0.2,
+    "lfoDiv": 5,
+    "lfoFade": 0.0,
+    "lfoPwm": 0.0,
+    "lfoShape": 0,
+    "lfoSync": 1,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.4,
+    "pw": 0.25,
+    "pwm": 0.75,
+    "pwmSrc": 0,
+    "release": 0.15,
+    "reso": 0.3,
+    "subType": 0,
+    "sustain": 1.0
+  },
+  "version": 1
+}

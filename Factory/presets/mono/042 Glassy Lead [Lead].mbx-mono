@@ -1,0 +1,31 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Glassy Lead",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.002,
+    "cutoff": 4000,
+    "decay": 0.25,
+    "envAmt": 0.35,
+    "fxDelay": 0.3,
+    "fxFeedback": 0.5,
+    "fxReverb": 0.3,
+    "fxTime": 9,
+    "key": 1.0,
+    "level": 0.460700005292892,
+    "mixNoise": 0.0,
+    "mixPulse": 1.0,
+    "mixSaw": 0.0,
+    "mixSub": 0.0,
+    "pw": 0.25,
+    "release": 0.6,
+    "reso": 0.6,
+    "revPre": 0.023,
+    "revSize": 0.58,
+    "revTone": 0.55,
+    "sustain": 0.6
+  },
+  "version": 1
+}

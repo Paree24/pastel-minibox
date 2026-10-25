@@ -1,0 +1,21 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Sub Acid",
+  "samples": [
+    "factory:src057_sub_acid"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.001,
+    "decay": 2.165708333333333,
+    "level": 0.349299997091293,
+    "playMode": 1,
+    "release": 0.4,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 36
+  },
+  "version": 1
+}

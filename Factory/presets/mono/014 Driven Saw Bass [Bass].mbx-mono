@@ -1,0 +1,25 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Driven Saw Bass",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.002,
+    "cutoff": 450,
+    "decay": 0.3,
+    "drive": 0.5,
+    "envAmt": 0.5,
+    "key": 0.4,
+    "level": 0.446000009775162,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.5,
+    "release": 0.12,
+    "reso": 0.3,
+    "subType": 0,
+    "sustain": 0.4
+  },
+  "version": 1
+}

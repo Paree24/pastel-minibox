@@ -1,0 +1,31 @@
+{
+  "family": "Brass",
+  "macros": "",
+  "name": "Bright Stab Brass",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.035,
+    "aDecay": 0.5,
+    "aRelease": 0.3,
+    "aSustain": 0.7,
+    "chorusMix": 0.4,
+    "chorusMode": 1,
+    "cutoff": 900,
+    "dcoWave": 1,
+    "engine": 0,
+    "envAmt": 0.7,
+    "fAttack": 0.06,
+    "fDecay": 0.35,
+    "fRelease": 0.3,
+    "fSustain": 0.3,
+    "key": 0.6,
+    "level": 1.851500034332275,
+    "reso": 0.2,
+    "revPre": 0.018,
+    "revSize": 0.47,
+    "revTone": 0.55,
+    "reverb": 0.2
+  },
+  "version": 1
+}

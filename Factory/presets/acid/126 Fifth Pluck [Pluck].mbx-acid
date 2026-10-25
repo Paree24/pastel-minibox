@@ -1,0 +1,24 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Fifth Pluck",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "ampDecay": 0.2,
+    "ampMode": 1,
+    "cutoff": 700,
+    "decay": 0.25,
+    "envMod": 0.7,
+    "level": 1.980100035667419,
+    "oscWave": 0,
+    "reso": 0.75,
+    "stack": 1,
+    "stackMix": 0.6,
+    "stackMode": 1,
+    "stackSpread": 0.5,
+    "sweep": 0.4
+  },
+  "version": 1
+}

@@ -1,0 +1,32 @@
+{
+  "family": "Brass",
+  "macros": "",
+  "name": "Brass Pad",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.5,
+    "aDecay": 1.0,
+    "aRelease": 1.5,
+    "aSustain": 1.0,
+    "chorusMix": 0.6,
+    "chorusMode": 2,
+    "cutoff": 533.5059814453125,
+    "dcoWave": 1,
+    "engine": 0,
+    "envAmt": 0.400000005960464,
+    "fAttack": 0.6,
+    "fDecay": 1.200000047683716,
+    "fRelease": 1.2,
+    "fSustain": 0.542800009250641,
+    "hpf": 1,
+    "key": 0.5,
+    "level": 1.251399993896484,
+    "reso": 0.200000002980232,
+    "revPre": 0.028,
+    "revSize": 0.69,
+    "revTone": 0.55,
+    "reverb": 0.4
+  },
+  "version": 1
+}

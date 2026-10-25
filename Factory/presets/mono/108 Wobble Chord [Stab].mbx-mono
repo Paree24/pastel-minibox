@@ -1,0 +1,31 @@
+{
+  "family": "Stab",
+  "macros": "",
+  "name": "Wobble Chord",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.003,
+    "chord": 4,
+    "cutoff": 500,
+    "decay": 0.4,
+    "envAmt": 0.2,
+    "key": 0.5,
+    "level": 0.48089998960495,
+    "lfoCut": 0.4,
+    "lfoFade": 0.0,
+    "lfoPwm": 0.0,
+    "lfoRate": 4.0,
+    "lfoShape": 0,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.3,
+    "release": 0.3,
+    "reso": 0.5,
+    "subType": 0,
+    "sustain": 1.0,
+    "voiceMode": 3
+  },
+  "version": 1
+}

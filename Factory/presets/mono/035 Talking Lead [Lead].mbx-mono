@@ -1,0 +1,31 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Talking Lead",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.01,
+    "cutoff": 700,
+    "decay": 0.6,
+    "envAmt": 0.4,
+    "fxDelay": 0.2,
+    "fxFeedback": 0.35,
+    "fxTime": 6,
+    "key": 0.6,
+    "level": 0.524500012397766,
+    "lfoCut": 0.3,
+    "lfoFade": 0.0,
+    "lfoPwm": 0.0,
+    "lfoRate": 5.0,
+    "lfoShape": 0,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "release": 0.3,
+    "reso": 0.8,
+    "sustain": 0.8
+  },
+  "version": 1
+}

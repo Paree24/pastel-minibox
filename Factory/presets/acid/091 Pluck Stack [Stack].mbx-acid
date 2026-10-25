@@ -1,0 +1,24 @@
+{
+  "family": "Stack",
+  "macros": "",
+  "name": "Pluck Stack",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "ampDecay": 0.25,
+    "ampMode": 1,
+    "cutoff": 600,
+    "decay": 0.3,
+    "envMod": 0.7,
+    "level": 2.0,
+    "oscWave": 0,
+    "reso": 0.8,
+    "stack": 1,
+    "stackMix": 0.6,
+    "stackMode": 1,
+    "stackSpread": 0.5,
+    "sweep": 0.4
+  },
+  "version": 1
+}

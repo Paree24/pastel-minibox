@@ -1,0 +1,23 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Buzz Lead",
+  "samples": [
+    "factory:src073_buzz_lead"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.005,
+    "decay": 1.0,
+    "level": 0.236900001764297,
+    "loopLen": 0.363502115695908,
+    "loopStart": 0.408939880157896,
+    "playMode": 2,
+    "release": 0.6,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

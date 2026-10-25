@@ -1,0 +1,29 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Velvet Bass",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.01,
+    "aDecay": 1.0,
+    "aRelease": 0.3,
+    "aSustain": 0.85,
+    "chorusMix": 0.4,
+    "chorusMode": 2,
+    "cutoff": 700,
+    "dcoWave": 1,
+    "engine": 0,
+    "envAmt": 0.25,
+    "fAttack": 0.01,
+    "fDecay": 0.8,
+    "fRelease": 0.3,
+    "fSustain": 0.6,
+    "hpf": 0,
+    "key": 0.3,
+    "level": 0.47409999370575,
+    "reso": 0.05,
+    "sub": 0.6
+  },
+  "version": 1
+}

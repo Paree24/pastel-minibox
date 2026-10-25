@@ -1,0 +1,32 @@
+{
+  "family": "Wobble",
+  "macros": "",
+  "name": "Screaming Wobble",
+  "samples": [],
+  "type": "mono",
+  "values": {
+    "attack": 0.003,
+    "cutoff": 650,
+    "decay": 0.4,
+    "envAmt": 0.0,
+    "fxDelay": 0.2,
+    "fxFeedback": 0.35,
+    "fxTime": 6,
+    "key": 0.5,
+    "level": 0.261400014162064,
+    "lfoCut": 0.6,
+    "lfoDiv": 6,
+    "lfoFade": 0.0,
+    "lfoPwm": 0.0,
+    "lfoShape": 0,
+    "lfoSync": 1,
+    "mixNoise": 0.0,
+    "mixPulse": 0.0,
+    "mixSaw": 1.0,
+    "mixSub": 0.0,
+    "release": 0.15,
+    "reso": 0.93,
+    "sustain": 1.0
+  },
+  "version": 1
+}

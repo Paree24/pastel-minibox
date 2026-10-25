@@ -1,0 +1,33 @@
+{
+  "family": "Brass",
+  "macros": "",
+  "name": "Punchy Brass",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.035,
+    "aDecay": 0.4,
+    "aRelease": 0.225,
+    "aSustain": 0.8,
+    "cutoff": 700,
+    "driveAmt": 0.3,
+    "driveTone": 0.6,
+    "driveType": 1,
+    "engine": 1,
+    "envAmt": 0.8,
+    "fAttack": 0.06,
+    "fDecay": 0.25,
+    "fRelease": 0.225,
+    "fSustain": 0.35,
+    "filterMode": 1,
+    "key": 0.6,
+    "level": 0.289000004529953,
+    "reso": 0.35,
+    "revPre": 0.0155,
+    "revSize": 0.415,
+    "revTone": 0.55,
+    "reverb": 0.15,
+    "vaWave": 0
+  },
+  "version": 1
+}

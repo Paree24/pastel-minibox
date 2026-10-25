@@ -1,0 +1,27 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Pulsing Bright Acid Lead",
+  "samples": [
+    "factory:src078_bright_acid_lead"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.005,
+    "cutoff": 3000,
+    "decay": 1.0,
+    "level": 0.438199996948242,
+    "lfoCut": 0.5,
+    "lfoRate": 4.0,
+    "lfoShape": 2,
+    "loopLen": 0.171428571428571,
+    "loopStart": 0.192857142857143,
+    "playMode": 2,
+    "release": 0.6,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 48
+  },
+  "version": 1
+}

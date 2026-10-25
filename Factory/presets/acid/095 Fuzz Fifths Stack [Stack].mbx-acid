@@ -1,0 +1,26 @@
+{
+  "family": "Stack",
+  "macros": "",
+  "name": "Fuzz Fifths Stack",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 500,
+    "decay": 0.5,
+    "driveAmt": 0.7,
+    "driveMix": 1.0,
+    "driveTone": 0.6,
+    "driveType": 2,
+    "envMod": 0.5,
+    "level": 0.996800005435944,
+    "oscWave": 0,
+    "reso": 0.75,
+    "stack": 1,
+    "stackMix": 0.6,
+    "stackMode": 1,
+    "stackSpread": 0.5,
+    "sweep": 0.4
+  },
+  "version": 1
+}

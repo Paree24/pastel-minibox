@@ -1,0 +1,24 @@
+{
+  "family": "Classic",
+  "macros": "",
+  "name": "Thin Pulse Line",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 900,
+    "decay": 0.3,
+    "delayDiv": 10,
+    "delayDuck": 0.5,
+    "delayFb": 0.35,
+    "delayMix": 0.2,
+    "delayTone": 0.5,
+    "envMod": 0.35,
+    "level": 0.998000025749207,
+    "oscWave": 1,
+    "pw": 0.12,
+    "reso": 0.55,
+    "sweep": 0.4
+  },
+  "version": 1
+}

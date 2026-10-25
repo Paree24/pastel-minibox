@@ -1,0 +1,22 @@
+{
+  "family": "Distorted",
+  "macros": "",
+  "name": "Distortion Line",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 480,
+    "decay": 0.4,
+    "driveAmt": 0.5,
+    "driveMix": 1.0,
+    "driveTone": 0.5,
+    "driveType": 1,
+    "envMod": 0.6,
+    "level": 0.598100006580353,
+    "oscWave": 0,
+    "reso": 0.82,
+    "sweep": 0.4
+  },
+  "version": 1
+}

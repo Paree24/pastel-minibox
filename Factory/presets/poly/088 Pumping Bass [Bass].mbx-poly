@@ -1,0 +1,31 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Pumping Bass",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.002,
+    "aDecay": 0.5,
+    "aRelease": 0.15,
+    "aSustain": 1.0,
+    "cutoff": 300,
+    "dcoWave": 1,
+    "engine": 0,
+    "envAmt": 0.2,
+    "fAttack": 0.002,
+    "fDecay": 0.5,
+    "fRelease": 0.15,
+    "fSustain": 1.0,
+    "hpf": 0,
+    "key": 0.3,
+    "level": 0.259799987077713,
+    "lfoCut": 0.6,
+    "lfoDiv": 7,
+    "lfoShape": 1,
+    "lfoSync": 1,
+    "reso": 0.4,
+    "sub": 0.6
+  },
+  "version": 1
+}

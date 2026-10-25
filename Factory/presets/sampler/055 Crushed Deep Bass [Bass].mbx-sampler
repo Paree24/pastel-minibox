@@ -1,0 +1,24 @@
+{
+  "family": "Bass",
+  "macros": "",
+  "name": "Crushed Deep Bass",
+  "samples": [
+    "factory:src055_deep_bass"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.001,
+    "bits": 8,
+    "character": 1,
+    "decay": 2.15675,
+    "level": 0.43860000371933,
+    "playMode": 1,
+    "rate": 12,
+    "release": 0.4,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 36
+  },
+  "version": 1
+}

@@ -1,0 +1,32 @@
+{
+  "family": "Keys",
+  "macros": "",
+  "name": "Octave Keys",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.002,
+    "aDecay": 2.7,
+    "aRelease": 0.75,
+    "aSustain": 0.3,
+    "cutoff": 2800,
+    "engine": 1,
+    "envAmt": 0.3,
+    "fAttack": 0.002,
+    "fDecay": 1.12,
+    "fRelease": 0.75,
+    "fSustain": 0.3,
+    "filterMode": 1,
+    "key": 0.7,
+    "level": 0.486200004816055,
+    "reso": 0.15,
+    "revPre": 0.023,
+    "revSize": 0.58,
+    "revTone": 0.55,
+    "reverb": 0.3,
+    "vaPw": 0.35,
+    "vaWave": 1,
+    "voiceMode": 3
+  },
+  "version": 1
+}

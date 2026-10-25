@@ -1,0 +1,23 @@
+{
+  "family": "Pad",
+  "macros": "",
+  "name": "Warm Chorus Pad",
+  "samples": [
+    "factory:src017_warm_chorus_pad"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.005,
+    "decay": 1.0,
+    "level": 0.320199996232986,
+    "loopLen": 0.225975401635968,
+    "loopStart": 0.254222326840464,
+    "playMode": 2,
+    "release": 0.6,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

@@ -1,0 +1,28 @@
+{
+  "family": "Wobble",
+  "macros": "",
+  "name": "Distorted Steps",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.747500002384186,
+    "cutoff": 400.0,
+    "decay": 1.200000047683716,
+    "driveAmt": 0.6,
+    "driveMix": 1.0,
+    "driveTone": 0.45,
+    "driveType": 1,
+    "envMod": 0.18860000371933,
+    "level": 0.59909999370575,
+    "lfoCut": 0.6,
+    "lfoDiv": 7,
+    "lfoShape": 3,
+    "lfoSync": 1,
+    "oscWave": 0,
+    "reso": 0.771700024604797,
+    "sweep": 0.4,
+    "bassComp": 0.25,
+    "pw": 0.5
+  },
+  "version": 1
+}

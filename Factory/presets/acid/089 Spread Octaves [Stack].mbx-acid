@@ -1,0 +1,24 @@
+{
+  "family": "Stack",
+  "macros": "",
+  "name": "Spread Octaves",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.600000023841858,
+    "cutoff": 658.4993896484375,
+    "decay": 0.600000023841858,
+    "envMod": 0.529399991035461,
+    "level": 1.720000028610229,
+    "oscWave": 0,
+    "reso": 0.699999988079071,
+    "stack": 1,
+    "stackMix": 0.7,
+    "stackMode": 2,
+    "stackSpread": 1.0,
+    "sweep": 0.4,
+    "bassComp": 0.25,
+    "pw": 0.386000007390976
+  },
+  "version": 1
+}

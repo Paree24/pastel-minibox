@@ -1,0 +1,26 @@
+{
+  "family": "Strings & Brass",
+  "macros": "",
+  "name": "Crushed Dark Cellos",
+  "samples": [
+    "factory:src039_dark_cellos"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.005,
+    "bits": 8,
+    "character": 1,
+    "decay": 1.0,
+    "level": 0.289000004529953,
+    "loopLen": 0.28220022105684,
+    "loopStart": 0.317475248688945,
+    "playMode": 2,
+    "rate": 12,
+    "release": 0.6,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

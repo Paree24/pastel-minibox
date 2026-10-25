@@ -1,0 +1,29 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Drum and Bass",
+  "samples": [],
+  "type": "drums",
+  "values": {
+    "kitComp": 0.5,
+    "kitLevel": 0.682600021362305,
+    "p1Bend": 0.6,
+    "p1Click": 0.8,
+    "p1Decay": 0.3,
+    "p1Eng": 1,
+    "p2Click": 0.9,
+    "p2Eng": 1,
+    "p2Pitch": 230,
+    "p2SendReverb": 0.25,
+    "p2Tone": 0.4,
+    "p3Eng": 1,
+    "p4Eng": 1,
+    "p5Decay": 0.05,
+    "p5Eng": 0,
+    "p5Tone": 0.7,
+    "p6Eng": 0,
+    "p7Eng": 0,
+    "p8Eng": 0
+  },
+  "version": 1
+}

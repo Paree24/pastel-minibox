@@ -1,0 +1,32 @@
+{
+  "family": "Strings",
+  "macros": "",
+  "name": "Bowed Strings",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.25,
+    "aDecay": 0.8,
+    "aRelease": 1.05,
+    "aSustain": 0.9,
+    "chorusMix": 0.6,
+    "chorusMode": 2,
+    "cutoff": 2200,
+    "dcoWave": 1,
+    "engine": 0,
+    "envAmt": 0.3,
+    "fAttack": 0.4,
+    "fDecay": 0.8,
+    "fRelease": 1.2,
+    "fSustain": 0.8,
+    "hpf": 1,
+    "key": 0.5,
+    "level": 1.233800053596497,
+    "reso": 0.1,
+    "revPre": 0.0255,
+    "revSize": 0.635,
+    "revTone": 0.55,
+    "reverb": 0.35
+  },
+  "version": 1
+}

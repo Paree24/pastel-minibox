@@ -1,0 +1,31 @@
+{
+  "family": "Brass",
+  "macros": "",
+  "name": "Fifth Brass",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.035,
+    "aDecay": 0.6,
+    "aRelease": 0.45,
+    "aSustain": 0.9,
+    "cutoff": 900,
+    "engine": 1,
+    "envAmt": 0.5,
+    "fAttack": 0.06,
+    "fDecay": 0.5,
+    "fRelease": 0.45,
+    "fSustain": 0.4,
+    "filterMode": 1,
+    "key": 0.5,
+    "level": 0.658100008964539,
+    "reso": 0.3,
+    "revPre": 0.0205,
+    "revSize": 0.525,
+    "revTone": 0.55,
+    "reverb": 0.25,
+    "vaWave": 0,
+    "voiceMode": 4
+  },
+  "version": 1
+}

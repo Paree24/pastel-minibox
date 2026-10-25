@@ -1,0 +1,24 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Tape Echo Pluck",
+  "samples": [
+    "factory:src082_tape_echo_pluck"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.001,
+    "decay": 3.023666666666667,
+    "level": 0.325899988412857,
+    "playMode": 1,
+    "release": 0.4,
+    "revPre": 0.0205,
+    "revSize": 0.525,
+    "reverb": 0.25,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

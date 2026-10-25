@@ -1,0 +1,24 @@
+{
+  "family": "Wobble",
+  "macros": "",
+  "name": "Saw Ramp Wobble",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.759700000286102,
+    "cutoff": 422.12530517578125,
+    "decay": 2.0,
+    "envMod": 0.100000001490116,
+    "level": 0.71780002117157,
+    "lfoCut": 0.75,
+    "lfoDiv": 4,
+    "lfoShape": 1,
+    "lfoSync": 1,
+    "oscWave": 1,
+    "reso": 0.779999971389771,
+    "sweep": 0.4,
+    "bassComp": 0.25,
+    "pw": 0.5
+  },
+  "version": 1
+}

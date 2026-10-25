@@ -1,0 +1,32 @@
+{
+  "family": "Strings",
+  "macros": "",
+  "name": "Thin Strings",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.25,
+    "aDecay": 1.0,
+    "aRelease": 1.05,
+    "aSustain": 0.9,
+    "chorusMix": 0.6,
+    "chorusMode": 1,
+    "cutoff": 6000,
+    "dcoWave": 1,
+    "engine": 0,
+    "envAmt": 0.0,
+    "fAttack": 0.1,
+    "fDecay": 1.0,
+    "fRelease": 0.9,
+    "fSustain": 1.0,
+    "hpf": 3,
+    "key": 0.6,
+    "level": 2.0,
+    "reso": 0.0,
+    "revPre": 0.0255,
+    "revSize": 0.635,
+    "revTone": 0.55,
+    "reverb": 0.35
+  },
+  "version": 1
+}

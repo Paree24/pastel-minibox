@@ -1,0 +1,26 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Talking Acid",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 900,
+    "decay": 1.0,
+    "envMod": 0.3,
+    "level": 1.06850004196167,
+    "lfoCut": 0.3,
+    "lfoDiv": 7,
+    "lfoShape": 0,
+    "lfoSync": 1,
+    "oscWave": 0,
+    "reso": 0.9,
+    "revPre": 0.018,
+    "revSize": 0.47,
+    "revTone": 0.55,
+    "reverb": 0.2,
+    "sweep": 0.4
+  },
+  "version": 1
+}

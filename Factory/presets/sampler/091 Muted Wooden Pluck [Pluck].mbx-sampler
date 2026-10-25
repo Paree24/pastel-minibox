@@ -1,0 +1,27 @@
+{
+  "family": "Pluck",
+  "macros": "",
+  "name": "Muted Wooden Pluck",
+  "samples": [
+    "factory:src091_wooden_pluck"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.001,
+    "cutoff": 1400,
+    "decay": 1.688458333333333,
+    "filterType": 0,
+    "level": 0.360900014638901,
+    "playMode": 1,
+    "release": 0.4,
+    "reso": 0.15,
+    "revPre": 0.0155,
+    "revSize": 0.415,
+    "reverb": 0.15,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}

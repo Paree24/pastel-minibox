@@ -1,0 +1,32 @@
+{
+  "family": "Brass",
+  "macros": "",
+  "name": "Synth Brass Swell",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.25,
+    "aDecay": 1.0,
+    "aRelease": 0.75,
+    "aSustain": 0.9,
+    "chorusMix": 0.5,
+    "chorusMode": 1,
+    "cutoff": 400,
+    "dcoWave": 1,
+    "engine": 0,
+    "envAmt": 0.7,
+    "fAttack": 0.4,
+    "fDecay": 1.0,
+    "fRelease": 0.75,
+    "fSustain": 0.5,
+    "key": 0.5,
+    "level": 1.16349995136261,
+    "reso": 0.25,
+    "revPre": 0.023,
+    "revSize": 0.58,
+    "revTone": 0.55,
+    "reverb": 0.3,
+    "sub": 0.2
+  },
+  "version": 1
+}

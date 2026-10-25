@@ -1,0 +1,27 @@
+{
+  "family": "Distorted",
+  "macros": "",
+  "name": "Overdrive Line",
+  "samples": [],
+  "type": "acid",
+  "values": {
+    "accAmt": 0.6,
+    "cutoff": 520,
+    "decay": 0.45,
+    "delayDiv": 9,
+    "delayDuck": 0.5,
+    "delayFb": 0.4,
+    "delayMix": 0.2,
+    "delayTone": 0.5,
+    "driveAmt": 0.5,
+    "driveMix": 1.0,
+    "driveTone": 0.55,
+    "driveType": 0,
+    "envMod": 0.6,
+    "level": 0.488400012254715,
+    "oscWave": 0,
+    "reso": 0.8,
+    "sweep": 0.4
+  },
+  "version": 1
+}

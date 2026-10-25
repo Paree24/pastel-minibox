@@ -1,0 +1,29 @@
+{
+  "family": "Pad",
+  "macros": "",
+  "name": "Muted Sweeping Pad",
+  "samples": [
+    "factory:src027_sweeping_pad"
+  ],
+  "type": "sampler",
+  "values": {
+    "attack": 0.005,
+    "cutoff": 1400,
+    "decay": 1.0,
+    "filterType": 0,
+    "level": 0.521399974822998,
+    "loopLen": 0.220202004755752,
+    "loopStart": 0.247727255350221,
+    "playMode": 2,
+    "release": 0.6,
+    "reso": 0.15,
+    "revPre": 0.0155,
+    "revSize": 0.415,
+    "reverb": 0.15,
+    "sustain": 1.0,
+    "z1Hi": 127,
+    "z1Lo": 0,
+    "z1Root": 60
+  },
+  "version": 1
+}
