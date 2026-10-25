@@ -352,7 +352,7 @@ void MainComponent::showMenu()
     m.addSeparator();
     m.addItem (80, "Import MIDI file into the selected track...", ctx.focusDevice() != nullptr);
     m.addItem (81, "Export pattern " + juce::String::charToString ("ABCDEFGH"[ctx.focusPattern()]) + " as a MIDI file...");
-    m.showMenuAsync (juce::PopupMenu::Options(), [this] (int id)
+    m.showMenuAsync (menuAt (topBar, topBar.zoneRect ("menu")), [this] (int id)
     {
         auto& pr = engine.project();
         if (id == 1 && showAudioSettings) showAudioSettings();
@@ -506,7 +506,7 @@ void MainComponent::importMidi()
         for (auto& t : tracks) m.addItem (t.index + 1, (t.name.isNotEmpty() ? t.name : "Track " + juce::String (t.index + 1)) + "  (" + juce::String (t.notes) + " notes)");
         m.addSeparator();
         m.addItem (1000, "All tracks, merged");
-        m.showMenuAsync (juce::PopupMenu::Options(), [run] (int r) { if (r == 1000) run (-1); else if (r > 0) run (r - 1); });
+        m.showMenuAsync (menuAt (topBar, topBar.zoneRect ("menu")), [run] (int r) { if (r == 1000) run (-1); else if (r > 0) run (r - 1); });
     });
 }
 

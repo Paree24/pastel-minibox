@@ -29,6 +29,7 @@ private:
     struct Zone { juce::Rectangle<float> r; juce::String id; int a = 0; };
     std::vector<Zone> zones;
     juce::String sig;
+    juce::Rectangle<float> menuArea;
     Feedback fb { *this };
 };
 } // namespace mb::ui

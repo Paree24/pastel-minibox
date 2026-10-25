@@ -120,7 +120,7 @@ void MidiMapEditor::cellClicked (int row, int column, const juce::MouseEvent&)
     {
         case cControl: rename (row); break;
         case cTarget: chooseTarget (row); break;
-        case cMode: showMappingModeMenu (map, row, [this] { table.repaint(); }); break;
+        case cMode: showMappingModeMenu (map, row, [this] { table.repaint(); }, &table, table.getCellPosition (cMode, row, true).toFloat()); break;
         case cLearn: learnRow (row); break;
         case cRemove: map.remove (row); table.updateContent(); break;
         default: break;
@@ -135,7 +135,7 @@ bool MidiMapEditor::keyPressed (const juce::KeyPress& k)
     // the table's rows by keyboard: Enter target, M mode, L learn, R rename, N add, Delete remove
     const int row = table.getSelectedRow();
     const auto ch = juce::CharacterFunctions::toLowerCase (k.getTextCharacter());
-    if (ch == 'm' && row >= 0) { showMappingModeMenu (map, row, [this] { table.repaint(); }); return true; }
+    if (ch == 'm' && row >= 0) { showMappingModeMenu (map, row, [this] { table.repaint(); }, &table, table.getCellPosition (cMode, row, true).toFloat()); return true; }
     if (ch == 'l' && row >= 0) { learnRow (row); return true; }
     if (ch == 'r' && row >= 0) { rename (row); return true; }
     if (ch == 'n') { addMapping(); return true; }
@@ -155,7 +155,7 @@ void MidiMapEditor::chooseTarget (int row)
 {
     if (row < 0 || row >= (int) map.mappings.size()) return;
     auto m = learnTargetMenu (ctx, menuIds);
-    m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (&table), [this, row] (int r)
+    m.showMenuAsync (menuAt (table, table.getCellPosition (cTarget, row, true).toFloat()), [this, row] (int r)
     {
         if (r <= 0 || r > (int) menuIds.size() || row >= (int) map.mappings.size()) return;
         // the same control drives the new target (another control on that target loses it)

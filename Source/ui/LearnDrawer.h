@@ -14,7 +14,7 @@ std::unique_ptr<Binding> learnBinding (AppContext&, const juce::String& target);
 /** Applies a mapped message to a continuous target (pickup, toggle / momentary buttons, relative encoders). */
 void applyLearnControl (Binding&, const MidiControl&, MidiMapping&);
 /** A mapping's mode menu (absolute / relative / buttons, pickup, range). */
-void showMappingModeMenu (MidiMap&, int index, std::function<void()> after);
+void showMappingModeMenu (MidiMap&, int index, std::function<void()> after, juce::Component* at = nullptr, juce::Rectangle<float> area = {});
 /** Every target a controller can drive, as a menu; item i is ids[i - 1]. */
 juce::PopupMenu learnTargetMenu (AppContext&, std::vector<juce::String>& ids);
 
@@ -44,6 +44,7 @@ private:
     AppContext& ctx;
     MidiMap& map;
     int scroll = 0;
+    juce::Rectangle<float> menuArea;
     struct Zone { juce::Rectangle<float> r; juce::String id; int a = 0; };
     std::vector<Zone> zones;
     std::unique_ptr<juce::FileChooser> chooser;

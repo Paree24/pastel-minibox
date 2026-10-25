@@ -855,6 +855,7 @@ void SeqView::applyDrag (const Target& t, juce::Point<float> p, bool right)
 
 void SeqView::mouseDown (const juce::MouseEvent& e)
 {
+    menuArea = fb.hotAt (e.position);   // menus open at the control pressed (a click, or Enter on the focused one)
     const auto t = locate (e.position);
     dragTarget = t;
     auto& proj = ctx.engine.project();
@@ -971,7 +972,7 @@ void SeqView::mouseDown (const juce::MouseEvent& e)
                 const auto& info = dev->params()[i];
                 m.addItem (1 + i, info.name + "  " + info.id, true, i == lockParam);
             }
-            m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (this).withMaximumNumColumns (4), [this] (int id) { if (id > 0) { lockParam = id - 1; repaint(); } });
+            m.showMenuAsync (menuAt (*this, menuArea).withMaximumNumColumns (4), [this] (int id) { if (id > 0) { lockParam = id - 1; repaint(); } });
             break;
         }
         case Target::LaneA:
@@ -1194,7 +1195,7 @@ void SeqView::toolAction (int id)
             m.addItem (1, "The whole pattern\tCtrl+0");
             m.addItem (2, "The notes\tCtrl+Shift+0");
             m.addItem (3, "The selection\tCtrl+Shift+0", roll.hasSelection());
-            m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (this), [this] (int r)
+            m.showMenuAsync (menuAt (*this, menuArea), [this] (int r)
             {
                 if (r == 1) roll.zoomToFit();
                 if (r == 2 || r == 3) roll.fitNotes (r == 3);
@@ -1215,7 +1216,7 @@ void SeqView::toolAction (int id)
             m.addItem (21, "Snap to grid\tCtrl+4", true, rs.snap);
             m.addSeparator();
             m.addSectionHeader ("Alt while dragging: off the grid");
-            m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (this), [this] (int r)
+            m.showMenuAsync (menuAt (*this, menuArea), [this] (int r)
             {
                 auto& s = ctx.rollSettings;
                 if (r >= 1 && r <= 8) { s.grid = r - 1; s.snap = true; }
@@ -1233,7 +1234,7 @@ void SeqView::toolAction (int id)
             juce::PopupMenu m;
             const auto names = PianoRoll::lengthChoiceNames (ctx.engine.project().stepQuarters (ctx.focusPattern()));
             for (int i = 0; i < names.size(); ++i) m.addItem (i + 1, names[i], true, i == rs.lengthMode);
-            m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (this), [this] (int r) { if (r > 0) { ctx.rollSettings.lengthMode = r - 1; repaint(); roll.repaint(); } });
+            m.showMenuAsync (menuAt (*this, menuArea), [this] (int r) { if (r > 0) { ctx.rollSettings.lengthMode = r - 1; repaint(); roll.repaint(); } });
             return;
         }
         case TQuantize:
@@ -1247,7 +1248,7 @@ void SeqView::toolAction (int id)
             m.addItem (4, "Quantize starts and lengths");
             m.addSeparator();
             m.addItem (5, "Humanize (timing and velocity)");
-            m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (this), [this] (int r)
+            m.showMenuAsync (menuAt (*this, menuArea), [this] (int r)
             {
                 if (r == 1) roll.quantize (1.0f, false);
                 if (r == 2) roll.quantize (0.75f, false);
@@ -1289,7 +1290,7 @@ void SeqView::toolAction (int id)
             pattern.addItem (50, "Rotate left"); pattern.addItem (51, "Rotate right");
             pattern.addItem (52, "Insert a step"); pattern.addItem (53, "Delete a step");
             m.addSubMenu ("Track", pattern);
-            m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (this), [this] (int r)
+            m.showMenuAsync (menuAt (*this, menuArea), [this] (int r)
             {
                 switch (r)
                 {
@@ -1339,7 +1340,7 @@ void SeqView::showLaneMenu()
     m.addSubMenu ("Macros (automation)", macros);
     m.addSeparator();
     m.addItem (2000, "Clear this lane", clipLane >= 0 && used (clipLane));
-    m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (this), [this] (int r)
+    m.showMenuAsync (menuAt (*this, menuArea), [this] (int r)
     {
         if (r == 1000) clipLane = -1;
         else if (r == 2000)
@@ -1402,7 +1403,7 @@ void SeqView::showConditionMenu (int trackIndex, int lane, int step)
     juce::PopupMenu m;
     m.addSectionHeader ("Step " + juce::String (step + 1) + " plays");
     for (int c = 0; c < kNumTrigConditions; ++c) m.addItem (c + 1, trigConditionName (c), true, c == current);
-    m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (this), [this, trackIndex, lane, step] (int r)
+    m.showMenuAsync (menuAt (*this, menuArea), [this, trackIndex, lane, step] (int r)
     {
         if (r <= 0) return;
         ctx.snapshot (ctx.focusPattern());
@@ -1429,7 +1430,7 @@ void SeqView::showBarMenu (int bar)
     m.addItem (4, "Clear bar (selected track)");
     m.addItem (5, "Clear bar (all tracks)");
     m.addItem (6, "Duplicate bar into the next");
-    m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (this), [this, bar] (int r)
+    m.showMenuAsync (menuAt (*this, menuArea), [this, bar] (int r)
     {
         if (r <= 0) return;
         const int pat = ctx.focusPattern(), spb = this->spb(), sel = ctx.focusTrack();

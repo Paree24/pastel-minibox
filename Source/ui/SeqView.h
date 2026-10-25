@@ -23,6 +23,8 @@ public:
     void setStepsView (bool steps) { stepsView = steps; refresh(); repaint(); }
     /** The clip lane under the notes: −1 velocity, else a controller lane (tests, screenshots). */
     void showLane (int lane) { clipLane = lane; repaint(); }
+    /** Where the last menu opened (tests). */
+    juce::Rectangle<float> lastMenuArea() const { return menuArea; }
 
 private:
     struct Target { enum Kind { None, BarLess, BarMore, Res, Bar, RowSelect, RowStep, RowMute, RowSolo, ViewSwitch, Convert, Quantize, Overdub, LockParam,
@@ -62,6 +64,7 @@ private:
     float noteDownY = 0;
     bool noteWasOn = false, noteMoved = false;
     int lastKind = -1;
+    juce::Rectangle<float> menuArea;   // where the last press was: its menus open there
     int lockParam = -1;
     int drumLaneView = 0;          // Vel, Prob, Ratchet, Micro
     int previewNote = -1;

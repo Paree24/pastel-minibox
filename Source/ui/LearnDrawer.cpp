@@ -282,6 +282,7 @@ void LearnDrawer::mouseWheelMove (const juce::MouseEvent&, const juce::MouseWhee
 
 void LearnDrawer::mouseUp (const juce::MouseEvent& e)
 {
+    menuArea = fb.hotAt (e.position);
     const Zone* z = nullptr;
     for (auto& zz : zones) if (zz.r.contains (e.position)) z = &zz;
     if (z == nullptr) return;
@@ -337,7 +338,7 @@ void LearnDrawer::showActions()
     }
     m.addSeparator();
     m.addItem (1000, "Tempo (a knob or fader)" + (map.sourceFor ("tempo").isNotEmpty() ? "   (" + map.sourceFor ("tempo") + ")" : juce::String()));
-    m.showMenuAsync (juce::PopupMenu::Options(), [this] (int r)
+    m.showMenuAsync (menuAt (*this, menuArea), [this] (int r)
     {
         if (r == 1000) map.arm ("tempo");
         else if (r > 0) map.arm ("action:" + learnActions()[(size_t) r - 1].first);
@@ -356,7 +357,7 @@ void LearnDrawer::showMaps()
     m.addItem (500, juce::String::fromUTF8 ("Load map\xe2\x80\xa6"));
     m.addItem (501, juce::String::fromUTF8 ("Save map\xe2\x80\xa6"));
     m.addItem (502, "New empty map");
-    m.showMenuAsync (juce::PopupMenu::Options(), [this, files] (int r)
+    m.showMenuAsync (menuAt (*this, menuArea), [this, files] (int r)
     {
         if (r >= 1 && r <= files.size()) map.load (files[r - 1]);
         if (r == 500 || r == 501) fileAction (r == 501);
@@ -365,9 +366,9 @@ void LearnDrawer::showMaps()
     });
 }
 
-void LearnDrawer::showMode (int index) { showMappingModeMenu (map, index, [this] { repaint(); }); }
+void LearnDrawer::showMode (int index) { showMappingModeMenu (map, index, [this] { repaint(); }, this, menuArea); }
 
-void showMappingModeMenu (MidiMap& map, int index, std::function<void()> after)
+void showMappingModeMenu (MidiMap& map, int index, std::function<void()> after, juce::Component* at, juce::Rectangle<float> area)
 {
     if (index < 0 || index >= (int) map.mappings.size()) return;
     const auto& mp = map.mappings[(size_t) index];
@@ -392,7 +393,7 @@ void showMappingModeMenu (MidiMap& map, int index, std::function<void()> after)
         for (int i = 0; i < 5; ++i) range.addItem (200 + i, names[i], true, mp.lo == ranges[i].first && mp.hi == ranges[i].second);
         m.addSubMenu ("Range", range);
     }
-    m.showMenuAsync (juce::PopupMenu::Options(), [&map, index, after] (int r)
+    m.showMenuAsync (at != nullptr ? menuAt (*at, area) : juce::PopupMenu::Options(), [&map, index, after] (int r)
     {
         if (index >= (int) map.mappings.size() || r <= 0) return;
         auto& mp = map.mappings[(size_t) index];

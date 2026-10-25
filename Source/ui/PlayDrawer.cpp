@@ -283,7 +283,7 @@ void PlayDrawer::chooseScale()
     juce::PopupMenu m;
     const auto& facts = Scales::factoryScales();
     for (int i = 0; i < (int) facts.size(); ++i) m.addItem (i + 1, facts[(size_t) i].name, true, i == ctx.engine.project().scale.scale);
-    m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (this).withMaximumNumColumns (3), [this] (int id)
+    m.showMenuAsync (menuAt (*this, menuArea).withMaximumNumColumns (3), [this] (int id)
     {
         if (id > 0) { ctx.engine.project().scale.scale = id - 1; ctx.markDirty(); repaint(); }
     });
@@ -297,7 +297,7 @@ void PlayDrawer::chooseChord (int degree)
     for (int t = 0; t <= 12; ++t) m.addItem (101 + t, Scales::chordTypeName (t), true, ps.chordType[(size_t) degree] == t);
     m.addSeparator();
     m.addItem (99, "Reset every degree to Auto");
-    m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (this), [this, degree] (int id)
+    m.showMenuAsync (menuAt (*this, menuArea), [this, degree] (int id)
     {
         auto& p = play();
         if (id == 99) p.chordType.fill (-1);
@@ -313,11 +313,12 @@ void PlayDrawer::chooseRate()
 {
     juce::PopupMenu m;
     for (int i = 0; i < 15; ++i) m.addItem (i + 1, kRates[i], true, i == play().arpRate);
-    m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (this), [this] (int id) { if (id > 0) { play().arpRate = id - 1; ctx.markDirty(); repaint(); } });
+    m.showMenuAsync (menuAt (*this, menuArea), [this] (int id) { if (id > 0) { play().arpRate = id - 1; ctx.markDirty(); repaint(); } });
 }
 
 void PlayDrawer::mouseUp (const juce::MouseEvent& e)
 {
+    menuArea = fb.hotAt (e.position);
     const Zone* z = nullptr;
     for (auto it = zones.rbegin(); it != zones.rend(); ++it) if (it->r.contains (e.position)) { z = &*it; break; }
     if (z == nullptr) return;
@@ -353,7 +354,7 @@ void PlayDrawer::mouseUp (const juce::MouseEvent& e)
         juce::PopupMenu m;
         const juce::StringArray modes { "Up", "Down", "Up-Dn", "Dn-Up", "Rand", "Played" };
         if (id == "modemenu") for (int i = 0; i < modes.size(); ++i) m.addItem (i + 1, modes[i], true, i == ps.arpMode);
-        m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (this), [this] (int r) { if (r > 0) { play().arpMode = r - 1; ctx.markDirty(); repaint(); } });
+        m.showMenuAsync (menuAt (*this, menuArea), [this] (int r) { if (r > 0) { play().arpMode = r - 1; ctx.markDirty(); repaint(); } });
         return;
     }
     ctx.markDirty();

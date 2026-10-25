@@ -20,6 +20,8 @@ public:
     void trigger (const juce::String& zoneId, juce::ModifierKeys mods = {});
     /** The MIDI learn target of a zone (`action:<id>`, `tempo`), or empty. */
     static juce::String learnTarget (const juce::String& zoneId);
+    /** A zone's area (menus open there). */
+    juce::Rectangle<float> zoneRect (const juce::String& id) const { for (auto& z : zones) if (z.id == id) return z.r; return {}; }
     /** Live (0) / Step (1) record buttons: arm in that mode, or turn recording off when it is the armed one. */
     void toggleRecord (int mode);
 

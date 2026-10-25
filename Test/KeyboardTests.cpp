@@ -283,3 +283,30 @@ MB_TEST (keyboard_rack_arrows_select)
     ctx.check (mc.context().viewBar == 1 && e.device (0, 1)->presetName == before, "Seq: → the next bar (the preset stays)");
     mc.removeFromDesktop();
 }
+
+/** Toolbar menus open at their button (not at the window's corner), by mouse and by Enter. */
+MB_TEST (menus_open_at_their_button)
+{
+    ui::shortcuts().mappings().resetToDefaultMappings();
+    Engine e;
+    e.prepare (48000.0, 512);
+    e.setDevice (0, 1, createDevice (DeviceType::Poly));
+    e.focusTrack = 1;
+    MainComponent mc (e);
+    mc.setSize (1600, 1000);
+    mc.addToDesktop (0);
+    mc.setVisible (true);
+    mc.showPage (1, 1);
+    mc.seqView().setStepsView (false);
+    mc.refreshAll();
+    mc.createComponentSnapshot (mc.getLocalBounds());
+    // Tab to the toolbar's Quantize pill, Enter opens its menu
+    const bool found = tabTo (mc, [] (const Feedback::Focus& f) { return dynamic_cast<SeqView*> (&f.fb->getView()) != nullptr && f.r.getWidth() > 60 && f.r.getY() > 360 && f.r.getY() < 400 && f.r.getX() > 780 && f.r.getX() < 860; });
+    juce::Rectangle<int> pill;
+    if (found) pill = Feedback::navFocus().fb->getView().localAreaToGlobal (Feedback::navFocus().r).getSmallestIntegerContainer();
+    mc.keyPressed (juce::KeyPress (juce::KeyPress::returnKey));
+    const auto area = mc.seqView().localAreaToGlobal (mc.seqView().lastMenuArea()).getSmallestIntegerContainer();
+    ctx.check (found && area == pill, "the menu opens at the pill (" + pill.toString() + " / " + area.toString() + ")");
+    juce::PopupMenu::dismissAllActiveMenus();
+    mc.removeFromDesktop();
+}

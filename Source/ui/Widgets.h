@@ -72,6 +72,12 @@ public:
     }
     juce::Component& getView() { return view; }
     const std::vector<Hot>& getHots() const { return hots; }
+    /** The control under a point (the last registered wins), or a small area there. */
+    juce::Rectangle<float> hotAt (juce::Point<float> p) const
+    {
+        for (auto it = hots.rbegin(); it != hots.rend(); ++it) if (it->r.contains (p)) return it->r;
+        return { p.x - 1, p.y - 1, 2, 2 };
+    }
 
 private:
     Hot find (juce::Point<float> p) const { for (auto it = hots.rbegin(); it != hots.rend(); ++it) if ((it->flags & kHover) && it->r.contains (p)) return *it; return {}; }
@@ -122,6 +128,12 @@ struct LearnHooks
 LearnHooks& learnHooks();
 /** The learn tint, armed ring and mapped message over a learnable control's area. */
 void paintLearn (juce::Graphics&, juce::Rectangle<float> area, const juce::String& target, float radius);
+
+/** A popup menu that opens at a control (an area in `c`), not at the whole view's corner or the mouse. */
+inline juce::PopupMenu::Options menuAt (juce::Component& c, juce::Rectangle<float> local)
+{
+    return juce::PopupMenu::Options().withTargetComponent (&c).withTargetScreenArea (c.localAreaToGlobal (local).getSmallestIntegerContainer());
+}
 
 /** What a knob controls: a device parameter, a macro, a mixer or master value. */
 struct Binding

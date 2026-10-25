@@ -343,7 +343,9 @@ void TopBar::trigger (const juce::String& id, juce::ModifierKeys mods)
             m.addItem (1, "Switch to it");
             m.addItem (2, "Copy the current pattern here", p != eng.activePattern());
             m.addItem (3, "Clear it");
-            m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (this), [this, p] (int r)
+            juce::Rectangle<float> padR;
+            for (auto& z : zones) if (z.id == id) padR = z.r;
+            m.showMenuAsync (menuAt (*this, padR), [this, p] (int r)
             {
                 if (r == 1) trigger ("pat" + juce::String (p));
                 if (r == 2) trigger ("pat" + juce::String (p), juce::ModifierKeys (juce::ModifierKeys::shiftModifier));

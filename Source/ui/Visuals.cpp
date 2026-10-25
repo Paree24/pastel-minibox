@@ -1334,7 +1334,7 @@ void VisualView::browseFactory()
         m.addSeparator();
         m.addSubMenu ("Loops", loops);
     }
-    m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (this), [safe = juce::Component::SafePointer<VisualView> (this), refs, slices] (int id)
+    m.showMenuAsync (menuAt (*this, loadBar (inner()).browse), [safe = juce::Component::SafePointer<VisualView> (this), refs, slices] (int id)
     {
         if (safe == nullptr || id <= 0 || id > (int) refs.size()) return;
         const auto ref = refs[(size_t) id - 1];
