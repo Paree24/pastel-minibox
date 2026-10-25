@@ -342,6 +342,89 @@ VisualView::VisualView (AppContext& c, DeviceProcessor& d, VisualSpec s, juce::C
     : ctx (c), dev (d), spec (std::move (s)), colour (colr), pattern (pat), track (trk)
 {
     for (auto& id : spec.ids) idx.push_back (dev.params().indexOf (id));
+    fb.keyHandler = [this] (int index, const juce::KeyPress& k) { return keyOnHot (index, k); };
+}
+
+juce::Rectangle<float> VisualView::waveRect() const
+{
+    const bool sampler = spec.variant == 0;
+    const R r = getLocalBounds().toFloat();
+    const float zh = sampler ? 30.0f : 0.0f;
+    return { r.getX() + 12, r.getY() + 36, r.getWidth() - 24, r.getHeight() - 46 - zh };
+}
+
+float VisualView::markerPos (int marker) const
+{
+    if (spec.variant == 0)
+    {
+        const auto reg = static_cast<SamplerDevice&> (dev).region (0);
+        return (float) (marker == 0 ? reg.s : (marker == 1 ? reg.ls : reg.e));
+    }
+    auto& ds = static_cast<DrumSamplerDevice&> (dev);
+    const int p = ctx.selection (&dev);
+    const float s = ds.get (ds.padParam (p, DrumSamplerDevice::Start));
+    return marker == 0 ? s : s + ds.get (ds.padParam (p, DrumSamplerDevice::Length)) * (1 - s);
+}
+
+void VisualView::setMarker (int marker, float t)
+{
+    t = juce::jlimit (0.0f, 1.0f, t);
+    if (spec.variant == 0)
+    {
+        auto& sd = static_cast<SamplerDevice&> (dev);
+        const auto reg = sd.region (0);
+        if (marker == 0) { const double newS = std::min ((double) t, reg.e - 0.01); sd.set (SamplerDevice::start, (float) newS); sd.set (SamplerDevice::length, (float) ((reg.e - newS) / std::max (1.0e-6, 1.0 - newS))); }
+        else if (marker == 2) sd.set (SamplerDevice::length, (float) ((std::max ((double) t, reg.s + 0.01) - reg.s) / std::max (1.0e-6, 1.0 - reg.s)));
+        else sd.set (SamplerDevice::loopStart, (float) ((t - reg.s) / std::max (1.0e-6, reg.e - reg.s)));
+    }
+    else
+    {
+        auto& ds = static_cast<DrumSamplerDevice&> (dev);
+        const int p = ctx.selection (&dev);
+        const float s = ds.get (ds.padParam (p, DrumSamplerDevice::Start));
+        const float en = s + ds.get (ds.padParam (p, DrumSamplerDevice::Length)) * (1 - s);
+        if (marker == 0) { const float ns = std::min (t, en - 0.01f); ds.set (ds.padParam (p, DrumSamplerDevice::Start), ns); ds.set (ds.padParam (p, DrumSamplerDevice::Length), (en - ns) / std::max (1.0e-6f, 1 - ns)); }
+        else ds.set (ds.padParam (p, DrumSamplerDevice::Length), (std::max (t, s + 0.01f) - s) / std::max (1.0e-6f, 1 - s));
+    }
+    ctx.markDirty();
+    repaint();
+}
+
+bool VisualView::keyOnHot (int index, const juce::KeyPress& k)
+{
+    // the arrows drag what the mouse drags: an envelope point (← → its time, ↑ ↓ its level), a sample marker
+    // (← →, Shift: fine), a lane step's value (↑ ↓)
+    if (index < 0 || index >= (int) hotUse.size()) return false;
+    const auto use = hotUse[(size_t) index];
+    const int code = k.getKeyCode();
+    const int dx = code == juce::KeyPress::leftKey ? -1 : (code == juce::KeyPress::rightKey ? 1 : 0);
+    const int dy = code == juce::KeyPress::upKey ? 1 : (code == juce::KeyPress::downKey ? -1 : 0);
+    const bool fine = k.getModifiers().isShiftDown();
+    if (dx == 0 && dy == 0) return false;
+    if (use.kind == 1)
+    {
+        auto setK = [&] (int kk, float val) { if (kk < (int) idx.size() && idx[(size_t) kk] >= 0) dev.set (idx[(size_t) kk], juce::jlimit (0.0f, 1.0f, val)); };
+        if (dx != 0) setK (use.a, v (use.a) - dx * (fine ? 0.005f : 0.03f));
+        if (dy != 0 && use.a < 3) setK (4 + use.a, v (4 + use.a) + dy * (fine ? 0.005f : 0.03f));
+        ctx.markDirty();
+        repaint();
+        return true;
+    }
+    if (use.kind == 2 && dx != 0) { setMarker (use.a, markerPos (use.a) + dx * (fine ? 0.001f : 0.005f)); return true; }
+    if (use.kind == 3 && dy != 0 && pattern >= 0 && track >= 0)
+    {
+        const int spb = ctx.engine.project().stepsPerBar (pattern);
+        const Engine::ScopedEdit edit (ctx.engine);
+        auto& d = ctx.engine.project().patterns[(size_t) pattern].slots[(size_t) track].track.lanes[(size_t) ctx.selection (&dev)][(size_t) (ctx.viewBar * spb + use.a)];
+        if (! d.on) return false;
+        if (ctx.laneView == 0) d.velocity = (uint8_t) juce::jlimit (1, 127, (int) d.velocity + dy * (fine ? 1 : 8));
+        else if (ctx.laneView == 1) d.probability = (uint8_t) juce::jlimit (0, 100, (int) d.probability + dy * (fine ? 1 : 10));
+        else d.ratchet = (uint8_t) juce::jlimit (1, 4, (int) d.ratchet + dy);
+        ctx.markDirty();
+        repaint();
+        return true;
+    }
+    return false;
 }
 
 float VisualView::v (int k) const
@@ -920,18 +1003,73 @@ void VisualView::paint (juce::Graphics& g)
     }
     // hover / press feedback on the controls inside the visual
     fb.begin();
-    if (spec.kind == VisualKind::Sample || spec.kind == VisualKind::Slices) { const auto b = loadBar (r); fb.hot (b.browse, 6); fb.hot (b.load, 6); }
+    hotUse.clear();
+    if (spec.kind == VisualKind::Sample || spec.kind == VisualKind::Slices)
+    {
+        const auto b = loadBar (r);
+        hot (b.browse, 6); hot (b.load, 6);
+        if (spec.kind == VisualKind::Sample)
+        {
+            // the markers: start, loop (the sampler), end
+            const auto wr = waveRect();
+            for (int m : { 0, 1, 2 })
+            {
+                if (spec.variant != 0 && m == 1) continue;
+                const float t = markerPos (m);
+                if (t < 0.0f || t > 1.0f) continue;
+                hot (R (wr.getX() + wr.getWidth() * t - 6, wr.getY(), 12, wr.getHeight()), 4, 2, m);
+            }
+            if (spec.variant == 0)
+            {
+                // the zones (a click selects one)
+                auto& sd = static_cast<SamplerDevice&> (dev);
+                for (int z = 0; z < SamplerDevice::kZones; ++z)
+                {
+                    if (sd.zoneRef (z).isEmpty()) continue;
+                    const float lo = sd.get (sd.zoneLo (z)), hi = sd.get (sd.zoneHi (z));
+                    hot (R (wr.getX() + lo * wr.getWidth() / 128.0f, r.getBottom() - 30, std::max (8.0f, (hi - lo + 1) * wr.getWidth() / 128.0f), 26), 4);
+                }
+            }
+        }
+    }
     else if (spec.kind == VisualKind::Pads)
     {
         const R pr = r.reduced (16);
         const int cols = spec.variant == 2 ? 4 : 2, rows = 8 / cols;
         for (int i = 0; i < 8; ++i)
-            fb.hot (R (pr.getX() + (i % cols) * pr.getWidth() / cols, pr.getY() + (i / cols) * pr.getHeight() / rows, pr.getWidth() / cols, pr.getHeight() / rows).reduced (4), 8);
+            hot (R (pr.getX() + (i % cols) * pr.getWidth() / cols, pr.getY() + (i / cols) * pr.getHeight() / rows, pr.getWidth() / cols, pr.getHeight() / rows).reduced (4), 8);
     }
     else if (spec.kind == VisualKind::Ops)
     {
+        // each operator, and its wave and mute buttons
         const float cw = (r.getWidth() - 16) / 6.0f;
-        for (int o = 0; o < 6; ++o) fb.hot (R (r.getX() + 8 + o * cw, r.getY() + 6, cw, r.getHeight() - 12), 8);
+        for (int o = 0; o < 6; ++o)
+        {
+            const float ox = r.getX() + 8 + o * cw;
+            hot (R (ox, r.getY() + 6, cw, r.getBottom() - 90 - r.getY()), 8);
+            hot (R (ox + 4, r.getBottom() - 84, cw - 8, 20), 6);
+            hot (R (ox + 4, r.getBottom() - 30, cw - 8, 26), 6);
+        }
+    }
+    else if (spec.kind == VisualKind::Rate4)
+    {
+        // the envelope's breakpoints
+        const float x0 = r.getX() + 10, W = r.getWidth() - 20;
+        float widths[4], tot = 0.0f;
+        for (int k = 0; k < 4; ++k) { widths[k] = 0.12f + (1.0f - v (k)) * 0.9f; tot += widths[k]; }
+        float cx = x0;
+        for (int k = 0; k < 4; ++k)
+        {
+            cx += W * widths[k] / tot;
+            const float y = r.getBottom() - 12 - (r.getHeight() - 24) * v (4 + k);
+            hot (R (cx - 9, y - 9, 18, 18), 9, 1, k);
+        }
+    }
+    else if (spec.kind == VisualKind::Lane && pattern >= 0 && track >= 0)
+    {
+        const int spb = ctx.engine.project().stepsPerBar (pattern);
+        const float gap = 4.0f, bw = (r.getWidth() - 16 - gap * (spb - 1)) / spb;
+        for (int i = 0; i < spb; ++i) hot (R (r.getX() + 8 + i * (bw + gap), r.getY() + 8, bw, r.getHeight() - 16), 4, 3, i);
     }
     fb.paint (g);
 }

@@ -85,6 +85,13 @@ Shortcuts::Shortcuts()
     add (rollTransposeDown, "Transpose -1", "Piano roll", { key (K::pageDownKey) });
     add (rollOctaveUp, "Transpose +12", "Piano roll", { key (K::pageUpKey, shift) });
     add (rollOctaveDown, "Transpose -12", "Piano roll", { key (K::pageDownKey, shift) });
+    add (rollShorter, "Shorter by a grid unit", "Piano roll", { key (',') });
+    add (rollLonger, "Longer by a grid unit", "Piano roll", { key ('.') });
+    add (rollVelocityDown, "Velocity -8", "Piano roll", { key ('[') });
+    add (rollVelocityUp, "Velocity +8", "Piano roll", { key (']') });
+    add (rollPlayFromCursor, "Move the playhead to the cursor", "Piano roll", { key (K::returnKey, ctrl) });
+    add (rollLoopSelection, "Loop the selection", "Piano roll", { key ('L', ctrl | shift) });
+    add (rollLoopToggle, "Loop on / off", "Piano roll", { key ('L', alt) });
 
     const char* notes[16] = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", "C (up)", "C# (up)", "D (up)", "D# (up)" };
     const char keys[16] = { 'A', 'W', 'S', 'E', 'D', 'F', 'T', 'G', 'Y', 'H', 'U', 'J', 'K', 'O', 'L', 'P' };

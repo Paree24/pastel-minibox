@@ -106,6 +106,7 @@ MiniboxEditor::MiniboxEditor (MiniboxProcessor& p)
     : AudioProcessorEditor (p), proc (p), ctx (p.engine(), false), topBar (p), header (ctx), midiRow (p)
 {
     setLookAndFeel (&laf);
+    setWantsKeyboardFocus (true);
     addAndMakeVisible (content);
     content.addAndMakeVisible (topBar);
     content.addAndMakeVisible (header);
@@ -163,6 +164,8 @@ void MiniboxEditor::attachDevice()
 }
 
 void MiniboxEditor::paint (juce::Graphics& g) { g.fillAll (col::bg); }
+
+bool MiniboxEditor::keyPressed (const juce::KeyPress& k) { return ui::Feedback::handleKey (k, content); }
 
 void MiniboxEditor::resized()
 {

@@ -235,6 +235,9 @@ void PresetBrowser::mouseDoubleClick (const juce::MouseEvent& e)
 
 bool PresetBrowser::keyPressed (const juce::KeyPress& k)
 {
+    // Tab reaches the chips, Save and Delete (Enter presses them); the arrows walk the list
+    if (k.getKeyCode() == juce::KeyPress::tabKey || (Feedback::navFocus().fb != nullptr && &Feedback::navFocus().fb->getView() == this))
+        if (Feedback::handleKey (k, *this)) return true;
     if (k == juce::KeyPress::downKey) { select (std::min (sel + 1, (int) shown.size() - 1), true); return true; }
     if (k == juce::KeyPress::upKey) { select (std::max (sel - 1, 0), true); return true; }
     if (k == juce::KeyPress::returnKey) { close(); return true; }

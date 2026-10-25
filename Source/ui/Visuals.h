@@ -56,6 +56,14 @@ private:
     int dragMarker = -1, dragPoint = -1, dragStep = -1;
     bool dropHover = false;
     float dragStartValue = 0.0f;
+    // keyboard (docs/keyboard.md): what each focusable zone is, so the arrows can drag it
+    struct HotUse { int kind = 0, a = 0; };   // 0 a click, 1 an envelope point, 2 a sample marker, 3 a lane step
+    std::vector<HotUse> hotUse;
+    void hot (juce::Rectangle<float> r, float radius, int kind = 0, int a = 0) { fb.hot (r, radius); hotUse.push_back ({ kind, a }); }
+    bool keyOnHot (int index, const juce::KeyPress&);
+    void setMarker (int marker, float t);
+    float markerPos (int marker) const;
+    juce::Rectangle<float> waveRect() const;
 };
 
 namespace draw

@@ -204,3 +204,47 @@ MB_TEST (keyboard_shortcuts_rebind)
     panel.setSize (900, 640);
     ctx.check (panel.getNumChildComponents() > 0, "the Settings window builds");
 }
+
+/** The mouse by keys (docs/keyboard.md): lane values and note cells take ↑ / ↓, Delete right-clicks (clears),
+    Shift+Enter is a Shift-click, and the piano roll's length / velocity / playhead keys. */
+MB_TEST (keyboard_mouse_equivalents)
+{
+    ui::shortcuts().mappings().resetToDefaultMappings();
+    Engine e;
+    e.prepare (48000.0, 512);
+    e.setDevice (0, 1, createDevice (DeviceType::Poly));
+    e.focusTrack = 1;
+    auto& tr = e.project().patterns[0].slots[1].track;
+    tr.steps[0].addNote (60, 100, 96);
+    MainComponent mc (e);
+    mc.setSize (1600, 1000);
+    mc.showPage (1, 1);
+    mc.refreshAll();
+    mc.createComponentSnapshot (mc.getLocalBounds());
+    auto key = [&] (int code, juce::ModifierKeys m = {}) { const bool r = mc.keyPressed (juce::KeyPress (code, m, 0)); mc.refreshAll(); mc.createComponentSnapshot (mc.getLocalBounds()); return r; };
+    auto seqAt = [] (float x, float y) { return [x, y] (const Feedback::Focus& f) { return dynamic_cast<SeqView*> (&f.fb->getView()) != nullptr && f.r.contains (x, y); }; };
+    // the Steps view: step 1's note cell (x ≈ 190) and its velocity lane cell
+    ctx.check (tabTo (mc, seqAt (190.0f, 500.0f)) && key (juce::KeyPress::upKey) && tr.steps[0].hasNote (61), "↑ on a note cell raises its pitch");
+    const int velY = 412 + 190 + 18 + 19;
+    ctx.check (tabTo (mc, seqAt (190.0f, (float) velY)) && key (juce::KeyPress::upKey) && tr.steps[0].vel[0] == 108, "↑ on a velocity cell raises it (" + juce::String (tr.steps[0].vel[0]) + ")");
+    ctx.check (tabTo (mc, seqAt (190.0f, 500.0f)) && key (juce::KeyPress::deleteKey) && tr.steps[0].noteCount == 0, "Delete on a note cell clears it (a right-click)");
+    Feedback::clearFocus();
+    // the top bar: Shift+Enter on pad B copies the current pattern there (a Shift-click)
+    const bool pad = tabTo (mc, [] (const Feedback::Focus& f) { return dynamic_cast<ui::TopBar*> (&f.fb->getView()) != nullptr && f.r.contains (980.0f, 30.0f); });
+    ctx.check (pad && key (juce::KeyPress::returnKey, juce::ModifierKeys::shiftModifier) && e.device (1, 1) != nullptr, "Shift+Enter on pad B copies the pattern there");
+    Feedback::clearFocus();
+    // the piano roll's keys on a selection
+    tr.clear();
+    tr.pianoRoll = true;
+    const int st = e.project().stepTicks (0);
+    ClipNote n; n.start = 0; n.length = st; n.note = 60; n.vel = 100; tr.addClipNote (n);
+    mc.seqView().setStepsView (false);
+    mc.refreshAll();
+    ctx.check (key ('A', juce::ModifierKeys::commandModifier), "Ctrl+A selects");
+    key ('.');
+    ctx.check (tr.clip.size() == 1 && tr.clip[0].length == 2 * st, "'.' makes it a grid unit longer");
+    key (']');
+    ctx.check (tr.clip[0].vel == 108, "']' raises its velocity");
+    key ('L', juce::ModifierKeys (juce::ModifierKeys::commandModifier | juce::ModifierKeys::shiftModifier));
+    ctx.check (e.project().patterns[0].loopOn && e.project().patterns[0].loopStart == 0 && e.project().patterns[0].loopEnd == 2, "Ctrl+Shift+L loops the selection");
+}

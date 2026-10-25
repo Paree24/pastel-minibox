@@ -32,6 +32,109 @@ SeqView::SeqView (AppContext& c) : ctx (c), roll (c)
         const auto t = locate (p);
         return juce::MouseCursor (t.kind == Target::None ? juce::MouseCursor::NormalCursor : juce::MouseCursor::PointingHandCursor);
     };
+    fb.keyHandler = [this] (int index, const juce::KeyPress& k)
+    {
+        const auto& hots = fb.getHots();
+        if (index < 0 || index >= (int) hots.size()) return false;
+        return keyOnTarget (locate (hots[(size_t) index].r.getCentre()), k);
+    };
+}
+
+bool SeqView::keyOnTarget (const Target& t, const juce::KeyPress& k)
+{
+    const int code = k.getKeyCode();
+    const bool up = code == juce::KeyPress::upKey, down = code == juce::KeyPress::downKey;
+    const bool left = code == juce::KeyPress::leftKey, right = code == juce::KeyPress::rightKey;
+    const bool fine = k.getModifiers().isShiftDown();
+    const int dir = up ? 1 : (down ? -1 : 0);
+    auto* dev = ctx.focusDevice();
+    if (dev == nullptr) return false;
+    const int pat = ctx.focusPattern(), sel = ctx.focusTrack();
+    auto& tr = track (sel);
+    const bool acid = dev->type() == DeviceType::Acid;
+    auto edit = [&] (auto&& fn) { ctx.snapshot (pat); { const Engine::ScopedEdit ed (ctx.engine); fn(); } ctx.markDirty(); repaint(); roll.repaint(); return true; };
+    switch (t.kind)
+    {
+        case Target::StepNote:
+        {
+            // a note cell: ↑ / ↓ its pitch (Shift: an octave)
+            if (dir == 0) return false;
+            auto& st = tr.steps[(size_t) (ctx.viewBar * spb() + t.b)];
+            if (st.noteCount == 0) return false;
+            return edit ([&]
+            {
+                for (int i = 0; i < st.noteCount; ++i) st.notes[i] = (uint8_t) juce::jlimit (0, 127, st.notes[i] + dir * (fine ? 12 : 1));
+                ctx.lastNote[(size_t) sel] = st.notes[0];
+                ctx.engine.injectNote (sel, st.notes[0], 0.8f, true, pat, true);
+                ctx.engine.injectNote (sel, st.notes[0], 0.0f, false, pat, true);
+            });
+        }
+        case Target::LaneVel: case Target::LaneA: case Target::LaneB: case Target::StepLane:
+        {
+            if (dir == 0) return false;
+            const bool rollLane = t.kind != Target::StepLane;
+            const int si = (rollLane ? roll.firstStep() : ctx.viewBar * spb()) + t.b;
+            auto& st = tr.steps[(size_t) si];
+            const int lane = t.kind == Target::StepLane ? t.a : (t.kind == Target::LaneVel ? 0 : (t.kind == Target::LaneA ? 2 : 3));
+            if (lane == 5)
+            {
+                if (lockParam < 0) return false;
+                return edit ([&]
+                {
+                    if (auto* l = tr.lockFor (lockParam, true))
+                    {
+                        const auto& info = dev->params()[lockParam];
+                        const float cur = std::isnan (l->values[(size_t) si]) ? dev->getNorm (lockParam) : info.toNorm (l->values[(size_t) si]);
+                        l->values[(size_t) si] = info.fromNorm (juce::jlimit (0.0f, 1.0f, cur + dir * (fine ? 0.01f : 0.05f)));
+                    }
+                });
+            }
+            if (st.noteCount == 0 || lane == 4) return false;
+            if ((lane == 2 || lane == 3) && acid) return edit ([&] { st.flags ^= (lane == 2 ? kAccent : kSlide); });
+            return edit ([&]
+            {
+                if (lane == 0) st.setVelocity (juce::jlimit (1, 127, (int) st.velocity() + dir * (fine ? 1 : 8)));
+                else if (lane == 1) st.setLength (juce::jlimit (8, 256, (int) st.maxLen() + dir * (fine ? 4 : 16)));
+                else if (lane == 2) st.probability = (uint8_t) juce::jlimit (0, 100, (int) st.probability + dir * (fine ? 1 : 10));
+                else st.ratchet = (uint8_t) juce::jlimit (1, 4, (int) st.ratchet + dir);
+            });
+        }
+        case Target::DrumLane:
+        {
+            if (dir == 0) return false;
+            auto& d = tr.lanes[(size_t) ctx.selection (dev)][(size_t) (ctx.viewBar * spb() + t.b)];
+            if (! d.on || drumLaneView == 4) return false;
+            return edit ([&]
+            {
+                if (drumLaneView == 0) d.velocity = (uint8_t) juce::jlimit (1, 127, (int) d.velocity + dir * (fine ? 1 : 8));
+                else if (drumLaneView == 1) d.probability = (uint8_t) juce::jlimit (0, 100, (int) d.probability + dir * (fine ? 1 : 10));
+                else if (drumLaneView == 2) d.ratchet = (uint8_t) juce::jlimit (1, 4, (int) d.ratchet + dir);
+                else d.microTiming = (int8_t) juce::jlimit (-24, 24, (int) d.microTiming + dir * (fine ? 1 : 4));
+            });
+        }
+        case Target::ClipVel:
+        {
+            // a clip's lane by keys: ← / → the cursor step (shown in the roll), ↑ / ↓ the value there
+            if (left || right) { roll.moveCursorStep (left ? -1 : 1); repaint(); return true; }
+            if (dir == 0) return false;
+            const int stT = ctx.engine.project().stepTicks (pat), tick = roll.cursorStep() * stT;
+            if (clipLane < 0)
+            {
+                // velocity: the selected notes, or the notes starting on the cursor step
+                return edit ([&]
+                {
+                    bool any = false;
+                    for (auto& r : roll.selection()) if (auto* n = tr.clipNote ((uint32_t) r.step)) { n->vel = (uint8_t) juce::jlimit (1, 127, n->vel + dir * (fine ? 1 : 8)); any = true; }
+                    if (! any) for (auto& n : tr.clip) if (n.start >= tick && n.start < tick + stT) n.vel = (uint8_t) juce::jlimit (1, 127, n.vel + dir * (fine ? 1 : 8));
+                });
+            }
+            const bool bipolar = clipLane == DeviceProcessor::kBend;
+            float cur = bipolar ? 0.0f : (clipLane == DeviceProcessor::kExpression ? 1.0f : 0.0f);
+            for (auto& p : tr.cc) if (p.lane == clipLane && p.tick <= tick) cur = p.value;
+            return edit ([&] { tr.setPoint (clipLane, tick, juce::jlimit (bipolar ? -1.0f : 0.0f, 1.0f, cur + dir * (fine ? 0.01f : 0.0625f))); });
+        }
+        default: return false;
+    }
 }
 
 void SeqView::resized()
@@ -421,6 +524,9 @@ juce::String SeqView::laneName (int lane) const
 
 void SeqView::paintClipLane (juce::Graphics& g, Track& tr, juce::Colour colour)
 {
+    // a focused lane edits at the roll's cursor step: show that column in the roll and the lane
+    const bool laneFocused = Feedback::navFocus().fb == &fb && clipLaneArea().contains (Feedback::navFocus().r.getCentre());
+    if (laneFocused != roll.showCursorColumn) { roll.showCursorColumn = laneFocused; roll.repaint(); }
     // the clip's lane: velocity (a stalk per note; drag over them) or a controller (drawn on the grid)
     const auto la = clipLaneArea();
     const float lx = M + 16 + 64;
@@ -452,6 +558,11 @@ void SeqView::paintClipLane (juce::Graphics& g, Track& tr, juce::Colour colour)
             g.drawLine (x0, y, x1, y, 2.0f);
             if (k + 1 < pts.size()) g.drawLine (x1, y, x1, yFor (pts[k + 1]->value), 1.0f);
             g.fillEllipse (x0 - 3, y - 3, 6, 6);
+        }
+        if (laneFocused)
+        {
+            const float cx = roll.getX() + roll.xOfTick ((double) roll.cursorStep() * ctx.engine.project().stepTicks (ctx.focusPattern()));
+            g.setColour (col::text.withAlpha (0.5f)); g.drawLine (cx, la.getY(), cx, la.getBottom(), 1.5f);
         }
         if (pts.empty())
             paint::text (g, "Drag to draw " + laneName (clipLane).toLowerCase() + juce::String::fromUTF8 (" Â· right-drag erases"), la.getX() + 12, la.getCentreY() + 4, 10, Weight::Bold, col::faint);

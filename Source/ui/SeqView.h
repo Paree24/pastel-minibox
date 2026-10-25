@@ -43,6 +43,8 @@ private:
     bool rollView() const;
     void convertToPianoRoll();
     void clipVelocityAt (juce::Point<float>);
+    /** Keys on a focused cell or lane (docs/keyboard.md): ↑ / ↓ its value (Shift: fine), a note cell's pitch. */
+    bool keyOnTarget (const Target&, const juce::KeyPress&);
     /** The clip's lane: −1 velocity, else a controller (CCPoint lanes). */
     int clipLane = -1;
     int laneLastTick = -1;

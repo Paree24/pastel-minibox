@@ -22,7 +22,8 @@ enum : juce::CommandID
     // piano roll
     rollSelectAll, rollInvertSelection, rollCopy, rollCut, rollPaste, rollDuplicate, rollDelete, rollDeleteAlt, rollQuantize,
     rollMute, rollLock, rollTool, rollSnap, rollZoomIn, rollZoomOut, rollRowsIn, rollRowsOut, rollFit, rollFitNotes,
-    rollTransposeUp, rollTransposeDown, rollOctaveUp, rollOctaveDown,
+    rollTransposeUp, rollTransposeDown, rollOctaveUp, rollOctaveDown, rollShorter, rollLonger, rollVelocityDown, rollVelocityUp,
+    rollPlayFromCursor, rollLoopSelection, rollLoopToggle,
     // the computer keyboard as a piano: 16 keys from C up, and the octave
     note0, note15 = note0 + 15, octaveDown, octaveUp
 };

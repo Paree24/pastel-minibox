@@ -411,7 +411,26 @@ void EditorHeader::mouseUp (const juce::MouseEvent& e)
 // ------------------------------------------------------------------------------------------- step strip
 StepStrip::StepStrip (AppContext& c) : ctx (c)
 {
-    setTooltip ("Click: step on/off   Drag: velocity   Shift-click: select a step for parameter locks");
+    setTooltip ("Click: step on/off   Drag: velocity   Shift-click: select a step for parameter locks   Alt-click: slide   Ctrl-click: accent");
+    // keys on a focused step: ↑ / ↓ its velocity (Enter on / off, Shift+Enter lock it, Alt+Enter slide, Ctrl+Enter accent)
+    fb.keyHandler = [this] (int index, const juce::KeyPress& k)
+    {
+        const int code = k.getKeyCode();
+        if (code != juce::KeyPress::upKey && code != juce::KeyPress::downKey) return false;
+        const auto& hots = fb.getHots();
+        if (index < 0 || index >= (int) hots.size()) return false;
+        const auto h = locate (hots[(size_t) index].r.getCentre());
+        if (h.step < 0 || h.lane >= 0) return false;
+        const int pat = ctx.focusPattern();
+        const int si = ctx.viewBar * ctx.engine.project().stepsPerBar (pat) + h.step;
+        auto& s = ctx.engine.project().patterns[(size_t) pat].slots[(size_t) ctx.focusTrack()].track.steps[(size_t) si];
+        if (s.noteCount == 0) return false;
+        ctx.snapshot (pat);
+        { const Engine::ScopedEdit ed (ctx.engine); s.setVelocity (juce::jlimit (1, 127, (int) s.velocity() + (code == juce::KeyPress::upKey ? 8 : -8))); }
+        ctx.markDirty();
+        repaint();
+        return true;
+    };
 }
 
 void StepStrip::refresh()
@@ -586,7 +605,7 @@ void StepStrip::mouseDown (const juce::MouseEvent& e)
     else
     {
         auto& s = tr.steps[(size_t) si];
-        if (h.badge && s.noteCount > 0) s.flags ^= kAccent;
+        if ((h.badge || e.mods.isCommandDown()) && s.noteCount > 0) s.flags ^= kAccent;
         else if (e.mods.isAltDown() && s.noteCount > 0) s.flags ^= kSlide;
         else if (s.noteCount > 0) { s.clear(); }
         else { s.clear(); s.addNote (ctx.lastNote[(size_t) trk], ctx.lastVel[(size_t) trk], ctx.lastGate[(size_t) trk]); dragStep = si; }

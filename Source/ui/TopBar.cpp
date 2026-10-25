@@ -209,8 +209,28 @@ void TopBar::showTimeSignature()
 {
     struct Panel : juce::Component
     {
-        explicit Panel (AppContext& c) : ctx (c) { setSize (300, 210); }
+        explicit Panel (AppContext& c) : ctx (c) { setSize (300, 210); setWantsKeyboardFocus (true); }
         AppContext& ctx;
+        int row = 0;   // keys: ↑ ↓ a row (beats, unit, swing, count-in), ← → its value
+        void visibilityChanged() override { if (isShowing()) grabKeyboardFocus(); }
+        void parentHierarchyChanged() override { juce::MessageManager::callAsync ([sp = juce::Component::SafePointer<Panel> (this)] { if (sp != nullptr && sp->isShowing()) sp->grabKeyboardFocus(); }); }
+        bool keyPressed (const juce::KeyPress& k) override
+        {
+            const int code = k.getKeyCode();
+            if (code == juce::KeyPress::upKey || code == juce::KeyPress::downKey) { row = (row + (code == juce::KeyPress::upKey ? 3 : 1)) % 4; repaint(); return true; }
+            const int d = code == juce::KeyPress::leftKey ? -1 : (code == juce::KeyPress::rightKey ? 1 : 0);
+            if (d == 0) return false;
+            auto& p = ctx.engine.project();
+            int beats = p.beats, unit = p.unit;
+            if (row == 0) beats = juce::jlimit (1, 16, beats + d);
+            else if (row == 1) unit = d > 0 ? (unit == 4 ? 8 : 16) : (unit == 16 ? 8 : 4);
+            else if (row == 2) p.swing = juce::jlimit (0.5f, 0.75f, p.swing + d * 0.01f);
+            else p.countIn = d > 0;
+            if (beats != p.beats || unit != p.unit) ctx.engine.setTimeSignature (beats, unit);
+            ctx.markDirty();
+            repaint();
+            return true;
+        }
         void paint (juce::Graphics& g) override
         {
             auto& p = ctx.engine.project();
@@ -229,6 +249,11 @@ void TopBar::showTimeSignature()
             paint::text (g, juce::String (juce::roundToInt (p.swing * 100)) + "%", 284, 103, 11, Weight::Bold, col::quiet, juce::Justification::right);
             row (152, "Count-in");
             paint::segmented (g, { 140, 152, 144, 30 }, { "Off", "1 bar" }, p.countIn ? 1 : 0, col::text, 12);
+            if (hasKeyboardFocus (false))
+            {
+                const int ys[4] = { 14, 60, 106, 152 };
+                g.setColour (col::text.withAlpha (0.8f)); g.drawRoundedRectangle (8, (float) ys[this->row] - 4, 284, 38, 8, 1.5f);
+            }
         }
         void mouseDown (const juce::MouseEvent& e) override { handle (e); }
         void mouseDrag (const juce::MouseEvent& e) override { if (e.position.y > 100 && e.position.y < 140) handle (e); }
@@ -297,6 +322,12 @@ void TopBar::trigger (const juce::String& id, juce::ModifierKeys mods)
     else if (id == "bpm-") { proj.bpm = juce::jlimit (30.0, 300.0, std::round ((proj.bpm - inc) * 10.0) / 10.0); ctx.markDirty(); }
     else if (id == "bpm+") { proj.bpm = juce::jlimit (30.0, 300.0, std::round ((proj.bpm + inc) * 10.0) / 10.0); ctx.markDirty(); }
     else if (id == "tap") tap();
+    else if (id == "bpm")
+        askForText ("Tempo (BPM)", juce::String (proj.bpm, 1), [this] (juce::String s)
+        {
+            const double v = s.getDoubleValue();
+            if (v >= 30.0 && v <= 300.0) { ctx.engine.project().bpm = std::round (v * 10.0) / 10.0; ctx.markDirty(); repaint(); }
+        });
     else if (id == "sig") showTimeSignature();
     else if (id == "click") { proj.metronome = ! proj.metronome; ctx.markDirty(); }
     else if (id == "playdrawer" && onPlayDrawer) onPlayDrawer();
@@ -304,7 +335,22 @@ void TopBar::trigger (const juce::String& id, juce::ModifierKeys mods)
     else if (id.startsWith ("pat"))
     {
         const int p = id.getLastCharacters (1).getIntValue();
-        if (mods.isShiftDown()) { eng.copyPattern (eng.activePattern(), p); ctx.markDirty(); if (ctx.onDevicesChanged) ctx.onDevicesChanged(); }
+        if (mods.isRightButtonDown())
+        {
+            // the pad's menu (a right-click, or Shift+F10 / Delete on the focused pad): what Shift- and Alt-click do
+            juce::PopupMenu m;
+            m.addSectionHeader ("Pattern " + juce::String::charToString ("ABCDEFGH"[p]));
+            m.addItem (1, "Switch to it");
+            m.addItem (2, "Copy the current pattern here", p != eng.activePattern());
+            m.addItem (3, "Clear it");
+            m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (this), [this, p] (int r)
+            {
+                if (r == 1) trigger ("pat" + juce::String (p));
+                if (r == 2) trigger ("pat" + juce::String (p), juce::ModifierKeys (juce::ModifierKeys::shiftModifier));
+                if (r == 3) trigger ("pat" + juce::String (p), juce::ModifierKeys (juce::ModifierKeys::altModifier));
+            });
+        }
+        else if (mods.isShiftDown()) { eng.copyPattern (eng.activePattern(), p); ctx.markDirty(); if (ctx.onDevicesChanged) ctx.onDevicesChanged(); }
         else if (mods.isAltDown())
             juce::AlertWindow::showOkCancelBox (juce::MessageBoxIconType::WarningIcon, "Clear pattern " + juce::String::charToString ("ABCDEFGH"[p]) + "?",
                                                 "Its steps and devices are removed.", "Clear", "Cancel", nullptr,

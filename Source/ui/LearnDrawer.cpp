@@ -154,7 +154,17 @@ void applyLearnControl (Binding& b, const MidiControl& c, MidiMapping& mp)
 }
 
 // ------------------------------------------------------------------------------------------- drawer
-LearnDrawer::LearnDrawer (AppContext& c, MidiMap& m) : ctx (c), map (m) {}
+LearnDrawer::LearnDrawer (AppContext& c, MidiMap& m) : ctx (c), map (m)
+{
+    // the mapping list scrolls by keys too: Page Up / Page Down
+    fb.keyHandler = [this] (int, const juce::KeyPress& k)
+    {
+        if (k.getKeyCode() != juce::KeyPress::pageUpKey && k.getKeyCode() != juce::KeyPress::pageDownKey) return false;
+        scroll += k.getKeyCode() == juce::KeyPress::pageDownKey ? 7 : -7;
+        repaint();
+        return true;
+    };
+}
 
 juce::String LearnDrawer::armTarget (const juce::String& target) const
 {

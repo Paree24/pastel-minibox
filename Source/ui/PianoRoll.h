@@ -43,6 +43,9 @@ public:
     /** Loop playback on / off (a range: Shift-drag in the ruler; the bars in view when none is set). */
     void toggleLoop();
     int rows() const { return std::clamp (ctx.rollSettings.rows, 8, 48); }
+    /** The keyboard cursor's step (the clip lanes edit there by keys). */
+    int cursorStep() const { return keyCursor.step; }
+    void moveCursorStep (int d) { keyCursor.step = std::clamp (keyCursor.step + d, 0, std::max (0, totalSteps() - 1)); if (keyCursor.step < firstStep() || keyCursor.step >= firstStep() + visibleSteps()) setFirstStep (keyCursor.step - visibleSteps() / 2); repaint(); }
     /** Where a clip tick is drawn, and the tick under an x (component coordinates); the grid line at or before it. */
     float xOfTick (double tick) const { return xForTick (tick); }
     int tickOfX (float x) const { return tickAt (x); }
@@ -67,6 +70,12 @@ public:
     /** The toolbar's transpose: an octave, or a step (a scale step when scale lock is on). */
     void transposeBy (int dir, bool octave);
     void toggleMute();
+    /** The selection a grid unit longer / shorter, its velocity ±8, the loop around it. */
+    void lengthBy (int dir);
+    void velocityBy (int dir);
+    void loopSelection();
+    /** The keyboard cursor's step column is shown (the clip lanes under the roll edit there by keys). */
+    bool showCursorColumn = false;
     /** Locked notes stay as they are: no moving, resizing, deleting or functions until unlocked (Ctrl+L). */
     void toggleLock();
     // chords: notes that start together

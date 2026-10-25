@@ -154,6 +154,7 @@ void SlotStrip::paint (juce::Graphics& g)
     paint::openIcon (g, openR.getCentreX(), openR.getCentreY(), 18, col::text);
     for (auto r : { nameR, prevR, nextR, presetR.reduced (32, 0), muteR, soloR }) fb.hot (r);
     fb.hot (openR, 12);
+    fb.hot (visR, 10);   // Enter opens the editor, as a click does
     fb.paint (g);
 }
 

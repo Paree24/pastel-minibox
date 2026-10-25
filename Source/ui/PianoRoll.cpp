@@ -588,6 +588,11 @@ void PianoRoll::paint (juce::Graphics& g)
         g.setColour (col::text.withAlpha (0.08f)); g.fillRect (marquee);
         g.setColour (col::text.withAlpha (0.6f)); g.drawRect (marquee, 1.0f);
     }
+    if (showCursorColumn && keyCursor.step >= first && keyCursor.step < first + steps)   // the cursor's step, for the lanes under the roll
+    {
+        g.setColour (col::text.withAlpha (0.07f));
+        g.fillRect (R (gr.getX() + (keyCursor.step - first) * cw, gr.getY(), cw, gr.getHeight()));
+    }
     if (Feedback::navFocus().fb == &fb)   // the keyboard cursor
     {
         const int row = rowForNote (keyCursor.note);
@@ -1191,6 +1196,37 @@ void PianoRoll::transposeBy (int dir, bool octave)
     put (n);
 }
 
+void PianoRoll::lengthBy (int dir)
+{
+    if (sel.empty()) return;
+    const int g = gridTicks();
+    auto n = takeTargets();
+    for (auto& x : n) x.len = std::max (std::max (1, g / 4), x.len + dir * g);
+    put (n);
+}
+
+void PianoRoll::velocityBy (int dir)
+{
+    auto n = takeTargets();
+    for (auto& x : n) x.vel = std::clamp (x.vel + dir * 8, 1, 127);
+    put (n);
+}
+
+void PianoRoll::loopSelection()
+{
+    if (sel.empty()) return;
+    int lo = INT_MAX, hi = 0;
+    for (auto& r : sel) { NoteData d; if (noteData (track(), r, d)) { lo = std::min (lo, d.tick); hi = std::max (hi, d.tick + d.len); } }
+    if (lo > hi) return;
+    auto& pt = ctx.engine.project().patterns[(size_t) pattern()];
+    const Engine::ScopedEdit ed (ctx.engine);
+    pt.loopStart = lo / stepT();
+    pt.loopEnd = std::min (totalSteps(), std::max (pt.loopStart + 1, (hi + stepT() - 1) / stepT()));
+    pt.loopOn = true;
+    ctx.markDirty();
+    repaint();
+}
+
 void PianoRoll::toggleMute()
 {
     auto n = takeTargets();
@@ -1575,15 +1611,18 @@ bool PianoRoll::cursorKey (const juce::KeyPress& k)
         repaint();
         return true;
     }
-    if (code == juce::KeyPress::returnKey)
+    if (shortcuts().is (cmd::rollPlayFromCursor, k)) { ctx.engine.seek (keyCursor.step); return true; }
+    const bool del = code == juce::KeyPress::deleteKey || code == juce::KeyPress::backspaceKey;
+    if (code == juce::KeyPress::returnKey || (del && sel.empty()))
     {
-        // the note under the cursor (a note started earlier still covers the cell)
+        // the note under the cursor (a note started earlier still covers the cell); Delete with nothing selected removes it
         NoteRef at;
         const int cT = keyCursor.step * stepT();
         forEachVisible (track(), [&] (const NoteRef& ref, const NoteData& d, R)
         {
             if (ref.note == keyCursor.note && cT + stepT() > d.tick && cT < d.tick + std::max (d.len, 1)) at = ref;
         });
+        if (del) { if (at.step >= 0) { sel = { at }; deleteSelection(); } repaint(); return true; }
         if (mods.isShiftDown())
         {
             if (at.step < 0) return true;
@@ -1617,6 +1656,10 @@ bool PianoRoll::keyCommand (const juce::KeyPress& k)
     if (sc.is (cmd::rollInvertSelection, k)) { invertSelection(); return true; }
     if (sc.is (cmd::rollPaste, k)) { paste(); return true; }
     if (sc.is (cmd::rollTool, k)) { ctx.rollSettings.tool = ctx.rollSettings.tool == 1 ? 0 : 1; repaint(); return true; }
+    if (sc.is (cmd::rollPlayFromCursor, k)) { ctx.engine.seek (keyCursor.step); return true; }
+    if (sc.is (cmd::rollLoopToggle, k)) { toggleLoop(); return true; }
+    if (sc.is (cmd::rollVelocityUp, k)) { velocityBy (1); return true; }
+    if (sc.is (cmd::rollVelocityDown, k)) { velocityBy (-1); return true; }
     if (sc.is (cmd::rollTransposeUp, k)) { transposeBy (1, false); return true; }
     if (sc.is (cmd::rollTransposeDown, k)) { transposeBy (-1, false); return true; }
     if (sc.is (cmd::rollOctaveUp, k)) { transposeBy (1, true); return true; }
@@ -1629,6 +1672,9 @@ bool PianoRoll::keyCommand (const juce::KeyPress& k)
     if (sc.is (cmd::rollDuplicate, k)) { duplicate(); return true; }
     if (sc.is (cmd::rollQuantize, k)) { quantize (1.0f, false); return true; }
     if (sc.is (cmd::rollMute, k)) { toggleMute(); return true; }
+    if (sc.is (cmd::rollShorter, k)) { lengthBy (-1); return true; }
+    if (sc.is (cmd::rollLonger, k)) { lengthBy (1); return true; }
+    if (sc.is (cmd::rollLoopSelection, k)) { loopSelection(); return true; }
     // nudge: a grid unit (Shift: a bar, Ctrl: 1/48 step), a semitone (Shift: an octave)
     const int byT = mods.isShiftDown() ? stepsPerBar() * stepT() : (cmd ? std::max (1, stepT() / kTicksPerStep) : gridTicks());
     if (code == juce::KeyPress::leftKey) { nudge (-byT, 0); return true; }

@@ -42,6 +42,8 @@ public:
     ~MiniboxEditor() override;
     void paint (juce::Graphics&) override;
     void resized() override;
+    /** Keyboard (docs/keyboard.md): Tab, arrows, Enter and Esc walk and operate every control, as in the app. */
+    bool keyPressed (const juce::KeyPress&) override;
 private:
     void timerCallback() override;
     void attachDevice();

@@ -284,7 +284,7 @@ bool Feedback::handleKey (const juce::KeyPress& k, juce::Component& top)
     for (auto* fb : registry())
     {
         // visible inside the window content (every parent up to `top` visible)
-        bool visible = top.isParentOf (&fb->view);
+        bool visible = &top == &fb->view || top.isParentOf (&fb->view);
         for (auto* c = &fb->view; visible && c != nullptr && c != &top; c = c->getParentComponent()) visible = c->isVisible();
         if (! visible) continue;
         for (size_t i = 0; i < fb->hots.size(); ++i)
@@ -327,15 +327,21 @@ bool Feedback::handleKey (const juce::KeyPress& k, juce::Component& top)
     auto& t = targets[(size_t) cur];
     if (t.fb->keyHandler && t.fb->keyHandler (t.index, k)) { t.fb->view.repaint(); return true; }
     if (code == juce::KeyPress::escapeKey) { clearFocus(); return true; }
-    if (code == juce::KeyPress::returnKey)
+    // the mouse by keys (docs/keyboard.md): Enter clicks (Shift / Alt / Ctrl+Enter: that modified click), Shift+F10 or
+    // Delete right-clicks (clear, context menus), F2 double-clicks
+    const auto mods = k.getModifiers();
+    const bool rightClick = (code == juce::KeyPress::F10Key && mods.isShiftDown()) || code == juce::KeyPress::deleteKey || code == juce::KeyPress::backspaceKey;
+    if (code == juce::KeyPress::returnKey || rightClick || code == juce::KeyPress::F2Key)
     {
-        // a click at the control's centre
         const auto c = t.local.getCentre();
         const auto now = juce::Time::getCurrentTime();
-        const juce::MouseEvent e (juce::Desktop::getInstance().getMainMouseSource(), c, {}, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                                  &t.fb->view, &t.fb->view, now, c, now, 1, false);
+        const auto clickMods = rightClick ? juce::ModifierKeys (juce::ModifierKeys::rightButtonModifier)
+                                          : juce::ModifierKeys (juce::ModifierKeys::leftButtonModifier | (mods.getRawFlags() & (juce::ModifierKeys::shiftModifier | juce::ModifierKeys::altModifier | juce::ModifierKeys::commandModifier)));
+        const juce::MouseEvent e (juce::Desktop::getInstance().getMainMouseSource(), c, clickMods, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                                  &t.fb->view, &t.fb->view, now, c, now, code == juce::KeyPress::F2Key ? 2 : 1, false);
         juce::Component::SafePointer<juce::Component> v (&t.fb->view);
         t.fb->view.mouseDown (e);
+        if (v != nullptr && code == juce::KeyPress::F2Key) v->mouseDoubleClick (e);
         if (v != nullptr) v->mouseUp (e);
         return true;
     }
