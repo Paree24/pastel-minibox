@@ -55,7 +55,8 @@ MB_TEST (keyboard_navigation)
     ctx.check (count > 30, "Tab walks through every control of the page (" + juce::String (count) + ")");
 
     // Enter on the top bar's Play button opens the drawer
-    const bool found = tabTo (mc, [] (const Feedback::Focus& f) { return f.r.contains (872.0f, 32.0f) && f.r.getWidth() < 40; });
+    const auto playR = mc.topBarView().zoneRect ("playdrawer").getCentre();
+    const bool found = tabTo (mc, [playR] (const Feedback::Focus& f) { return f.r.contains (playR) && f.r.getWidth() < 40; });
     ctx.check (found && key (juce::KeyPress::returnKey) && mc.drawerOpen(), "Enter on the Play button opens the drawer");
     key (juce::KeyPress::escapeKey);
     key (juce::KeyPress::escapeKey);
@@ -231,7 +232,8 @@ MB_TEST (keyboard_mouse_equivalents)
     ctx.check (tabTo (mc, seqAt (190.0f, 500.0f)) && key (juce::KeyPress::deleteKey) && tr.steps[0].noteCount == 0, "Delete on a note cell clears it (a right-click)");
     Feedback::clearFocus();
     // the top bar: Shift+Enter on pad B copies the current pattern there (a Shift-click)
-    const bool pad = tabTo (mc, [] (const Feedback::Focus& f) { return dynamic_cast<ui::TopBar*> (&f.fb->getView()) != nullptr && f.r.contains (980.0f, 30.0f); });
+    const auto padB = mc.topBarView().zoneRect ("pat1").getCentre();
+    const bool pad = tabTo (mc, [padB] (const Feedback::Focus& f) { return dynamic_cast<ui::TopBar*> (&f.fb->getView()) != nullptr && f.r.contains (padB); });
     ctx.check (pad && key (juce::KeyPress::returnKey, juce::ModifierKeys::shiftModifier) && e.device (1, 1) != nullptr, "Shift+Enter on pad B copies the pattern there");
     Feedback::clearFocus();
     // the piano roll's keys on a selection
@@ -384,4 +386,23 @@ MB_TEST (automated_knob_moves)
     e.stop();
     e.process (l.data(), r.data(), 512, nullptr);
     ctx.check (std::abs (knob.getNorm() - 0.2f) < 1e-3f, "stopped: back to the stored value (" + juce::String (knob.getNorm()) + ")");
+}
+
+/** The layout follows the window's shape: 16:9 is 1778 wide (the pages and the top bar's right edge with it),
+    16:10 is 1600, narrower windows keep 1600 and letterbox. */
+MB_TEST (layout_follows_window_shape)
+{
+    Engine e;
+    e.prepare (48000.0, 512);
+    MainComponent mc (e);
+    auto size = [&] (int w, int h) { mc.setSize (w, h); mc.refreshAll(); mc.createComponentSnapshot (mc.getLocalBounds()); };   // zones exist once painted
+    size (1920, 1080);
+    ctx.check (geo::W == 1778, "16:9 -> 1778 wide (" + juce::String (geo::W) + ")");
+    ctx.check (mc.topBarView().getWidth() == 1778 && mc.topBarView().zoneRect ("menu").getRight() > 1740, "the top bar reaches the right edge");
+    ctx.check (mc.topBarView().zoneRect ("pat7").getRight() < mc.topBarView().zoneRect ("rename").getX(), "the pattern pads clear the project name");
+    size (1600, 1000);
+    ctx.check (geo::W == 1600 && mc.topBarView().zoneRect ("pat7").getRight() < mc.topBarView().zoneRect ("rename").getX(), "16:10 -> 1600, still clear");
+    size (1200, 1000);
+    ctx.check (geo::W == 1600, "narrower windows keep 1600 (letterboxed)");
+    size (1600, 1000);   // the other tests lay out at 16:10
 }

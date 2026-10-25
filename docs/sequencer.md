@@ -130,7 +130,7 @@ Ghosts · Zoom − / + / Fit · Undo · Redo · Follow. Above the notes a ruler 
 |---|---|---|---|
 | 64 | Edit across bars | any range of bars in view (zoom), notes drawn, selected, moved and resized across bar lines | done |
 | 65 | Long notes | a note can last up to the pattern's end (many bars) | done |
-| 66 | Bars in the bar strip | the bars in view are highlighted; a click scrolls the roll to that bar; the playing bar is outlined and fills as it plays, and the top bar shows the position (`BAR 2.3 / 4`: bar, beat, the pattern's bars) on every page | done |
+| 66 | Bars in the bar strip | the bars in view are highlighted; a click scrolls the roll to that bar; the playing bar is outlined and fills as it plays, and the top bar's position display beside the transport shows bar . beat . step (`2.3.1`, OF 4 BARS) on every page | done |
 
 ## Selection
 | # | Function | How | Status |

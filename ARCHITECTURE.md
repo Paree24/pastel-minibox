@@ -440,7 +440,9 @@ Font: Lato (900 for titles, 700 for labels, 400 for values). Corner radii are 12
 
 ### 9.3 Implementation
 - The UI uses JUCE components with a single `MiniboxLookAndFeel`. Knobs, pills and steps are custom-painted, so no bitmaps are needed.
-- The editor is vector-scaled from a 1600 × 1000 base in 4 steps (75 %, 100 %, 125 %, 150 %), and the plugin window is resizable on those steps.
+- The plugin's editor is vector-scaled from a 1600 × 1000 base in 4 steps (75 %, 100 %, 125 %, 150 %), and the plugin window is resizable on those steps.
+- The standalone window takes any shape: the layout is 1000 high and as wide as the window's shape (16:10 → 1600, 16:9 → 1778, up to 2400; narrower windows letterbox at 1600). The rack strips spread their macros and widen the device visual, the master strip spreads its pads and meter, the Seq page and drawers stretch, and the top bar keeps its file buttons at the right edge (icons only below ~1715). It opens in the screen's own shape. The mockups are drawn at 16:9.
+- The top bar's **position display** sits beside the transport, styled like the tempo: bar . beat . step of the playing pattern and its length ("OF 4 BARS"); red while recording or counting in.
 - Device editors are built from a declarative `EditorSpec` (sections, knobs, choices, visual type) for each device, so all 8 editors share one renderer. This mirrors `mockups/tools/build.py`.
 - Visuals are filter response, envelope, waveform, algorithm graph and sample waveform. They redraw at 30 Hz from a lock-free snapshot of parameter values; they are not computed from audio.
 

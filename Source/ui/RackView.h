@@ -52,6 +52,7 @@ private:
     juce::Rectangle<float> delayR, reverbR, effectsR;
     std::array<juce::Rectangle<float>, 8> padR;
     int pressedPad = -1;
+    float extra = 0.0f;   // the width beyond the 16:10 layout
     juce::String shown;
     float divProxy = 9.0f;
     Feedback fb { *this };

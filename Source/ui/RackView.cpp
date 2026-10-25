@@ -84,12 +84,14 @@ void SlotStrip::rebuild()
 void SlotStrip::resized()
 {
     const float h = (float) getHeight(), w = (float) getWidth();
-    const float mx = 300.0f;
+    // a wider window (16:9 …) spreads the macros and widens the visual; the mixer and the open button stay right
+    const float extra = std::max (0.0f, w - 1544.0f);
+    const float mx = 300.0f, sp = 86.0f + extra * 0.5f / 8.0f, vw = 280.0f + extra * 0.5f;
     for (size_t i = 0; i < macros.size(); ++i)
-        macros[i]->setBounds (juce::Rectangle<float> (mx + i * 86 - 43, 70 - 28, 86, 104).toNearestInt());
-    const float vx = mx + 8 * 86 - 24;
-    visR = { vx, 16, 280, h - 32 };
-    const float lx = vx + 280 + 36;
+        macros[i]->setBounds (juce::Rectangle<float> (mx + i * sp - 43, 70 - 28, 86, 104).toNearestInt());
+    const float vx = mx + 8 * sp - 24;
+    visR = { vx, 16, vw, h - 32 };
+    const float lx = vx + vw + 36;
     if (fader) fader->setBounds (juce::Rectangle<float> (lx - 11, 16, 40, h - 32).toNearestInt());
     const float pos[3][2] = { { lx + 70, 46 }, { lx + 126, 46 }, { lx + 70, 116 } };
     for (size_t i = 0; i < mixKnobs.size(); ++i)
@@ -238,7 +240,10 @@ void MasterRow::resized()
     effectsR = { 16, h - 46, 150, 30 };
     delayR = { 590, 30, 62, 28 };
     reverbR = { 590, 70, 62, 28 };
-    for (int i = 0; i < kPerformFx; ++i) padR[(size_t) i] = { 664.0f + (i % 4) * 120.0f, 28.0f + (i / 4) * 46.0f, 112, 38 };
+    // a wider window spreads the pads and the meter (mockup 01_rack at 16:9)
+    extra = std::max (0.0f, (float) getWidth() - 1552.0f);
+    const float pw = 112 + extra * 0.5f / 4;
+    for (int i = 0; i < kPerformFx; ++i) padR[(size_t) i] = { 664.0f + extra * 0.25f + (i % 4) * (pw + 8), 28.0f + (i / 4) * 46.0f, pw, 38 };
 }
 
 void MasterRow::paint (juce::Graphics& g)
@@ -279,15 +284,16 @@ void MasterRow::paint (juce::Graphics& g)
     const float pl = ctx.engine.master().peakL.load(), pr = ctx.engine.master().peakR.load();
     const float lv[2] = { juce::jlimit (0.0f, 1.0f, (dsp::gainToDb (pl) + 48) / 48), juce::jlimit (0.0f, 1.0f, (dsp::gainToDb (pr) + 48) / 48) };
     const float h = (float) getHeight();
+    const float mx0 = 1168 + extra * 0.75f, mw = 200 + extra * 0.25f;
     for (int i = 0; i < 2; ++i)
     {
         const float yy = h / 2 - 9 + i * 12;
-        g.setColour (col::control); g.fillRoundedRectangle (1168, yy, 200, 6, 3);
-        g.setColour (col::pattern.withAlpha (0.75f)); g.fillRoundedRectangle (1168, yy, 200 * lv[i], 6, 3);
+        g.setColour (col::control); g.fillRoundedRectangle (mx0, yy, mw, 6, 3);
+        g.setColour (col::pattern.withAlpha (0.75f)); g.fillRoundedRectangle (mx0, yy, mw * lv[i], 6, 3);
     }
     const float pk = dsp::gainToDb (std::max (pl, pr));
-    paint::text (g, pk < -90.0f ? juce::String ("-inf") : juce::String (pk, 1), 1168, h / 2 + 28, 11, Weight::Bold, col::faint);
-    paint::text (g, "CPU " + juce::String (juce::roundToInt (ctx.engine.cpuLoad.load() * 100)) + "%", 1368, h / 2 + 28, 11, Weight::Bold, col::faint, juce::Justification::right);
+    paint::text (g, pk < -90.0f ? juce::String ("-inf") : juce::String (pk, 1), mx0, h / 2 + 28, 11, Weight::Bold, col::faint);
+    paint::text (g, "CPU " + juce::String (juce::roundToInt (ctx.engine.cpuLoad.load() * 100)) + "%", mx0 + mw, h / 2 + 28, 11, Weight::Bold, col::faint, juce::Justification::right);
     fb.paint (g);
 }
 
@@ -352,7 +358,7 @@ void MasterRow::refresh()
     for (int i = 0; i < kPerformFx; ++i) s << (ctx.masterFx != nullptr && ctx.masterFx->isHeld (i) ? 1 : 0);
     for (const auto& fx : ctx.engine.project().masterFx) s << fx.effect << (int) fx.bypass;
     if (s != shown) { shown = s; repaint(); }
-    repaint (juce::Rectangle<int> (1160, 0, 230, getHeight()));
+    repaint (juce::Rectangle<int> ((int) (1160 + extra * 0.75f), 0, (int) (230 + extra * 0.25f), getHeight()));
 }
 
 // ------------------------------------------------------------------------------------------- rack view

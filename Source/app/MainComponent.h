@@ -72,6 +72,7 @@ public:
 
 private:
     void timerCallback() override;
+    void layoutContent();   // the pages at the current logical width (geo::W)
     void setView (ui::TopBar::View);
     void showDevicePicker (int track, juce::Component* anchor);
     void showMenu();

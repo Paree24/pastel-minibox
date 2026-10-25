@@ -18,10 +18,14 @@ inline juce::Colour track (int i)
 }
 } // namespace col
 
-/** Base layout (desktop.py): everything is laid out at 1600 × 1000 and scaled. */
+/** Base layout (desktop.py): 1000 high, as wide as the window's shape (geo::W), scaled to the window. */
 namespace geo
 {
-constexpr int W = 1600, H = 1000, M = 24, GAP = 12, TOP = 64;
+constexpr int H = 1000, M = 24, GAP = 12, TOP = 64;
+/** The logical width: the standalone follows the window's shape (1600 at 16:10, ~1778 at 16:9, up to kMaxW),
+    the height stays 1000. Set by MainComponent::resized before it lays the pages out. */
+constexpr int kMinW = 1600, kMaxW = 2400;
+inline int W = kMinW;
 }
 
 enum class Weight { Regular, Bold, Black };

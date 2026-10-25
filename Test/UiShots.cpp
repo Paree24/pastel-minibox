@@ -72,7 +72,7 @@ MB_TEST (tool_ui_shots)
         Engine e;
         e.prepare (48000.0, 512);
         MainComponent mc (e);
-        mc.setSize (1600, 1000);
+        mc.setSize (1778, 1000);   // 16:9, as the mockups
         mc.refreshAll();
         snap (mc, "00_new_project");
     }
@@ -80,7 +80,10 @@ MB_TEST (tool_ui_shots)
     e.prepare (48000.0, 512);
     demo (e);
     MainComponent mc (e);
-    mc.setSize (1600, 1000);
+    mc.setSize (1600, 1000);   // 16:10: the narrow layout (icon file buttons)
+    mc.refreshAll();
+    snap (mc, "01_rack_16x10");
+    mc.setSize (1778, 1000);   // 16:9, as the mockups
     auto shot = [&] (int page, int track, const juce::String& name)
     {
         mc.showPage (page, track);

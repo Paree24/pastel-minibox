@@ -73,12 +73,15 @@ public:
         };
         setContentOwned (main, false);
         setResizable (true, true);
-        constrainer.setFixedAspectRatio (1.6);
-        constrainer.setSizeLimits (960, 600, 4000, 2500);
+        // any shape: the layout widens with the window (16:10 → 1600 wide, 16:9 → 1778 …; MainComponent::resized)
+        constrainer.setSizeLimits (960, 600, 6000, 2500);
         setConstrainer (&constrainer);
+        // open in the screen's own shape
         const auto area = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea;
-        const double scale = std::min ({ 1.0, area.getWidth() * 0.92 / 1600.0, area.getHeight() * 0.9 / 1000.0 });
-        centreWithSize ((int) (1600 * scale), (int) (1000 * scale));
+        const double aspect = juce::jlimit (1.6, 2.4, area.getWidth() / (double) std::max (1, area.getHeight()));
+        const double w = 1000.0 * aspect;
+        const double scale = std::min ({ 1.0, area.getWidth() * 0.94 / w, area.getHeight() * 0.92 / 1000.0 });
+        centreWithSize ((int) (w * scale), (int) (1000 * scale));
         setVisible (true);
         main->grabKeyboardFocus();
         // the window is mapped asynchronously: focus again once it is on screen (keys work before any click)

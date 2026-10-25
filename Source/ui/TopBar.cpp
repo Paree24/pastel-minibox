@@ -78,50 +78,56 @@ void TopBar::paint (juce::Graphics& g)
     zone ({ 400, 12, 40, 40 }, "play", "Play (Space)");
     g.setColour (col::control); g.fillEllipse (468 - 18, 32 - 18, 36, 36);
     paint::stop (g, 468, 32, 11, col::text);
-    // the position: bar.beat of the playing pattern / its bars
+    zone ({ 450, 14, 36, 36 }, "stop", "Stop: back to the start of the pattern (twice: also cuts ringing notes)");
+    // the position, beside the transport like the tempo (mockup 01_rack): bar . beat . step of the playing pattern
     {
         const int pat = e.activePattern(), spb = std::max (1, proj.stepsPerBar (pat));
-        const int stepNow = playing && ! e.inCountIn() ? std::max (0, e.currentStep()) : 0;
-        const int beat = (stepNow % spb) * proj.beats / spb + 1;
-        const auto pos = "BAR " + juce::String (stepNow / spb + 1) + "." + juce::String (beat) + " / " + juce::String (proj.patterns[(size_t) pat].lengthBars);
-        paint::text (g, pos, 444, 59, 8, Weight::Black, playing ? col::pattern : col::faint, juce::Justification::horizontallyCentred);
+        const int perBeat = std::max (1, spb / std::max (1, proj.beats));
+        const bool counting = e.inCountIn();
+        const int stepNow = playing && ! counting ? std::max (0, e.currentStep()) : 0;
+        const auto pos = juce::String (stepNow / spb + 1) + "." + juce::String ((stepNow % spb) / perBeat + 1) + "." + juce::String (stepNow % perBeat + 1);
+        const int bars = proj.patterns[(size_t) pat].lengthBars;
+        paint::text (g, pos, 552, 37, 22, Weight::Black, counting || (rec && playing) ? col::record : col::text, juce::Justification::horizontallyCentred);
+        paint::text (g, counting ? juce::String ("COUNT-IN") : "OF " + juce::String (bars) + (bars == 1 ? " BAR" : " BARS"), 552, 54, 9, Weight::Bold,
+                     counting ? col::record : col::faint, juce::Justification::horizontallyCentred);
     }
-    zone ({ 450, 14, 36, 36 }, "stop", "Stop: back to the start of the pattern (twice: also cuts ringing notes)");
+    // everything after the position display moves right by dx
+    constexpr float dx = 112;
     // tempo
-    g.setColour (col::control); g.fillEllipse (522 - 14, 32 - 14, 28, 28);
-    paint::minus (g, 522, 32, 9, col::quiet);
-    zone ({ 508, 18, 28, 28 }, "bpm-", "Tempo down (Shift: 0.1)");
-    paint::text (g, juce::String (proj.bpm, 1), 584, 37, 22, Weight::Black, col::text, juce::Justification::horizontallyCentred);
-    paint::text (g, "BPM", 584, 54, 9, Weight::Bold, col::faint, juce::Justification::horizontallyCentred);
-    zone ({ 546, 10, 76, 46 }, "bpm", "Drag to change, double-click to type");
-    g.setColour (col::control); g.fillEllipse (646 - 14, 32 - 14, 28, 28);
-    paint::plus (g, 646, 32, 9, col::quiet);
-    zone ({ 632, 18, 28, 28 }, "bpm+", "Tempo up (Shift: 0.1)");
-    const float tapW = paint::pill (g, 670, 18, "Tap", 12, col::control, col::text, 28);
-    zone ({ 670, 18, tapW, 28 }, "tap", "Tap tempo");
+    g.setColour (col::control); g.fillEllipse (522 + dx - 14, 32 - 14, 28, 28);
+    paint::minus (g, 522 + dx, 32, 9, col::quiet);
+    zone ({ 508 + dx, 18, 28, 28 }, "bpm-", "Tempo down (Shift: 0.1)");
+    paint::text (g, juce::String (proj.bpm, 1), 584 + dx, 37, 22, Weight::Black, col::text, juce::Justification::horizontallyCentred);
+    paint::text (g, "BPM", 584 + dx, 54, 9, Weight::Bold, col::faint, juce::Justification::horizontallyCentred);
+    zone ({ 546 + dx, 10, 76, 46 }, "bpm", "Drag to change, double-click to type");
+    g.setColour (col::control); g.fillEllipse (646 + dx - 14, 32 - 14, 28, 28);
+    paint::plus (g, 646 + dx, 32, 9, col::quiet);
+    zone ({ 632 + dx, 18, 28, 28 }, "bpm+", "Tempo up (Shift: 0.1)");
+    const float tapW = paint::pill (g, 670 + dx, 18, "Tap", 12, col::control, col::text, 28);
+    zone ({ 670 + dx, 18, tapW, 28 }, "tap", "Tap tempo");
     const auto sigText = juce::String (proj.beats) + "/" + juce::String (proj.unit);
-    const float sw = paint::pill (g, 738, 18, sigText, 13, col::control, col::text, 28, 12, Weight::Bold, true);
-    zone ({ 738, 18, sw, 28 }, "sig", "Time signature, swing and count-in");
-    g.setColour (proj.metronome ? col::text : col::control); g.fillEllipse (832 - 16, 32 - 16, 32, 32);
-    paint::metronome (g, 832, 32, 15, proj.metronome ? col::bg : col::text);
-    zone ({ 816, 16, 32, 32 }, "click", "Metronome");
-    // the Play drawer: scale lock, chord mode, arp and how recording works
-    g.setColour (playOpen ? col::pattern : col::control); g.fillEllipse (872 - 16, 32 - 16, 32, 32);
-    paint::keysIcon (g, 872, 32, 17, playOpen ? col::bg : col::text);
-    zone ({ 856, 16, 32, 32 }, "playdrawer", "Play: scale lock, chords, arp, Live / Step recording");
+    const float sw = paint::pill (g, 738 + dx, 18, sigText, 13, col::control, col::text, 28, 12, Weight::Bold, true);
+    zone ({ 738 + dx, 18, sw, 28 }, "sig", "Time signature, swing and count-in");
+    g.setColour (proj.metronome ? col::text : col::control); g.fillEllipse (832 + dx - 16, 32 - 16, 32, 32);
+    paint::metronome (g, 832 + dx, 32, 15, proj.metronome ? col::bg : col::text);
+    zone ({ 816 + dx, 16, 32, 32 }, "click", "Metronome");
+    // the Play drawer: scale lock, chord mode, arp
+    g.setColour (playOpen ? col::pattern : col::control); g.fillEllipse (872 + dx - 16, 32 - 16, 32, 32);
+    paint::keysIcon (g, 872 + dx, 32, 17, playOpen ? col::bg : col::text);
+    zone ({ 856 + dx, 16, 32, 32 }, "playdrawer", "Play: scale lock, chords, arp");
     // performance mode: a picked pattern starts when the playing one ends (mockup 16_perform)
-    g.setColour (proj.perform ? col::pattern : col::control); g.fillEllipse (912 - 16, 32 - 16, 32, 32);
+    g.setColour (proj.perform ? col::pattern : col::control); g.fillEllipse (912 + dx - 16, 32 - 16, 32, 32);
     {
-        juce::Path tri; tri.addTriangle (906, 26, 914, 32, 906, 38);
+        juce::Path tri; tri.addTriangle (906 + dx, 26, 914 + dx, 32, 906 + dx, 38);
         g.setColour (proj.perform ? col::bg : col::text); g.fillPath (tri);
-        g.fillRoundedRectangle (915.5f, 26, 2.6f, 12, 1);
+        g.fillRoundedRectangle (915.5f + dx, 26, 2.6f, 12, 1);
     }
-    zone ({ 896, 16, 32, 32 }, "perform", "Performance mode: a pattern you pick starts when the playing one ends (click it again to cancel)");
+    zone ({ 896 + dx, 16, 32, 32 }, "perform", "Performance mode: a pattern you pick starts when the playing one ends (click it again to cancel)");
     // A–H
     const int cur = e.activePattern(), queued = e.queuedPattern(), focus = ctx.focusPattern();
     for (int i = 0; i < kPatterns; ++i)
     {
-        const float bx = 940 + i * 28.0f, by = 10, bw = 25, bh = 44;
+        const float bx = 940 + dx + i * 28.0f, by = 10, bw = 25, bh = 44;
         const juce::Rectangle<float> r (bx, by, bw, bh);
         const bool isCur = i == cur, isQ = i == queued;
         if (isCur) { g.setColour (col::pattern.withAlpha (0.18f)); g.fillRoundedRectangle (r, 10); g.setColour (col::pattern); g.drawRoundedRectangle (r.reduced (0.75f), 10, 1.5f); }
@@ -150,23 +156,25 @@ void TopBar::paint (juce::Graphics& g)
                                                          : "Click: switch (queued to the bar)   Shift-click: copy the current pattern here   Alt-click: clear");
     }
     // project: name and the file actions
-    const float px = 1176;
+    // at the right edge; a narrow window (16:10) shows the file buttons as icons
+    const bool compact = W - 424 < 1290;
+    const float px = compact ? W - 302.0f : W - 424.0f;
     auto name = projectName;
     if (textWidth (name, 13, Weight::Black) > 74) { while (name.length() > 2 && textWidth (name + "...", 13, Weight::Black) > 74) name = name.dropLastCharacters (1); name << "..."; }
     const bool untitled = projectName == "Untitled";
     paint::text (g, name, px, 37, 13, untitled ? Weight::Bold : Weight::Black, untitled ? col::quiet : col::text);
     zone ({ px, 18, 82, 28 }, "rename", "Rename the project");
     if (ctx.dirty) { g.setColour (col::mute); g.fillEllipse (px + textWidth (name, 13, Weight::Black) + 5, 29, 6, 6); }
-    float bx = 1262;
+    float bx = px + 86;
     struct B { const char* label; const char* id; const char* tip; void (*icon) (juce::Graphics&, float, float, float, juce::Colour); };
     const B buttons[] = { { "New", "new", "New project (Ctrl+N)", paint::newIcon }, { "Open", "open", "Open a project (Ctrl+O)", paint::folderIcon },
                           { "Save", "save", "Save the project (Ctrl+S)", paint::saveIcon }, { "Export", "export", "Export the current pattern as a WAV (Ctrl+E)", paint::exportIcon } };
     for (auto& b : buttons)
     {
-        const float bw = textWidth (b.label, 11) * 1.12f + 36;
+        const float bw = compact ? 34.0f : textWidth (b.label, 11) * 1.12f + 36;
         g.setColour (col::control); g.fillRoundedRectangle (bx, 17, bw, 30, 15);
-        b.icon (g, bx + 15, 32, 12, col::text);
-        paint::text (g, b.label, bx + 27, 36, 11, Weight::Bold, col::text);
+        b.icon (g, compact ? bx + bw / 2 : bx + 15, 32, 12, col::text);
+        if (! compact) paint::text (g, b.label, bx + 27, 36, 11, Weight::Bold, col::text);
         zone ({ bx, 17, bw, 30 }, b.id, b.tip);
         bx += bw + 4;
     }
@@ -426,7 +434,7 @@ void TopBar::showTimeSignature()
             repaint();
         }
     };
-    juce::CallOutBox::launchAsynchronously (std::make_unique<Panel> (ctx), { 738, 18, 70, 28 }, this);
+    juce::CallOutBox::launchAsynchronously (std::make_unique<Panel> (ctx), zoneRect ("sig").toNearestInt(), this);
 }
 
 void TopBar::mouseDown (const juce::MouseEvent& e)

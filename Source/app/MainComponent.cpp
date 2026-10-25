@@ -33,14 +33,10 @@ MainComponent::MainComponent (Engine& e)
     content.addChildComponent (seq);
     content.addChildComponent (editor);
     content.addChildComponent (drawer);
-    drawer.setBounds (geo::M, geo::H - geo::M - 300, geo::W - 2 * geo::M, 300);
     drawer.onClose = [this] { showDrawer (false); };
     content.addChildComponent (learnDrawer);
-    learnDrawer.setBounds (drawer.getBounds());
     learnDrawer.onClose = [this] { showLearn (false); };
     content.addChildComponent (masterFxDrawer);
-    // above the master strip, so the pads stay in reach (mockup 19_master_fx)
-    masterFxDrawer.setBounds (geo::M, geo::H - geo::M - 124 - geo::GAP - 300, geo::W - 2 * geo::M, 300);
     masterFxDrawer.onClose = [this] { showMasterFx (false); };
     // MIDI learn: the controls arm through these hooks; mapped messages reach their targets here
     auto& hooks = learnHooks();
@@ -69,9 +65,7 @@ MainComponent::MainComponent (Engine& e)
             if (found) { map.load (f); map.save (MidiMap::currentFile()); break; }
         }
     upgradeControllerMap (map);
-    topBar.setBounds (0, 0, geo::W, geo::TOP);
-    for (auto* c : std::initializer_list<juce::Component*> { &rack, &seq, &editor }) c->setBounds (0, geo::TOP, geo::W, geo::H - geo::TOP);
-    content.setSize (geo::W, geo::H);
+    layoutContent();
 
     ctx.openEditor = [this] (int t)
     {
@@ -120,8 +114,28 @@ MainComponent::~MainComponent()
 
 void MainComponent::paint (juce::Graphics& g) { g.fillAll (col::bg); }
 
+void MainComponent::layoutContent()
+{
+    using namespace geo;
+    content.setSize (W, H);
+    topBar.setBounds (0, 0, W, TOP);
+    for (auto* c : std::initializer_list<juce::Component*> { &rack, &seq, &editor }) c->setBounds (0, TOP, W, H - TOP);
+    drawer.setBounds (M, H - M - 300, W - 2 * M, 300);
+    learnDrawer.setBounds (drawer.getBounds());
+    // above the master strip, so the pads stay in reach (mockup 19_master_fx)
+    masterFxDrawer.setBounds (M, H - M - 124 - GAP - 300, W - 2 * M, 300);
+    content.repaint();
+}
+
 void MainComponent::resized()
 {
+    // the layout is 1000 high and as wide as the window's shape asks (16:10 → 1600, 16:9 → 1778, wider screens up
+    // to kMaxW); narrower windows keep 1600 and letterbox
+    if (getWidth() > 0 && getHeight() > 0)
+    {
+        const int w = juce::jlimit (geo::kMinW, geo::kMaxW, juce::roundToInt (geo::H * getWidth() / (double) getHeight()));
+        if (w != geo::W) { geo::W = w; layoutContent(); }
+    }
     const float s = std::min (getWidth() / (float) geo::W, getHeight() / (float) geo::H);
     const float ox = (getWidth() - geo::W * s) / 2.0f, oy = (getHeight() - geo::H * s) / 2.0f;
     content.setTransform (juce::AffineTransform::scale (s).translated (ox, oy));
