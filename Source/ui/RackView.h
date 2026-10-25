@@ -61,6 +61,9 @@ public:
 private:
     AppContext& ctx;
     std::vector<std::unique_ptr<SlotStrip>> slots;
+    juce::Viewport viewport;       // the eight strips scroll, four in view; the master row stays
+    juce::Component strips;
+    int shownFocus = -1;
     MasterRow master;
 };
 

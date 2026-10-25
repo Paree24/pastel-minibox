@@ -336,15 +336,15 @@ void MainComponent::showMenu()
     q.addItem (40, "Off", true, os == 1); q.addItem (41, "2x", true, os == 2); q.addItem (43, "4x", true, os == 4);
     m.addSubMenu ("Quality", q);
     m.addItem (50, "Limiter look-ahead", true, p.master.lookAhead);
-    m.addItem (51, "MIDI channels 1-4 play tracks 1-4 (otherwise every channel plays the Input track)", true, p.channelPerTrack);
+    m.addItem (51, "MIDI channels 1-8 play tracks 1-8 (otherwise every channel plays the selected track)", true, p.channelPerTrack);
     m.addSeparator();
     m.addItem (60, "Save rack preset...");
-    m.addItem (61, "Load rack preset into pattern " + juce::String::charToString ("ABCD"[ctx.focusPattern()]) + "...");
+    m.addItem (61, "Load rack preset into pattern " + juce::String::charToString ("ABCDEFGH"[ctx.focusPattern()]) + "...");
     m.addSeparator();
     m.addItem (70, "Save project as...");
     m.addSeparator();
     m.addItem (80, "Import MIDI file into the selected track...", ctx.focusDevice() != nullptr);
-    m.addItem (81, "Export pattern " + juce::String::charToString ("ABCD"[ctx.focusPattern()]) + " as a MIDI file...");
+    m.addItem (81, "Export pattern " + juce::String::charToString ("ABCDEFGH"[ctx.focusPattern()]) + " as a MIDI file...");
     m.showMenuAsync (juce::PopupMenu::Options(), [this] (int id)
     {
         auto& pr = engine.project();
@@ -459,7 +459,7 @@ void MainComponent::saveProject (bool saveAs, std::function<void()> after)
 void MainComponent::exportMidi()
 {
     const int pat = ctx.focusPattern();
-    const auto name = juce::File::createLegalFileName (engine.project().name + " - Pattern " + juce::String::charToString ("ABCD"[pat])) + ".mid";
+    const auto name = juce::File::createLegalFileName (engine.project().name + " - Pattern " + juce::String::charToString ("ABCDEFGH"[pat])) + ".mid";
     chooser = std::make_unique<juce::FileChooser> ("Export pattern as MIDI", juce::File::getSpecialLocation (juce::File::userDocumentsDirectory).getChildFile (name), "*.mid");
     chooser->launchAsync (juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles | juce::FileBrowserComponent::warnAboutOverwriting,
                           [this, pat] (const juce::FileChooser& fc)
@@ -504,7 +504,7 @@ void MainComponent::importMidi()
 
 void MainComponent::exportWav()
 {
-    const auto pat = juce::String::charToString ("ABCD"[engine.activePattern()]);
+    const auto pat = juce::String::charToString ("ABCDEFGH"[engine.activePattern()]);
     auto start = juce::File::getSpecialLocation (juce::File::userDocumentsDirectory)
                      .getChildFile (juce::File::createLegalFileName (engine.project().name + " - Pattern " + pat) + ".wav");
     chooser = std::make_unique<juce::FileChooser> ("Export pattern " + pat + " as WAV", start, "*.wav");
@@ -560,7 +560,7 @@ bool MainComponent::keyPressed (const juce::KeyPress& k)
         }
         return false;
     }
-    if (mods.isAltDown() && code >= '1' && code <= '4') { topBar.trigger ("pat" + juce::String (code - '1')); return true; }
+    if (mods.isAltDown() && code >= '1' && code <= '0' + kPatterns) { topBar.trigger ("pat" + juce::String (code - '1')); return true; }
     if (code == juce::KeyPress::spaceKey) { if (engine.isPlaying()) engine.stop(); else engine.play(); return true; }
     if (code == '=' || code == '+' || k.getTextCharacter() == '+' || k.getTextCharacter() == '=') { addDevice(); return true; }
     if (code == juce::KeyPress::homeKey) { engine.toStart(); return true; }

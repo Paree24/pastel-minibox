@@ -64,7 +64,7 @@ private:
     AppContext& ctx;
     juce::String shownKey;
     juce::Rectangle<float> backR, pillR, presetR, prevR, nextR, saveR, compareR, moreR, engineR;
-    std::array<juce::Rectangle<float>, 4> dotR;
+    std::array<juce::Rectangle<float>, kTracks> dotR;
     Feedback fb { *this };
 };
 

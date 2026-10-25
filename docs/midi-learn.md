@@ -10,7 +10,7 @@ Standalone only: in the plugin the host's own MIDI learn / automation does this.
 | 1 | Learn mode on / off | `⋯ > MIDI learn`, Ctrl+M; the drawer's × or Esc turns it off (the drawer is open while it is on) | done |
 | 2 | Learnable controls are visible | in learn mode every knob, fader and learnable button is tinted; mapped ones show their message (e.g. `CC 74`) | done |
 | 3 | Map a control | click a control (it is armed), then move a knob / fader or press a button on the controller | done |
-| 4 | Map an action | top-bar buttons are learnable (play, stop, record, metronome, tap, A–D, Play drawer); the panel's *Action* menu arms the rest (select instrument ↑/↓, bar ←/→, undo, redo, save, back to start, …) | done |
+| 4 | Map an action | top-bar buttons are learnable (play, stop, record, metronome, tap, A–H, Play drawer); the panel's *Action* menu arms the rest (select instrument ↑/↓, bar ←/→, undo, redo, save, back to start, …) | done |
 | 5 | Follow the selected instrument | macro knobs (and level / pan) can be mapped "to the selected instrument" so one set of knobs plays whichever instrument is selected | done |
 | 6 | Replace / remove | learning a message that is already mapped moves it; right-click a mapped control (in learn mode) or × in the list removes it; Clear all | done |
 | 7 | Message kinds | CC (absolute, relative encoders: two's complement, binary offset, sign-bit — detected while learning), notes (buttons: trigger, toggle, momentary), pitch bend (14-bit faders) | done |

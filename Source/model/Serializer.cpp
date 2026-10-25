@@ -10,7 +10,7 @@ namespace mb::serializer
 {
 namespace
 {
-const char* kPatternNames = "ABCD";
+const char* kPatternNames = "ABCDEFGH";
 juce::String deviceEntry (int p, int t) { return "devices/" + juce::String::charToString (kPatternNames[p]) + juce::String (t + 1) + ".xml"; }
 
 juce::var mixerToJson (const Mixer& m)

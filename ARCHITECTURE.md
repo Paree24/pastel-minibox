@@ -4,7 +4,7 @@ A small groovebox built around a rack of four devices. It ships in two builds:
 
 | Build | What it contains |
 |---|---|
-| **Standalone groovebox** | Transport (record, play, stop), BPM, time signature, swing, the step sequencer and the **A–D pattern switcher**. **Every pattern owns its own 4 device slots.** |
+| **Standalone groovebox** | Transport (record, play, stop), BPM, time signature, swing, the step sequencer and the **A–H pattern switcher**. **Every pattern owns its own 8 device slots.** |
 | **Android app** (phone, portrait only) | The standalone groovebox with a touch layout. It has the same features as the desktop standalone build (see §15). |
 | **Plugin "Minibox"** (VST3) | **One instrument at a time**, chosen from the 7 devices, played from host MIDI (omni) and synced to host tempo. There is no internal sequencer, pattern bank or transport. |
 
@@ -16,7 +16,7 @@ There are seven devices. Each one is a hybrid of several classic small-format in
 
 ## 1. Product rules
 
-1. Four tracks and four patterns (A–D). A pattern lasts 1–16 bars.
+1. Eight tracks and eight patterns (A–H). A pattern lasts 1–16 bars.
 2. **Devices belong to a pattern.** Pattern A might be Drums, Acid, VA and FM, while pattern B is DrumSampler, Bassline, VA (VCO engine) and Sampler. A slot can be empty.
 3. Pattern switching is musical. By default a switch is queued to the end of the current bar; other quantize options are in §4.3.
 4. Each device has **8 macros**, which make up its rack face, and a full editor behind the slot's open button.
@@ -31,10 +31,10 @@ There are seven devices. Each one is a hybrid of several classic small-format in
                     ┌──────────────────────────── Standalone only ──────────────────────────┐
                     │  Transport ── Clock (BPM, time sig, swing) ── Pattern Scheduler      │
                     │      │                                     │                         │
-                    │  Recorder (step/live) ──► Sequencer ◄──────┘ (A–D, queued switch)    │
+                    │  Recorder (step/live) ──► Sequencer ◄──────┘ (A–H, queued switch)    │
                     └──────────────────────────────────┬────────────────────────────────────┘
                                                        │  NoteEvents + ParamLocks (sample-accurate)
- Host MIDI (plugin) ── Channel router ch1–4 ───────────┤
+ Host MIDI (plugin) ── Channel router ch1–8 ───────────┤
                                                        ▼
  ┌──────────────────────────────────────────── Rack (both builds) ───────────────────────────────────────────┐
  │  Slot 1..4:  DeviceProcessor ─► Level/Pan ─► Mute/Solo ─┬─► Main bus ─► Glue comp ─► Limiter ─► Out      │
@@ -70,7 +70,7 @@ Project
  ├─ tempo: 30–300 BPM (0.1 resolution)    ├─ timeSig: beats 1–16 / unit {4, 8, 16}
  ├─ swing: 50–75 %                        ├─ countIn: off | 1 bar
  ├─ master: { delay, reverb, glue, limiter, volume }
- └─ patterns[4]  (A–D)
+ └─ patterns[8]  (A–H)
       ├─ lengthBars: 1–16
       ├─ stepRes: 1/8 | 1/16 | 1/32      (default 1/16)
       └─ slots[4]
@@ -111,7 +111,7 @@ step one step ahead, so early notes sound exactly where they are drawn.
 
 **Parameter locks** (motion sequencing): `LockLane { paramId, values[steps] (NaN = no lock) }`. Each track can have up to 8 lock lanes. In live recording, moving a knob writes locks on the steps it passes over.
 
-**Memory**: the worst case is 4 patterns × 4 tracks × 512 steps × 24 B ≈ 200 KB plus lock lanes, so the whole pattern bank stays resident.
+**Memory**: the worst case is 8 patterns × 8 tracks × 512 steps × 24 B ≈ 800 KB plus lock lanes, so the whole pattern bank stays resident.
 
 ---
 
@@ -132,9 +132,9 @@ step one step ahead, so early notes sound exactly where they are drawn.
 - `Clock::advance(numSamples)` yields events at their exact sample offsets, and the rack renders in **sub-blocks** split at those offsets, so notes and locks land sample-accurately.
 - Optional MIDI clock out and in, plus network tempo sync, are future work. The scheduler takes its tempo from an abstract `TempoSource`.
 
-### 4.3 Pattern switcher (A–D)
+### 4.3 Pattern switcher (A–H)
 - **Click** a pattern to queue it. The queued pattern gets a dashed outline, then switches at the chosen quantize point: `Bar` (default), `Pattern end` or `Immediate`, set in `⋯`.
-- **Performance mode** (the ⏭ button left of A–D, Ctrl+Shift+P, mockup `16_perform`): a picked pattern always waits until the playing one has played to its end (or the end of its loop range), its pad counts down, a second pick cancels, and the rack / editors keep showing the playing pattern until the switch.
+- **Performance mode** (the ⏭ button left of A–H, Ctrl+Shift+P, mockup `16_perform`): a picked pattern always waits until the playing one has played to its end (or the end of its loop range), its pad counts down, a second pick cancels, and the rack / editors keep showing the playing pattern until the switch.
 - **Shift-click** copies the current pattern into the target, devices included. **Alt-click** clears the target.
 - Each button shows 4 dots in the colours of its slots, so empty slots read as grey.
 - Pattern length is set from the bar strip on the Seq view (`‹ 8 bars ›`).
@@ -417,7 +417,7 @@ Both engines are subtractive polysynths built from the same blocks (`PolyBlepOsc
 | **Device editor** (`03`–`10`, plugin: `11_plugin`) | both | Header (track pill, track dots, preset browser, save, Compare, `⋯`), signal-flow section cards, and a step strip in standalone or a MIDI activity row in the plugin |
 | **Seq** (`02_seq`) | standalone | Bar strip, 4 track rows for the current bar (with the Input marker), and a detail editor for the selected track (piano roll with note-length handles, Velocity/Gate/Locks lanes, accent and slide lanes for Acid) |
 | **Play drawer** (`14_play`) | standalone | Over any view, from the top-bar keyboard button: Scale, Chord, Arp and Record cards (§4.5) |
-| **Top bar** | both | *Standalone:* brand, Rack/Seq, record/play/stop, BPM −/+/Tap, `4/4 ▾`, metronome, A–D switcher, then the project name and **New, Open, Save, Export** buttons (Ctrl+N/O/S/E) and ⋯ (audio/MIDI, pattern switch, recording, click level, quality, look-ahead, rack presets, Save As). *Plugin:* brand, instrument tabs and the preset browser |
+| **Top bar** | both | *Standalone:* brand, Rack/Seq, record/play/stop, BPM −/+/Tap, `4/4 ▾`, metronome, A–H switcher, then the project name and **New, Open, Save, Export** buttons (Ctrl+N/O/S/E) and ⋯ (audio/MIDI, pattern switch, recording, click level, quality, look-ahead, rack presets, Save As). *Plugin:* brand, instrument tabs and the preset browser |
 
 - **Slot device picker:** the `▾` next to the device name opens a list of the 7 devices plus *Empty*. Changing a device in the standalone build only affects the current pattern.
 - **Editor layout:** sections are laid out left to right in signal-flow order (source, filter, envelopes, modulation, FX). Each section has at most 6 knobs, one choice pill and at most one visual. This is the mid-density rule from the Pastel family.
@@ -527,7 +527,7 @@ The end goal is an Android build of the groovebox. Every engine decision above, 
 > Desktop (standalone + VST3) is finalised first; the Android port follows.
 
 ### 15.1 Scope
-- It is the **standalone groovebox**: 4 tracks, patterns A–D each with its own 4 devices, the sequencer, transport, BPM and time signature. There is no plugin build on Android.
+- It is the **standalone groovebox**: 8 tracks, patterns A–H each with its own 8 devices, the sequencer, transport, BPM and time signature. There is no plugin build on Android.
 - The app is **portrait only** on phones and tablets (`android:screenOrientation="portrait"`). Tablets use the same layout, centred at a maximum width of 600 dp.
 - The mockups are in `mockups/mobile/` and cover 13 screens (see `mockups/SPEC.md`).
 
@@ -542,7 +542,7 @@ The end goal is an Android build of the groovebox. Every engine decision above, 
 
 ### 15.3 Mobile UI architecture
 - **Navigation:** Rack · Seq · Mix · Project in the bottom navigation. Device editors are pushed on top of Rack. Patterns and Tempo are modal bottom sheets.
-- **App bar:** always shows record, play, stop, BPM with time signature, and A–D. Playing music should never be more than one tap away.
+- **App bar:** always shows record, play, stop, BPM with time signature, and A–H. Playing music should never be more than one tap away.
 - **Editors:** each desktop section becomes a **tab**, showing one section at a time with its visual, chips and up to 6 knobs. The `EditorSpec` from §9.3 is reused, and only the layout changes (`DesktopLayout` lays sections out in rows, `PhoneLayout` puts them in tabs).
 - **Rack:** shows 4 macros per card, with a swipe to reach macros 5–8.
 - **Sequencer:** the selected track's current bar is shown as a 4×4 step grid. Drum tracks show lanes for the selected part, and tapping a pad selects the lane. A per-step editor (velocity, gate, probability, ratchet, locks) opens on a long-press.

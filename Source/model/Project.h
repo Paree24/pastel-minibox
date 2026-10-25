@@ -7,7 +7,7 @@
 
 namespace mb
 {
-constexpr int kTracks = 4, kPatterns = 4, kMaxBars = 16, kMaxSteps = 512, kLanes = 8, kMaxLocks = 8;
+constexpr int kTracks = 8, kPatterns = 8, kMaxBars = 16, kMaxSteps = 512, kLanes = 8, kMaxLocks = 8;
 constexpr int kMaxNoteLen = 65535;   // 1/128 step: a note can last ~511 steps (the longest pattern)
 constexpr int kTicksPerStep = 48;    // a step's micro-timing and per-note offsets are in 1/48 step
 constexpr int kAccentFlag = 1, kSlideFlag = 2, kTieFlag = 4;   // as StepFlags (devices)
@@ -269,7 +269,7 @@ struct Project
     bool overdub = false;             // live recording: off = Replace (and a take longer than the pattern grows it); on = layer
     int recordMode = 0;              // 0 Live (real time), 1 Step (notes and chords written at the step cursor)
     int stepLength = 0;              // step input length: 0 = 1 step, 1 = 2, 2 = 4, 3 = 8
-    bool channelPerTrack = false;    // MIDI channels 1–4 play tracks 1–4 (otherwise every channel plays the selected track)
+    bool channelPerTrack = false;    // MIDI channels 1–8 play tracks 1–8 (otherwise every channel plays the selected track)
     ScaleSettings scale;
     static int stepLengthSteps (int index) { return 1 << std::clamp (index, 0, 3); }
     MasterSettings master;

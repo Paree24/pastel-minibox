@@ -300,8 +300,12 @@ RackView::RackView (AppContext& c) : ctx (c), master (c)
     for (int t = 0; t < kTracks; ++t)
     {
         slots.push_back (std::make_unique<SlotStrip> (ctx, t));
-        addAndMakeVisible (*slots.back());
+        strips.addAndMakeVisible (*slots.back());
     }
+    viewport.setViewedComponent (&strips, false);
+    viewport.setScrollBarsShown (true, false);
+    viewport.setScrollBarThickness (6);
+    addAndMakeVisible (viewport);
     addAndMakeVisible (master);
 }
 
@@ -309,14 +313,26 @@ void RackView::resized()
 {
     const int masterH = 124;
     const float y = 16.0f;
-    const float sh = ((float) getHeight() - M - masterH - GAP - y - GAP * 3) / 4.0f;
+    const float viewH = (float) getHeight() - M - masterH - GAP - y;
+    const float sh = (viewH - GAP * 3) / 4.0f;   // a strip is as tall as with four tracks; the rest scroll into view
+    viewport.setBounds (juce::Rectangle<float> (0, y, (float) W, viewH).toNearestInt());
+    strips.setSize (W - 8, juce::roundToInt (kTracks * (sh + GAP) - GAP));
     for (int i = 0; i < kTracks; ++i)
-        slots[(size_t) i]->setBounds (juce::Rectangle<float> (M, y + i * (sh + GAP), W - 2 * M, sh).toNearestInt());
+        slots[(size_t) i]->setBounds (juce::Rectangle<float> (M, i * (sh + GAP), W - 2 * M - 8, sh).toNearestInt());
     master.setBounds (M, getHeight() - M - masterH, W - 2 * M, masterH);
 }
 
 void RackView::refresh()
 {
+    // the selected instrument scrolls into view (Up / Down, the editor's track dots, MIDI)
+    if (ctx.focusTrack() != shownFocus)
+    {
+        shownFocus = ctx.focusTrack();
+        const auto b = slots[(size_t) shownFocus]->getBounds();
+        const int top = viewport.getViewPositionY(), h = viewport.getHeight();
+        if (b.getY() < top) viewport.setViewPosition (0, b.getY());
+        else if (b.getBottom() > top + h) viewport.setViewPosition (0, b.getBottom() - h);
+    }
     for (auto& s : slots) s->refresh();
     master.refresh();
 }

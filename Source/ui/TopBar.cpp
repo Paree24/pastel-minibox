@@ -25,7 +25,7 @@ void TopBar::refresh()
     s << (int) view << (int) e.isPlaying() << (int) e.isRecording() << (int) e.inCountIn() << e.activePattern() << e.queuedPattern() << ctx.focusPattern()
       << juce::roundToInt (e.patternProgress() * 60) << e.project().bpm << e.project().beats << e.project().unit << (int) e.project().metronome
       << projectName << (int) ctx.dirty << (int) playOpen;
-    for (int p = 0; p < 4; ++p) for (int t = 0; t < 4; ++t) s << (e.device (p, t) != nullptr ? 1 : 0);
+    for (int p = 0; p < kPatterns; ++p) for (int t = 0; t < kTracks; ++t) s << (e.device (p, t) != nullptr ? 1 : 0);
     if (s != sig) { sig = s; repaint(); }
 }
 
@@ -107,11 +107,11 @@ void TopBar::paint (juce::Graphics& g)
         g.fillRoundedRectangle (915.5f, 26, 2.6f, 12, 1);
     }
     zone ({ 896, 16, 32, 32 }, "perform", "Performance mode: a pattern you pick starts when the playing one ends (click it again to cancel)");
-    // A–D
+    // A–H
     const int cur = e.activePattern(), queued = e.queuedPattern(), focus = ctx.focusPattern();
-    for (int i = 0; i < 4; ++i)
+    for (int i = 0; i < kPatterns; ++i)
     {
-        const float bx = 944 + i * 56.0f, by = 10, bw = 50, bh = 44;
+        const float bx = 940 + i * 28.0f, by = 10, bw = 25, bh = 44;
         const juce::Rectangle<float> r (bx, by, bw, bh);
         const bool isCur = i == cur, isQ = i == queued;
         if (isCur) { g.setColour (col::pattern.withAlpha (0.18f)); g.fillRoundedRectangle (r, 10); g.setColour (col::pattern); g.drawRoundedRectangle (r.reduced (0.75f), 10, 1.5f); }
@@ -127,14 +127,14 @@ void TopBar::paint (juce::Graphics& g)
             }
         }
         if (i == focus && ! isCur) { g.setColour (col::text.withAlpha (0.35f)); g.drawRoundedRectangle (r.reduced (3), 8, 1.0f); }
-        paint::text (g, juce::String::charToString ("ABCD"[i]), bx + bw / 2, by + 22, 16, Weight::Black, isCur || isQ ? col::pattern : col::text, juce::Justification::horizontallyCentred);
-        std::array<bool, 4> on {};
-        for (int t = 0; t < 4; ++t) on[(size_t) t] = e.device (i, t) != nullptr;
-        paint::deviceDots (g, bx + bw / 2, by + 33, on, 2.6f, 8);
+        paint::text (g, juce::String::charToString ("ABCDEFGH"[i]), bx + bw / 2, by + 24, 14, Weight::Black, isCur || isQ ? col::pattern : col::text, juce::Justification::horizontallyCentred);
+        bool any = false;
+        for (int t = 0; t < kTracks; ++t) any = any || e.device (i, t) != nullptr;
+        if (any) { g.setColour (isCur || isQ ? col::pattern : col::quiet); g.fillEllipse (bx + bw / 2 - 2.5f, by + 31, 5, 5); }   // the pattern has instruments
         if (isQ && e.isPlaying())   // the countdown: the queued pattern starts when the bar fills
         {
             g.setColour (col::pattern);
-            g.fillRoundedRectangle (bx + 6, by + bh - 4.5f, (bw - 12) * juce::jlimit (0.0f, 1.0f, e.patternProgress()), 2.5f, 1.2f);
+            g.fillRoundedRectangle (bx + 4, by + bh - 4.5f, (bw - 8) * juce::jlimit (0.0f, 1.0f, e.patternProgress()), 2.5f, 1.2f);
         }
         zone (r, "pat" + juce::String (i), proj.perform ? "Click: next pattern (starts when this one ends; click again to cancel)   Shift-click: copy   Alt-click: clear"
                                                          : "Click: switch (queued to the bar)   Shift-click: copy the current pattern here   Alt-click: clear");
@@ -172,7 +172,7 @@ juce::String TopBar::learnTarget (const juce::String& id)
 {
     if (id == "bpm") return "tempo";
     static const juce::StringArray learnable { "rack", "seq", "rec", "recstep", "play", "stop", "bpm-", "bpm+", "tap", "click", "playdrawer", "perform",
-                                               "pat0", "pat1", "pat2", "pat3", "save" };
+                                               "pat0", "pat1", "pat2", "pat3", "pat4", "pat5", "pat6", "pat7", "save" };
     return learnable.contains (id) ? "action:" + id : juce::String();
 }
 
@@ -306,7 +306,7 @@ void TopBar::trigger (const juce::String& id, juce::ModifierKeys mods)
         const int p = id.getLastCharacters (1).getIntValue();
         if (mods.isShiftDown()) { eng.copyPattern (eng.activePattern(), p); ctx.markDirty(); if (ctx.onDevicesChanged) ctx.onDevicesChanged(); }
         else if (mods.isAltDown())
-            juce::AlertWindow::showOkCancelBox (juce::MessageBoxIconType::WarningIcon, "Clear pattern " + juce::String::charToString ("ABCD"[p]) + "?",
+            juce::AlertWindow::showOkCancelBox (juce::MessageBoxIconType::WarningIcon, "Clear pattern " + juce::String::charToString ("ABCDEFGH"[p]) + "?",
                                                 "Its steps and devices are removed.", "Clear", "Cancel", nullptr,
                                                 juce::ModalCallbackFunction::create ([this, p] (int r)
                                                 {

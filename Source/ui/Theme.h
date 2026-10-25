@@ -12,8 +12,9 @@ inline const juce::Colour pattern { 0xffB9A7F0 }, record { 0xffE88A8A }, mute { 
 inline const juce::Colour controlEdge { 0xff2E323A }, altCell { 0xff23262D };
 inline juce::Colour track (int i)
 {
-    static const juce::Colour t[4] = { juce::Colour (0xff9EB9F3), juce::Colour (0xff8FD0C2), juce::Colour (0xffE8B86A), juce::Colour (0xffE9A3B8) };
-    return t[std::clamp (i, 0, 3)];
+    static const juce::Colour t[8] = { juce::Colour (0xff9EB9F3), juce::Colour (0xff8FD0C2), juce::Colour (0xffE8B86A), juce::Colour (0xffE9A3B8),
+                                       juce::Colour (0xffA8D58A), juce::Colour (0xffF0A07C), juce::Colour (0xff7FC6E8), juce::Colour (0xffD7A6E8) };
+    return t[std::clamp (i, 0, 7)];
 }
 } // namespace col
 

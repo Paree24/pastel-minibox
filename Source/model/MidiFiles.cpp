@@ -33,7 +33,7 @@ Result exportPattern (Engine& engine, int pattern, const juce::File& file)
     mf.setTicksPerQuarterNote (kFilePPQ);
     {
         juce::MidiMessageSequence meta;
-        auto name = juce::MidiMessage::textMetaEvent (3, proj.name + " - Pattern " + juce::String::charToString ("ABCD"[pattern]));
+        auto name = juce::MidiMessage::textMetaEvent (3, proj.name + " - Pattern " + juce::String::charToString ("ABCDEFGH"[pattern]));
         meta.addEvent (name, 0);
         meta.addEvent (juce::MidiMessage::tempoMetaEvent ((int) std::lround (60000000.0 / std::max (20.0, proj.bpm))), 0);
         meta.addEvent (juce::MidiMessage::timeSignatureMetaEvent (proj.beats, proj.unit), 0);

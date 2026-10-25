@@ -311,7 +311,7 @@ void EditorHeader::refresh()
     juce::String k;
     if (d != nullptr) k << d->presetName << (int) d->get ("engine") << (int) ctx.comparing.count (d);
     k << ctx.focusTrack() << ctx.focusPattern() << (d != nullptr ? (int) d->type() : -1);
-    for (int t = 0; t < 4; ++t) k << (ctx.engine.device (ctx.focusPattern(), t) != nullptr ? "1" : "0");
+    for (int t = 0; t < kTracks; ++t) k << (ctx.engine.device (ctx.focusPattern(), t) != nullptr ? "1" : "0");
     if (k != shownKey) { shownKey = k; repaint(); }
 }
 
@@ -334,19 +334,19 @@ void EditorHeader::paint (juce::Graphics& g)
     const float pw = paint::pill (g, M + 48, y + 10, name, 14, colour, col::bg, 32, 12, Weight::Black, true);
     pillR = { M + 48, y + 10, pw, 32 };
     float tx = M + 48 + pw + 18;
-    for (int i = 0; i < 4 && ! plugin; ++i)
+    for (int i = 0; i < kTracks && ! plugin; ++i)
     {
         const bool has = ctx.engine.device (ctx.focusPattern(), i) != nullptr;
         const float r = i == track ? 6.0f : 4.5f;
         g.setColour (has ? col::track (i) : col::faint);
-        g.fillEllipse (tx + i * 18 - r, y + 26 - r, r * 2, r * 2);
-        if (i == track) { g.setColour (col::text); g.drawEllipse (tx + i * 18 - r, y + 26 - r, r * 2, r * 2, 1.5f); }
-        dotR[(size_t) i] = { tx + i * 18 - 9, y + 17, 18, 18 };
+        g.fillEllipse (tx + i * 15 - r, y + 26 - r, r * 2, r * 2);
+        if (i == track) { g.setColour (col::text); g.drawEllipse (tx + i * 15 - r, y + 26 - r, r * 2, r * 2, 1.5f); }
+        dotR[(size_t) i] = { tx + i * 15 - 7.5f, y + 17, 15, 18 };
     }
     engineR = {};
     if (d->type() == DeviceType::Poly)
     {
-        engineR = { tx + 84, y + 10, 120, 32 };
+        engineR = { tx + (plugin ? 0 : kTracks * 15 + 12), y + 10, 120, 32 };
         paint::segmented (g, engineR, { "DCO", "VCO" }, (int) d->get ("engine"), colour, 12);
     }
     // preset browser
@@ -377,7 +377,7 @@ void EditorHeader::paint (juce::Graphics& g)
     fb.begin();
     if (! backR.isEmpty()) fb.hot (backR, 18);
     fb.hot (pillR, 16);
-    for (int i = 0; i < 4 && ! plugin; ++i) fb.hot (dotR[(size_t) i], 9);
+    for (int i = 0; i < kTracks && ! plugin; ++i) fb.hot (dotR[(size_t) i], 9);
     if (! engineR.isEmpty()) fb.hot (engineR, 16);
     fb.hot (prevR, 18); fb.hot (nextR, 18); fb.hot (presetR.reduced (40, 0), 4); fb.hot (saveR, 18); fb.hot (compareR, 16); fb.hot (moreR, 16);
     fb.paint (g);
@@ -390,7 +390,7 @@ void EditorHeader::mouseUp (const juce::MouseEvent& e)
     const auto p = e.position;
     if (! backR.isEmpty() && backR.contains (p)) { if (ctx.closeEditor) ctx.closeEditor(); return; }
     if (pillR.contains (p)) { if (ctx.showDevicePicker) ctx.showDevicePicker (ctx.focusTrack(), this); return; }
-    for (int i = 0; i < 4; ++i)
+    for (int i = 0; i < kTracks; ++i)
         if (dotR[(size_t) i].contains (p) && ctx.engine.device (ctx.focusPattern(), i) != nullptr) { if (ctx.openEditor) ctx.openEditor (i); return; }
     if (! engineR.isEmpty() && engineR.contains (p))
     {

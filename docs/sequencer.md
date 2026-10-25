@@ -52,7 +52,7 @@ Status: **done**, **partial** (what is missing is said), **planned**. Each item 
 |---|---|
 | Velocity editing lane | done |
 | MIDI file import / export | done: `⋯ > Import MIDI file into the selected track…` (a clip, or drum lanes; pick a track or all merged; the pattern grows to fit) and `⋯ > Export pattern as a MIDI file…` (a track per instrument, tempo, time signature) |
-| Multiple tracks and patterns | done (4 tracks, patterns A–D) |
+| Multiple tracks and patterns | done (8 tracks, patterns A–H; the rack shows four strips and scrolls) |
 | Pattern clips and basic arrangement | planned (left for later: the arrangement question was skipped) |
 | Quantize | done |
 | Transpose by semitones and octaves | done |

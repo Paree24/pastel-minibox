@@ -8,7 +8,8 @@ using R = juce::Rectangle<float>;
 
 namespace
 {
-constexpr float kBarY = 16, kBarH = 56, kRowsY = 84, kRowsH = 4 * 52 + 20, kDetailY = 324;
+// the track rows (one per instrument track, compact enough for eight), then the detail editor
+constexpr float kBarY = 16, kBarH = 56, kRowsY = 84, kRowH = 30, kRowsH = kTracks * kRowH + 16, kDetailY = kRowsY + kRowsH + 12;
 
 void dashedBox (juce::Graphics& g, R r, juce::Colour c)
 {
@@ -193,22 +194,22 @@ void SeqView::paint (juce::Graphics& g)
     paint::card (g, { x, kRowsY, w, kRowsH });
     for (int t = 0; t < kTracks; ++t)
     {
-        const float ry = kRowsY + 10 + t * 52;
+        const float ry = kRowsY + 8 + t * kRowH;
         auto* dev = ctx.engine.device (pat, t);
         const auto& mixer = pattern.slots[(size_t) t].mixer;
-        if (t == sel) { g.setColour (col::control.withAlpha (0.6f)); g.fillRoundedRectangle (x + 8, ry, w - 16, 48, 10); }
-        paint::trackBadge (g, x + 34, ry + 24, t, 12);
-        paint::text (g, dev ? deviceTypeName (dev->type()) : juce::String ("Empty"), x + 56, ry + 29, 14, Weight::Black, t == sel ? col::text : col::quiet);
-        paint::msButtons (g, x + 196, ry + 12, mixer.mute, mixer.solo, 24);
+        if (t == sel) { g.setColour (col::control.withAlpha (0.6f)); g.fillRoundedRectangle (x + 8, ry, w - 16, kRowH - 2, 8); }
+        paint::trackBadge (g, x + 30, ry + 14, t, 10);
+        paint::text (g, dev ? deviceTypeName (dev->type()) : juce::String ("Empty"), x + 48, ry + 19, 12, Weight::Black, t == sel ? col::text : col::quiet);
+        paint::msButtons (g, x + 196, ry + 3, mixer.mute, mixer.solo, 22);
         // input: the selected track takes the keyboard and MIDI controllers
         if (t == sel)
         {
-            const R inR (x + 162, ry + 12, 26, 24);
-            g.setColour (col::track (t)); g.fillRoundedRectangle (inR, 7);
-            paint::keysIcon (g, inR.getCentreX(), inR.getCentreY(), 13, col::bg);
+            const R inR (x + 164, ry + 3, 24, 22);
+            g.setColour (col::track (t)); g.fillRoundedRectangle (inR, 6);
+            paint::keysIcon (g, inR.getCentreX(), inR.getCentreY(), 12, col::bg);
         }
-        fb.hot ({ x + 8, ry, 186, 48 }, 10); fb.hot ({ x + 196, ry + 12, 24, 24 }, 7); fb.hot ({ x + 226, ry + 12, 24, 24 }, 7);
-        const R stepsR (x + 280, ry + 8, w - 280 - 20, 32);
+        fb.hot ({ x + 8, ry, 186, kRowH - 2 }, 8); fb.hot ({ x + 196, ry + 3, 22, 22 }, 6); fb.hot ({ x + 224, ry + 3, 22, 22 }, 6);
+        const R stepsR (x + 280, ry + 3, w - 280 - 20, 22);
         auto& tr = track (t);
         if (tr.pianoRoll)
         {
@@ -594,14 +595,14 @@ SeqView::Target SeqView::locate (juce::Point<float> p) const
     }
     if (p.y >= kRowsY && p.y < kRowsY + kRowsH)
     {
-        const int row = juce::jlimit (0, 3, (int) ((p.y - kRowsY - 10) / 52.0f));
+        const int row = juce::jlimit (0, kTracks - 1, (int) ((p.y - kRowsY - 8) / kRowH));
         t.a = row;
-        const float ry = kRowsY + 10 + row * 52;
-        if (R (x + 196, ry + 12, 24, 24).contains (p)) t.kind = Target::RowMute;
-        else if (R (x + 226, ry + 12, 24, 24).contains (p)) t.kind = Target::RowSolo;
+        const float ry = kRowsY + 8 + row * kRowH;
+        if (R (x + 196, ry + 3, 22, 22).contains (p)) t.kind = Target::RowMute;
+        else if (R (x + 224, ry + 3, 22, 22).contains (p)) t.kind = Target::RowSolo;
         else if (p.x >= x + 280)
         {
-            const R stepsR (x + 280, ry + 8, w - 280 - 20, 32);
+            const R stepsR (x + 280, ry + 3, w - 280 - 20, 22);
             const float cw = (stepsR.getWidth() - 6.0f * (steps - 1)) / steps;
             t.kind = Target::RowStep; t.b = juce::jlimit (0, steps - 1, (int) ((p.x - stepsR.getX()) / (cw + 6)));
         }

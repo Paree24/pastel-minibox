@@ -89,7 +89,7 @@ MB_TEST (keyboard_navigation)
     if (cell) { key (juce::KeyPress::returnKey); }
     ctx.check (e.project().patterns[0].slots[1].track.steps[0].noteCount == 0, "Enter again switches it off");
     // the Piano roll view: its switch, then the roll
-    const bool sw = tabTo (mc, [] (const Feedback::Focus& f) { return dynamic_cast<SeqView*> (&f.fb->getView()) != nullptr && f.r.contains (300.0f, 351.0f); });
+    const bool sw = tabTo (mc, [] (const Feedback::Focus& f) { return dynamic_cast<SeqView*> (&f.fb->getView()) != nullptr && f.r.contains (280.0f, 379.0f); });
     ctx.check (sw && key (juce::KeyPress::returnKey), "Tab reaches the Piano roll view switch");
     // the piano roll by keyboard: focus it, move the cursor, Enter adds a note
     const bool roll = tabTo (mc, [] (const Feedback::Focus& f) { return dynamic_cast<PianoRoll*> (&f.fb->getView()) != nullptr; });

@@ -39,6 +39,7 @@ const std::vector<std::pair<juce::String, juce::String>>& learnActions()
         { "play", "Play / stop" }, { "stop", "Stop" }, { "rec", "Live record" }, { "recstep", "Step record" }, { "tostart", "Back to start" }, { "click", "Metronome" },
         { "tap", "Tap tempo" }, { "bpm-", "Tempo -1" }, { "bpm+", "Tempo +1" },
         { "perform", "Performance mode" }, { "pat0", "Pattern A" }, { "pat1", "Pattern B" }, { "pat2", "Pattern C" }, { "pat3", "Pattern D" },
+        { "pat4", "Pattern E" }, { "pat5", "Pattern F" }, { "pat6", "Pattern G" }, { "pat7", "Pattern H" },
         { "track-prev", "Previous instrument" }, { "track-next", "Next instrument" },
         { "bar-prev", "Previous bar" }, { "bar-next", "Next bar" },
         { "preset-prev", "Previous preset" }, { "preset-next", "Next preset" },

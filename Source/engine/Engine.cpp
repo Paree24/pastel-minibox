@@ -331,8 +331,8 @@ void Engine::routeMidi (const juce::MidiMessage& m, int offset, std::vector<SeqE
 {
     const bool plugin = engineMode == Mode::Plugin;
     const int ch = m.getChannel();
-    // every channel plays the selected track (or, as an option, channels 1–4 play tracks 1–4)
-    const int track = plugin ? 0 : ((proj.channelPerTrack && ch >= 1 && ch <= 4) ? ch - 1 : focusTrack.load());
+    // every channel plays the selected track (or, as an option, channels 1–8 play tracks 1–8)
+    const int track = plugin ? 0 : ((proj.channelPerTrack && ch >= 1 && ch <= kTracks) ? ch - 1 : focusTrack.load());
     const int pattern = plugin ? 0 : focusPattern.load();
     if (m.isSustainPedalOn()) { sustainDown[(size_t) track] = true; return; }
     if (m.isSustainPedalOff())
