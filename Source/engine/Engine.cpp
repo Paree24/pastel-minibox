@@ -185,6 +185,10 @@ bool Engine::growAtEnd (int pat)
     if (engineMode == Mode::Plugin || ! recording.load() || ! takeOpen.load() || proj.recordMode != 0 || proj.overdub || seq.countInSamplesLeft > 0) return false;
     auto& pt = proj.patterns[(size_t) pat];
     if ((pt.loopOn && pt.loopEnd > pt.loopStart) || pt.lengthBars >= proj.maxBarsFor (pat)) return false;
+    // only notes lengthen a take: recording automation alone (knobs, macros, the mod wheel) loops the pattern
+    bool notes = takeLastStep.load() >= 0;
+    for (const auto& o : openNotes) notes = notes || o.used;
+    if (! notes) return false;
     // the pattern doubles (1 → 2 → 4 → 8 → 16 bars): the other tracks repeat into the new bars; the recorded track's stay for the take
     const int spb = proj.stepsPerBar (pat), oldBars = pt.lengthBars, newBars = std::min (proj.maxBarsFor (pat), oldBars * 2);
     const int stT = proj.stepTicks (pat), barT = spb * stT, rec = focusTrack.load();

@@ -901,7 +901,7 @@ MB_TEST (record_automation_does_not_duplicate)
         rig.e.recordKnob (0, 1, 0, s / 40.0f);              // a lock on parameter 0
     }
     rig.runTo (40.5);
-    ctx.check (p.patterns[0].lengthBars >= 2, "while recording the pattern grew (" + juce::String (p.patterns[0].lengthBars) + " bars)");
+    ctx.check (p.patterns[0].lengthBars == 1, "while recording automation alone the pattern loops: still 1 bar (" + juce::String (p.patterns[0].lengthBars) + ")");
     rig.e.stop(); rig.runTo (41.0);
     ctx.check (p.patterns[0].lengthBars == 1, "automation alone: still 1 bar (" + juce::String (p.patterns[0].lengthBars) + ")");
     int basses = 0; for (auto& n : tr.clip) basses += n.note == 36;
