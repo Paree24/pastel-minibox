@@ -29,6 +29,7 @@ public:
     void saveProject (bool saveAs, std::function<void()> after = {});
     void exportWav();
     void exportMidi();
+    void exportDawProject();
     void importMidi();
     void askToSaveThen (std::function<void()> action);
     juce::String windowTitle() const;

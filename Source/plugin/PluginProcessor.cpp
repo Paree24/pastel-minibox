@@ -1,6 +1,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "app/presets/PresetBank.h"
+#include "model/PluginState.h"
 
 namespace mb
 {
@@ -109,23 +110,11 @@ juce::AudioProcessorEditor* MiniboxProcessor::createEditor() { return new Minibo
 
 void MiniboxProcessor::getStateInformation (juce::MemoryBlock& out)
 {
-    juce::ValueTree state ("MiniboxPlugin");
-    state.setProperty ("version", 1, nullptr);
-    {
-        const Engine::ScopedEdit edit (eng);
-        if (auto* d = eng.pluginDevice())
-        {
-            juce::ValueTree dt ("Device");
-            d->save (dt);
-            state.setProperty ("instrument", deviceTypeId (d->type()), nullptr);
-            state.setProperty ("preset", d->presetName, nullptr);
-            state.appendChild (dt, nullptr);
-        }
-    }
+    std::vector<std::pair<juce::String, float>> host;
     for (auto* p : getParameters())
-        if (auto* pw = dynamic_cast<juce::AudioProcessorParameterWithID*> (p)) state.setProperty ("p_" + pw->paramID, p->getValue(), nullptr);
-    juce::MemoryOutputStream os (out, false);
-    state.writeToStream (os);
+        if (auto* pw = dynamic_cast<juce::AudioProcessorParameterWithID*> (p)) host.push_back ({ pw->paramID, p->getValue() });
+    const Engine::ScopedEdit edit (eng);
+    out = pluginstate::toBytes (pluginstate::make (eng.pluginDevice(), host, eng.pluginMixer(), eng.project().master));
 }
 
 void MiniboxProcessor::setStateInformation (const void* data, int size)
@@ -146,6 +135,10 @@ void MiniboxProcessor::setStateInformation (const void* data, int size)
             auto old = eng.setDevice (0, 0, std::move (d));
             old.reset();
         }
+    }
+    {
+        const Engine::ScopedEdit edit (eng);
+        pluginstate::applyMix (state, eng.pluginMixer(), eng.project().master);
     }
     for (auto* p : getParameters())
         if (auto* pw = dynamic_cast<juce::AudioProcessorParameterWithID*> (p))

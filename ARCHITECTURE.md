@@ -474,7 +474,8 @@ Pastel Minibox/
 │   │   └── presets/      PresetBank (factory files, user presets, overwrite/restore), bank_*.py + banks.py (factory content)
 │   ├── plugin/           PluginProcessor (14 host parameters, state), PluginEditor (header, editor, MIDI row)
 │   ├── engine/           Engine (device pool, audio lock, sub-block rendering, tails, MIDI routing, recording), MasterBus
-│   ├── model/            Project (patterns, tracks, steps, lanes, locks, mixer), Serializer (.minibox, .mbrack, WAV export)
+│   ├── model/            Project (patterns, tracks, steps, lanes, locks, mixer), Serializer (.minibox, .mbrack, WAV export),
+│   │                     MidiFiles, DawProject (.dawproject export, docs/dawproject.md), PluginState
 │   ├── seq/              Sequencer (clock, swing, micro-timing, ratchets, probability, locks, quantized switching, count-in, click)
 │   ├── dsp/              DspCommon, Oscillators, Filters, Envelopes, Effects (§7)
 │   ├── devices/          DeviceProcessor (params, locks, macros, voices), DeviceFx, SampleSlot, DeviceFactory

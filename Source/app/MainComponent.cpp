@@ -4,6 +4,7 @@
 #include "ui/Shortcuts.h"
 #include "model/Serializer.h"
 #include "model/MidiFiles.h"
+#include "model/DawProject.h"
 #include "devices/SampleSlot.h"
 
 namespace mb
@@ -352,6 +353,7 @@ void MainComponent::showMenu()
     m.addSeparator();
     m.addItem (80, "Import MIDI file into the selected track...", ctx.focusDevice() != nullptr);
     m.addItem (81, "Export pattern " + juce::String::charToString ("ABCDEFGH"[ctx.focusPattern()]) + " as a MIDI file...");
+    m.addItem (82, "Export the project as DAWproject...");
     m.showMenuAsync (menuAt (topBar, topBar.zoneRect ("menu")), [this] (int id)
     {
         auto& pr = engine.project();
@@ -386,6 +388,7 @@ void MainComponent::showMenu()
         if (id == 70) saveProject (true);
         if (id == 80) importMidi();
         if (id == 81) exportMidi();
+        if (id == 82) exportDawProject();
         if (id >= 10 && id < 60) ctx.markDirty();
     });
 }
@@ -476,6 +479,25 @@ void MainComponent::exportMidi()
         if (f == juce::File()) return;
         const auto r = midifile::exportPattern (engine, pat, f.withFileExtension (".mid"));
         if (! r.ok) juce::AlertWindow::showMessageBoxAsync (juce::MessageBoxIconType::WarningIcon, "MIDI export", r.error);
+    });
+}
+
+void MainComponent::exportDawProject()
+{
+    const auto name = juce::File::createLegalFileName (engine.project().name) + ".dawproject";
+    auto start = currentFile.existsAsFile() ? currentFile.withFileExtension (".dawproject")
+                                            : juce::File::getSpecialLocation (juce::File::userDocumentsDirectory).getChildFile (name);
+    chooser = std::make_unique<juce::FileChooser> ("Export the project as DAWproject", start, "*.dawproject");
+    chooser->launchAsync (juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles | juce::FileBrowserComponent::warnAboutOverwriting,
+                          [this] (const juce::FileChooser& fc)
+    {
+        auto f = fc.getResult();
+        if (f == juce::File()) return;
+        const auto r = dawproject::exportProject (engine, f.withFileExtension (".dawproject"));
+        if (! r.ok) { juce::AlertWindow::showMessageBoxAsync (juce::MessageBoxIconType::WarningIcon, "DAWproject export", r.error); return; }
+        juce::AlertWindow::showMessageBoxAsync (juce::MessageBoxIconType::InfoIcon, "DAWproject export",
+                                                juce::String (r.tracks) + " tracks with the Minibox plugin, " + juce::String (r.patterns)
+                                                    + " patterns on the timeline and as scenes:\n" + f.withFileExtension (".dawproject").getFullPathName());
     });
 }
 
@@ -573,6 +595,7 @@ void MainComponent::runCommand (juce::CommandID id)
         case cmd::saveProjectAs: this->saveProject (true); break;
         case cmd::exportWav: this->exportWav(); break;
         case cmd::exportMidi: this->exportMidi(); break;
+        case cmd::exportDawProject: this->exportDawProject(); break;
         case cmd::importMidi: this->importMidi(); break;
         case cmd::settings: showSettings(); break;
         case cmd::playStop: if (engine.isPlaying()) engine.stop(); else engine.play(); break;

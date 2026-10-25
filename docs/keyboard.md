@@ -26,7 +26,7 @@ Status is kept current. Test: `Test/KeyboardTests.cpp` (drives the real window b
 | 12 | Instrument | ↑/↓ select (when nothing is focused, every page); Rack and editor pages: ←/→ previous / next preset; Ctrl+B its preset browser; Ctrl+[ / Ctrl+] previous / next preset; + / = adds an instrument to the first empty track (device menu) | done |
 | 13 | Patterns | Alt+1…8 switch to A–H (in performance mode: queued to the pattern's end); Ctrl+Shift+P performance mode | done |
 | 14 | Tempo | Ctrl+↑ / Ctrl+↓ ±1 BPM (Shift ±0.1); metronome Ctrl+K | done |
-| 15 | Undo / redo, save, new, open, export | Ctrl+Z, Ctrl+Shift+Z / Ctrl+Y, Ctrl+S, Ctrl+N, Ctrl+O, Ctrl+E | done |
+| 15 | Undo / redo, save, new, open, export | Ctrl+Z, Ctrl+Shift+Z / Ctrl+Y, Ctrl+S, Ctrl+N, Ctrl+O, Ctrl+E (WAV), Ctrl+Shift+E (MIDI), Ctrl+Alt+E (DAWproject) | done |
 
 ## Sequencer
 | # | Function | Keys | Status |
