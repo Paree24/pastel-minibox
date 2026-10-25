@@ -92,6 +92,18 @@ MB_TEST (tool_ui_shots)
     shot (0, 0, "01_rack");
     shot (1, 1, "02_seq");
     {
+        // playing: bar 2 outlined and filling, the top bar's position, some swing
+        e.project().swing = 0.58f;
+        e.project().countIn = false;
+        e.play();
+        std::vector<float> l (512), r (512);
+        while (e.currentStep() < 22) e.process (l.data(), r.data(), 512, nullptr);
+        shot (1, 1, "02f_seq_playing");
+        e.stop();
+        e.process (l.data(), r.data(), 512, nullptr);
+        e.project().swing = 0.5f;
+    }
+    {
         // the step sequence viewed as a piano roll; zoomed out to the whole pattern on a 1/8 triplet grid
         mc.seqView().setStepsView (false);
         shot (1, 1, "02b_seq_steps_as_roll");
@@ -131,9 +143,10 @@ MB_TEST (tool_ui_shots)
         e.stepRecordCursor = 8;
         mc.showDrawer (true);
         shot (1, 1, "14_play");
-        mc.showDrawer (false);
         e.setRecord (false);
         p.recordMode = 0;
+        shot (1, 1, "14b_play_live");   // Live recording's settings
+        mc.showDrawer (false);
     }
     {
         // MIDI learn with the factory controller map, as mockup 15_midi_learn

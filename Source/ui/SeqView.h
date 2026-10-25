@@ -14,6 +14,7 @@ public:
     void mouseDown (const juce::MouseEvent&) override;
     void mouseDrag (const juce::MouseEvent&) override;
     void mouseUp (const juce::MouseEvent&) override;
+    void mouseDoubleClick (const juce::MouseEvent&) override;
     void resized() override;
     void refresh();
     /** Piano-roll editing keys (Delete, clipboard, nudge…); true when used. */
@@ -28,7 +29,7 @@ public:
 
 private:
     struct Target { enum Kind { None, BarLess, BarMore, Res, Bar, RowSelect, RowStep, RowMute, RowSolo, ViewSwitch, Convert, Quantize, Overdub, LockParam,
-                                Follow, Tool, LaneVel, LaneA, LaneB, LaneCond, StepNote, StepLane, ClipVel, ClipLaneMenu, DrumCell, DrumLaneView, DrumLane } kind = None;
+                                Follow, Tool, LaneVel, LaneA, LaneB, LaneCond, StepNote, StepLane, ClipVel, ClipLaneMenu, DrumCell, DrumLaneView, DrumLane, Swing } kind = None;
                     int a = -1, b = -1; };
     Target locate (juce::Point<float>) const;
     void applyDrag (const Target&, juce::Point<float>, bool rightButton);
@@ -62,6 +63,8 @@ private:
     juce::Rectangle<float> convertR, lockPickR;
     Step noteStepAtDown;           // pitch drag on a note cell
     float noteDownY = 0;
+    float swingAtDown = 0.5f, swingDownX = 0;
+    void showSwingMenu();
     bool noteWasOn = false, noteMoved = false;
     int lastKind = -1;
     juce::Rectangle<float> menuArea;   // where the last press was: its menus open there

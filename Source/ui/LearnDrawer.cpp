@@ -58,6 +58,7 @@ juce::String learnTargetName (AppContext& ctx, const juce::String& target)
         return id;
     }
     if (target == "tempo") return "Tempo";
+    if (target == "swing") return "Swing";
     const auto kind = target.upToFirstOccurrenceOf (":", false, false);
     const auto rest = target.fromLastOccurrenceOf (":", false, false);
     if (kind == "master") return "Master" + dot + rest.substring (0, 1).toUpperCase() + rest.substring (1);
@@ -87,6 +88,8 @@ std::unique_ptr<Binding> learnBinding (AppContext& ctx, const juce::String& targ
     if (target == "tempo")
         return std::make_unique<FnBinding> ([&proj] { return (float) proj.bpm; },
                                             [&ctx, &proj] (float v) { proj.bpm = std::round (v * 10.0) / 10.0; ctx.markDirty(); }, 40.0f, 240.0f);
+    if (target == "swing")
+        return std::make_unique<FloatBinding> (&proj.swing, 0.5f, 0.75f, 0.5f, [] (float v) { return juce::String (juce::roundToInt (v * 100)) + "%"; }, false, &ctx);
     const auto kind = target.upToFirstOccurrenceOf (":", false, false);
     const auto rest = target.fromLastOccurrenceOf (":", false, false);
     if (kind == "master")
@@ -431,6 +434,7 @@ juce::PopupMenu learnTargetMenu (AppContext& ctx, std::vector<juce::String>& ids
     for (auto name : { "volume", "delay", "reverb", "glue", "limit" }) item (master, "master:" + juce::String (name), learnTargetName (ctx, "master:" + juce::String (name)));
     m.addSubMenu ("Master", master);
     item (m, "tempo", "Tempo");
+    item (m, "swing", "Swing");
     for (auto& [id, name] : learnActions()) item (actions, "action:" + id, name);
     m.addSubMenu ("Actions", actions);
     return m;

@@ -41,7 +41,7 @@ Status: **done**, **partial** (what is missing is said), **planned**. Each item 
 | Bar / beat ruler and octave labels | done |
 | Play, pause, stop, seek | done: Stop returns the cursor to the pattern's start (twice also cuts ringing notes); a click on the ruler moves the playhead (marker in the ruler) |
 | Loop playback | done: the pattern loops; Shift-drag in the ruler sets a loop range, the toolbar's *Loop* turns it on / off (saved with the pattern) |
-| Tempo and time signature | done |
+| Tempo and time signature | done: the `4/4 ▾` panel offers the common signatures in one click (4/4, 3/4, 5/4, 6/8, 7/8, 12/8), then beats and unit for any other |
 | Basic MIDI playback | done |
 | Note preview during editing | done (auditions are never recorded) |
 | Playback cursor and auto-scroll | done |
@@ -57,7 +57,7 @@ Status: **done**, **partial** (what is missing is said), **planned**. Each item 
 | Quantize | done |
 | Transpose by semitones and octaves | done |
 | Humanize timing and velocity | done |
-| Swing and groove | partial: swing; groove templates are P2 |
+| Swing and groove | swing done: the Seq bar strip's **Swing** control (50% straight to 75%; drag, Shift fine, right-click for the usual amounts, double-click straight, ↑/↓ when focused; MIDI-learnable). The off-beat steps of the pattern's grid play late; the DAWproject export bakes it in. Groove templates are P2 |
 | Note mute and lock | done: mute (0), lock (Ctrl+L, Functions): locked notes are kept from moves, resizes, deletes, erasing and functions |
 | Chord selection and editing | done: Functions ▸ Chords: select the chords of the selection, invert up / down, spread (open voicing), close voicing, add the bass an octave below |
 | Scale highlighting and scale snapping | done (rows follow scale lock) |
@@ -130,7 +130,7 @@ Ghosts · Zoom − / + / Fit · Undo · Redo · Follow. Above the notes a ruler 
 |---|---|---|---|
 | 64 | Edit across bars | any range of bars in view (zoom), notes drawn, selected, moved and resized across bar lines | done |
 | 65 | Long notes | a note can last up to the pattern's end (many bars) | done |
-| 66 | Bars in the bar strip | the bars in view are highlighted; a click scrolls the roll to that bar | done |
+| 66 | Bars in the bar strip | the bars in view are highlighted; a click scrolls the roll to that bar; the playing bar is outlined and fills as it plays, and the top bar shows the position (`BAR 2.3 / 4`: bar, beat, the pattern's bars) on every page | done |
 
 ## Selection
 | # | Function | How | Status |

@@ -9,6 +9,7 @@ using R = juce::Rectangle<float>;
 namespace
 {
 // the track rows (one per instrument track, compact enough for eight), then the detail editor
+constexpr float kChips = 452;   // the bar chips' left edge in the bar strip (after length, resolution and swing)
 constexpr float kBarY = 16, kBarH = 56, kRowsY = 84, kRowH = 30, kRowsH = kTracks * kRowH + 16, kDetailY = kRowsY + kRowsH + 12;
 
 void dashedBox (juce::Graphics& g, R r, juce::Colour c)
@@ -40,6 +41,27 @@ SeqView::SeqView (AppContext& c) : ctx (c), roll (c)
     };
 }
 
+void SeqView::showSwingMenu()
+{
+    auto& proj = ctx.engine.project();
+    juce::PopupMenu m;
+    m.addSectionHeader ("Swing: the off-beat steps play late");
+    const int amounts[] = { 50, 54, 58, 62, 66, 71, 75 };
+    const char* names[] = { "50% (straight)", "54%", "58%", "62%", "66% (triplet feel)", "71%", "75% (hard)" };
+    for (int i = 0; i < 7; ++i) m.addItem (1 + i, names[i], true, juce::roundToInt (proj.swing * 100) == amounts[i]);
+    m.showMenuAsync (menuAt (*this, menuArea), [this, amounts] (int id)
+    {
+        if (id <= 0) return;
+        ctx.engine.project().swing = amounts[id - 1] / 100.0f;
+        ctx.markDirty(); repaint();
+    });
+}
+
+void SeqView::mouseDoubleClick (const juce::MouseEvent& e)
+{
+    if (locate (e.position).kind == Target::Swing) { ctx.engine.project().swing = 0.5f; ctx.markDirty(); repaint(); }
+}
+
 bool SeqView::keyOnTarget (const Target& t, const juce::KeyPress& k)
 {
     const int code = k.getKeyCode();
@@ -47,6 +69,15 @@ bool SeqView::keyOnTarget (const Target& t, const juce::KeyPress& k)
     const bool left = code == juce::KeyPress::leftKey, right = code == juce::KeyPress::rightKey;
     const bool fine = k.getModifiers().isShiftDown();
     const int dir = up ? 1 : (down ? -1 : 0);
+    if (t.kind == Target::Swing)
+    {
+        auto& sw = ctx.engine.project().swing;
+        if (code == juce::KeyPress::deleteKey || code == juce::KeyPress::backspaceKey) sw = 0.5f;
+        else if (dir != 0 || left || right) sw = juce::jlimit (0.5f, 0.75f, sw + (dir != 0 ? dir : (right ? 1 : -1)) * (fine ? 0.002f : 0.01f));
+        else return false;
+        ctx.markDirty(); repaint();
+        return true;
+    }
     auto* dev = ctx.focusDevice();
     if (dev == nullptr) return false;
     const int pat = ctx.focusPattern(), sel = ctx.focusTrack();
@@ -225,7 +256,7 @@ void SeqView::refresh()
     roll.appendSignature (s);
     s << (int) ctx.followPlayhead << (int) ctx.undoStack.size() << (int) ctx.redoStack.size() << drumLaneView;
     s << pat << ctx.focusTrack() << ctx.viewBar << (int) stepsView << kind << lockParam << drumLaneView << proj.patterns[(size_t) pat].lengthBars
-      << proj.patterns[(size_t) pat].stepRes << (ctx.engine.isPlaying() ? ctx.engine.currentStep() : -1) << proj.recordQuantize << (int) proj.overdub
+      << proj.patterns[(size_t) pat].stepRes << (ctx.engine.isPlaying() ? ctx.engine.currentStep() : -1) << proj.recordQuantize << (int) proj.overdub << proj.swing
       << (ctx.engine.isRecording() && proj.recordMode == 1 ? ctx.engine.stepRecordCursor.load() : -1);
     const int first = ctx.viewBar * spb();
     for (int t = 0; t < kTracks; ++t)
@@ -272,7 +303,21 @@ void SeqView::paint (juce::Graphics& g)
     paint::chevron (g, x + 118, kBarY + 28, 8, col::quiet, 'r');
     fb.hot ({ x + 14, kBarY + 12, 36, 32 }, 16); fb.hot ({ x + 98, kBarY + 12, 36, 32 }, 16);
     for (auto& r : paint::segmented (g, { x + 148, kBarY + 12, 170, 32 }, { "1/8", "1/16", "1/32" }, pattern.stepRes, col::text, 12)) fb.hot (r.reduced (2));
-    const float bx0 = x + 340, bw = (w - 340 - 16) / 16.0f;
+    // swing: the late off-beats of the step grid (50% straight … 75% hard), project-wide
+    {
+        const R sr (x + 332, kBarY + 12, 104, 32);
+        g.setColour (col::control); g.fillRoundedRectangle (sr, 16);
+        const float amt = juce::jlimit (0.0f, 1.0f, (proj.swing - 0.5f) / 0.25f);
+        g.setColour (col::divider); g.fillRoundedRectangle (sr.getX() + 14, kBarY + 37, 76, 3, 1.5f);
+        g.setColour (col::pattern); g.fillRoundedRectangle (sr.getX() + 14, kBarY + 37, 76 * amt, 3, 1.5f);
+        paint::text (g, "Swing", sr.getX() + 14, kBarY + 31, 11, Weight::Bold, col::quiet);
+        paint::text (g, juce::String (juce::roundToInt (proj.swing * 100)) + "%", sr.getRight() - 12, kBarY + 31, 13, Weight::Black,
+                     amt > 0.0f ? col::text : col::quiet, juce::Justification::right);
+        fb.hot (sr, 16);
+    }
+    const float bx0 = x + kChips, bw = (w - kChips - 16) / 16.0f;
+    // the playing bar: outlined, filling as it plays (the playhead's position in it)
+    const double playPos = play >= 0 ? ctx.engine.patternProgress() * proj.patternSteps (pat) : -1.0;
     const int playBar = play >= 0 ? play / steps : -1;
     // the bars in the piano roll's view are lit
     const bool rollShown = roll.isVisible();
@@ -288,8 +333,10 @@ void SeqView::paint (juce::Graphics& g)
         paint::text (g, juce::String (b + 1), r.getCentreX(), kBarY + 33, 11, Weight::Black, cur ? col::bg : (on ? col::quiet : col::faint), juce::Justification::horizontallyCentred);
         if (b == playBar)
         {
-            const float frac = (float) (play % steps + ctx.engine.patternProgress() * 0.0f) / (float) steps;
-            g.setColour (cur ? col::bg : col::pattern); g.fillRoundedRectangle (r.getX(), r.getBottom() - 4, r.getWidth() * juce::jmax (0.08f, frac), 3, 1.5f);
+            const float frac = juce::jlimit (0.0f, 1.0f, (float) (playPos - b * steps) / (float) steps);
+            g.setColour (col::pattern.withAlpha (cur ? 0.0f : 0.28f)); g.fillRoundedRectangle (r.withWidth (std::max (8.0f, r.getWidth() * frac)), 8);
+            g.setColour (cur ? col::text : col::pattern); g.drawRoundedRectangle (r.reduced (1.0f), 8, 2.0f);
+            g.setColour (cur ? col::bg : col::pattern); g.fillRoundedRectangle (r.getX() + 4, r.getBottom() - 5, (r.getWidth() - 8) * juce::jmax (0.05f, frac), 3, 1.5f);
         }
     }
 
@@ -701,7 +748,8 @@ SeqView::Target SeqView::locate (juce::Point<float> p) const
         if (p.x >= x + 14 && p.x < x + 50) t.kind = Target::BarLess;
         else if (p.x >= x + 98 && p.x < x + 134) t.kind = Target::BarMore;
         else if (p.x >= x + 148 && p.x < x + 318) { t.kind = Target::Res; t.a = juce::jlimit (0, 2, (int) ((p.x - x - 148) / (170.0f / 3))); }
-        else if (p.x >= x + 340) { t.kind = Target::Bar; t.a = juce::jlimit (0, 15, (int) ((p.x - x - 340) / ((w - 340 - 16) / 16.0f))); }
+        else if (p.x >= x + 332 && p.x < x + 436) t.kind = Target::Swing;
+        else if (p.x >= x + kChips) { t.kind = Target::Bar; t.a = juce::jlimit (0, 15, (int) ((p.x - x - kChips) / ((w - kChips - 16) / 16.0f))); }
         return t;
     }
     if (p.y >= kRowsY && p.y < kRowsY + kRowsH)
@@ -876,6 +924,11 @@ void SeqView::mouseDown (const juce::MouseEvent& e)
         // the length doubles and halves: 1 → 2 → 4 → 8 → 16 bars (growing repeats the bars into the new ones)
         case Target::BarLess: { const Engine::ScopedEdit ed (ctx.engine); pattern.lengthBars = std::max (1, pattern.lengthBars / 2); ctx.markDirty(); break; }
         case Target::BarMore: { const Engine::ScopedEdit ed (ctx.engine); proj.setLengthBars (pat, std::min (proj.maxBarsFor (pat), pattern.lengthBars * 2)); ctx.markDirty(); break; }
+        // swing: drag left / right (Shift: fine); right-click: the usual amounts; double-click: straight
+        case Target::Swing:
+            if (right) showSwingMenu();
+            else { swingAtDown = proj.swing; swingDownX = e.position.x; }
+            break;
         case Target::Res:
         {
             const Engine::ScopedEdit ed (ctx.engine);
@@ -1042,6 +1095,13 @@ void SeqView::mouseDrag (const juce::MouseEvent& e)
     if (dragTarget.kind == Target::DrumCell && dragTarget.b >= 0 && t.kind == Target::DrumCell && t.a == dragTarget.a && t.b >= 0 && t.b != dragTarget.b)
     {
         paintDrum (t.a, ctx.viewBar * spb() + t.b); dragTarget.b = t.b; repaint(); return;
+    }
+    if (dragTarget.kind == Target::Swing)
+    {
+        if (e.mods.isRightButtonDown()) return;
+        const float per = e.mods.isShiftDown() ? 1600.0f : 400.0f;
+        ctx.engine.project().swing = juce::jlimit (0.5f, 0.75f, swingAtDown + (e.position.x - swingDownX - (e.position.y - e.mouseDownPosition.y)) / per);
+        ctx.markDirty(); repaint(); return;
     }
     if (t.kind != dragTarget.kind) t = dragTarget;
     if (dragTarget.kind == Target::StepNote)

@@ -23,7 +23,7 @@ void TopBar::refresh()
     auto& e = ctx.engine;
     juce::String s;
     s << (int) view << (int) e.isPlaying() << (int) e.isRecording() << (int) e.inCountIn() << e.activePattern() << e.queuedPattern() << ctx.focusPattern()
-      << juce::roundToInt (e.patternProgress() * 60) << e.project().bpm << e.project().beats << e.project().unit << (int) e.project().metronome
+      << juce::roundToInt (e.patternProgress() * 60) << e.currentStep() << e.project().bpm << e.project().beats << e.project().unit << (int) e.project().metronome
       << projectName << (int) ctx.dirty << (int) playOpen;
     for (int p = 0; p < kPatterns; ++p) for (int t = 0; t < kTracks; ++t) s << (e.device (p, t) != nullptr ? 1 : 0);
     if (s != sig) { sig = s; repaint(); }
@@ -76,6 +76,14 @@ void TopBar::paint (juce::Graphics& g)
     zone ({ 400, 12, 40, 40 }, "play", "Play (Space)");
     g.setColour (col::control); g.fillEllipse (468 - 18, 32 - 18, 36, 36);
     paint::stop (g, 468, 32, 11, col::text);
+    // the position: bar.beat of the playing pattern / its bars
+    {
+        const int pat = e.activePattern(), spb = std::max (1, proj.stepsPerBar (pat));
+        const int stepNow = playing && ! e.inCountIn() ? std::max (0, e.currentStep()) : 0;
+        const int beat = (stepNow % spb) * proj.beats / spb + 1;
+        const auto pos = "BAR " + juce::String (stepNow / spb + 1) + "." + juce::String (beat) + " / " + juce::String (proj.patterns[(size_t) pat].lengthBars);
+        paint::text (g, pos, 444, 59, 8, Weight::Black, playing ? col::pattern : col::faint, juce::Justification::horizontallyCentred);
+    }
     zone ({ 450, 14, 36, 36 }, "stop", "Stop: back to the start of the pattern (twice: also cuts ringing notes)");
     // tempo
     g.setColour (col::control); g.fillEllipse (522 - 14, 32 - 14, 28, 28);
@@ -205,26 +213,41 @@ void TopBar::tap()
     }
 }
 
+namespace
+{
+// the time signature panel: the common signatures first (one click), then beats and unit for any other
+constexpr int kCommon[6][2] = { { 4, 4 }, { 3, 4 }, { 5, 4 }, { 6, 8 }, { 7, 8 }, { 12, 8 } };
+constexpr int kY = 56;   // the rows below the common ones
+} // namespace
+
 void TopBar::showTimeSignature()
 {
     struct Panel : juce::Component
     {
-        explicit Panel (AppContext& c) : ctx (c) { setSize (300, 210); setWantsKeyboardFocus (true); }
+        explicit Panel (AppContext& c) : ctx (c) { setSize (300, 210 + kY); setWantsKeyboardFocus (true); }
         AppContext& ctx;
-        int row = 0;   // keys: ↑ ↓ a row (beats, unit, swing, count-in), ← → its value
+        int row = 0;   // keys: ↑ ↓ a row (common, beats, unit, swing, count-in), ← → its value
         void visibilityChanged() override { if (isShowing()) grabKeyboardFocus(); }
         void parentHierarchyChanged() override { juce::MessageManager::callAsync ([sp = juce::Component::SafePointer<Panel> (this)] { if (sp != nullptr && sp->isShowing()) sp->grabKeyboardFocus(); }); }
+        int commonIndex() const
+        {
+            auto& p = ctx.engine.project();
+            for (int i = 0; i < 6; ++i) if (kCommon[i][0] == p.beats && kCommon[i][1] == p.unit) return i;
+            return -1;
+        }
+        static juce::Rectangle<float> commonRect (int i) { return { 16.0f + i * 45.0f, 14.0f, 41.0f, 30.0f }; }
         bool keyPressed (const juce::KeyPress& k) override
         {
             const int code = k.getKeyCode();
-            if (code == juce::KeyPress::upKey || code == juce::KeyPress::downKey) { row = (row + (code == juce::KeyPress::upKey ? 3 : 1)) % 4; repaint(); return true; }
+            if (code == juce::KeyPress::upKey || code == juce::KeyPress::downKey) { row = (row + (code == juce::KeyPress::upKey ? 4 : 1)) % 5; repaint(); return true; }
             const int d = code == juce::KeyPress::leftKey ? -1 : (code == juce::KeyPress::rightKey ? 1 : 0);
             if (d == 0) return false;
             auto& p = ctx.engine.project();
             int beats = p.beats, unit = p.unit;
-            if (row == 0) beats = juce::jlimit (1, 16, beats + d);
-            else if (row == 1) unit = d > 0 ? (unit == 4 ? 8 : 16) : (unit == 16 ? 8 : 4);
-            else if (row == 2) p.swing = juce::jlimit (0.5f, 0.75f, p.swing + d * 0.01f);
+            if (row == 0) { const int i = juce::jlimit (0, 5, commonIndex() < 0 ? (d > 0 ? 0 : 5) : commonIndex() + d); beats = kCommon[i][0]; unit = kCommon[i][1]; }
+            else if (row == 1) beats = juce::jlimit (1, 16, beats + d);
+            else if (row == 2) unit = d > 0 ? (unit == 4 ? 8 : 16) : (unit == 16 ? 8 : 4);
+            else if (row == 3) p.swing = juce::jlimit (0.5f, 0.75f, p.swing + d * 0.01f);
             else p.countIn = d > 0;
             if (beats != p.beats || unit != p.unit) ctx.engine.setTimeSignature (beats, unit);
             ctx.markDirty();
@@ -235,37 +258,47 @@ void TopBar::showTimeSignature()
         {
             auto& p = ctx.engine.project();
             g.fillAll (col::surface);
+            const int ci = commonIndex();
+            for (int i = 0; i < 6; ++i)
+            {
+                const auto r = commonRect (i);
+                g.setColour (i == ci ? col::text : col::control); g.fillRoundedRectangle (r, 15);
+                paint::text (g, juce::String (kCommon[i][0]) + "/" + juce::String (kCommon[i][1]), r.getCentreX(), r.getY() + 20, 12, Weight::Black,
+                             i == ci ? col::bg : col::text, juce::Justification::horizontallyCentred);
+            }
             auto row = [&] (int y, const juce::String& label) { paint::text (g, label, 16, (float) y + 19, 12, Weight::Bold, col::quiet); };
-            row (14, "Beats");
-            g.setColour (col::control); g.fillRoundedRectangle (140, 14, 144, 30, 15);
-            paint::chevron (g, 156, 29, 8, col::quiet, 'l'); paint::chevron (g, 268, 29, 8, col::quiet, 'r');
-            paint::text (g, juce::String (p.beats), 212, 34, 14, Weight::Black, col::text, juce::Justification::horizontallyCentred);
-            row (60, "Unit");
-            paint::segmented (g, { 140, 60, 144, 30 }, { "4", "8", "16" }, p.unit == 4 ? 0 : (p.unit == 8 ? 1 : 2), col::text, 12);
-            row (106, "Swing");
+            row (kY + 14, "Beats");
+            g.setColour (col::control); g.fillRoundedRectangle (140, kY + 14, 144, 30, 15);
+            paint::chevron (g, 156, kY + 29, 8, col::quiet, 'l'); paint::chevron (g, 268, kY + 29, 8, col::quiet, 'r');
+            paint::text (g, juce::String (p.beats), 212, kY + 34, 14, Weight::Black, col::text, juce::Justification::horizontallyCentred);
+            row (kY + 60, "Unit");
+            paint::segmented (g, { 140, kY + 60, 144, 30 }, { "4", "8", "16" }, p.unit == 4 ? 0 : (p.unit == 8 ? 1 : 2), col::text, 12);
+            row (kY + 106, "Swing");
             const float v = (p.swing - 0.5f) / 0.25f;
-            g.setColour (col::control); g.fillRoundedRectangle (140, 118, 144, 6, 3);
-            g.setColour (col::text); g.fillRoundedRectangle (140, 118, 144 * v, 6, 3); g.fillEllipse (140 + 144 * v - 8, 113, 16, 16);
-            paint::text (g, juce::String (juce::roundToInt (p.swing * 100)) + "%", 284, 103, 11, Weight::Bold, col::quiet, juce::Justification::right);
-            row (152, "Count-in");
-            paint::segmented (g, { 140, 152, 144, 30 }, { "Off", "1 bar" }, p.countIn ? 1 : 0, col::text, 12);
+            g.setColour (col::control); g.fillRoundedRectangle (140, kY + 118, 144, 6, 3);
+            g.setColour (col::text); g.fillRoundedRectangle (140, kY + 118, 144 * v, 6, 3); g.fillEllipse (140 + 144 * v - 8, kY + 113, 16, 16);
+            paint::text (g, juce::String (juce::roundToInt (p.swing * 100)) + "%", 284, kY + 103, 11, Weight::Bold, col::quiet, juce::Justification::right);
+            row (kY + 152, "Count-in");
+            paint::segmented (g, { 140, kY + 152, 144, 30 }, { "Off", "1 bar" }, p.countIn ? 1 : 0, col::text, 12);
             if (hasKeyboardFocus (false))
             {
-                const int ys[4] = { 14, 60, 106, 152 };
+                const int ys[5] = { 14, kY + 14, kY + 60, kY + 106, kY + 152 };
                 g.setColour (col::text.withAlpha (0.8f)); g.drawRoundedRectangle (8, (float) ys[this->row] - 4, 284, 38, 8, 1.5f);
             }
         }
         void mouseDown (const juce::MouseEvent& e) override { handle (e); }
-        void mouseDrag (const juce::MouseEvent& e) override { if (e.position.y > 100 && e.position.y < 140) handle (e); }
+        void mouseDrag (const juce::MouseEvent& e) override { if (e.position.y > kY + 100 && e.position.y < kY + 140) handle (e); }
         void handle (const juce::MouseEvent& e)
         {
             auto& p = ctx.engine.project();
             const auto pt = e.position;
             int beats = p.beats, unit = p.unit;
-            if (pt.y >= 14 && pt.y < 44) { if (pt.x > 140 && pt.x < 180) beats = std::max (1, beats - 1); if (pt.x > 250 && pt.x < 284) beats = std::min (16, beats + 1); }
-            else if (pt.y >= 60 && pt.y < 90 && pt.x > 140) unit = pt.x < 188 ? 4 : (pt.x < 236 ? 8 : 16);
-            else if (pt.y >= 100 && pt.y < 140 && pt.x > 132) p.swing = 0.5f + 0.25f * juce::jlimit (0.0f, 1.0f, (pt.x - 140) / 144.0f);
-            else if (pt.y >= 152 && pt.y < 182 && pt.x > 140) p.countIn = pt.x > 212;
+            for (int i = 0; i < 6; ++i) if (commonRect (i).contains (pt)) { beats = kCommon[i][0]; unit = kCommon[i][1]; }
+            const float y = pt.y - kY;
+            if (y >= 14 && y < 44) { if (pt.x > 140 && pt.x < 180) beats = std::max (1, beats - 1); if (pt.x > 250 && pt.x < 284) beats = std::min (16, beats + 1); }
+            else if (y >= 60 && y < 90 && pt.x > 140) unit = pt.x < 188 ? 4 : (pt.x < 236 ? 8 : 16);
+            else if (y >= 100 && y < 140 && pt.x > 132) p.swing = 0.5f + 0.25f * juce::jlimit (0.0f, 1.0f, (pt.x - 140) / 144.0f);
+            else if (y >= 152 && y < 182 && pt.x > 140) p.countIn = pt.x > 212;
             if (beats != p.beats || unit != p.unit) ctx.engine.setTimeSignature (beats, unit);
             ctx.markDirty();
             repaint();
