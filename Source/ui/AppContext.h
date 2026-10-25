@@ -62,7 +62,9 @@ struct AppContext
 
     // ---- undo / redo of sequence edits: a snapshot of a pattern's tracks (and length) before each edit
     struct PatternSnap { int pattern = 0; std::array<Track, kTracks> tracks; int lengthBars = 1, stepRes = 1; };
-    std::vector<PatternSnap> undoStack, redoStack;
+    // an undo step holds the patterns an edit touched (one, or all of them for a scale change)
+    using UndoStep = std::vector<PatternSnap>;
+    std::vector<UndoStep> undoStack, redoStack;
     PatternSnap capture (int pattern) const
     {
         const auto& pt = engine.project().patterns[(size_t) pattern];
@@ -78,30 +80,27 @@ struct AppContext
         pt.lengthBars = snap.lengthBars; pt.stepRes = snap.stepRes;
         for (int t = 0; t < kTracks; ++t) pt.slots[(size_t) t].track = snap.tracks[(size_t) t];
     }
-    /** Call before changing a pattern's notes, steps, lanes or length (once per gesture). */
-    void snapshot (int pattern)
+    void pushUndo (UndoStep step)
     {
-        undoStack.push_back (capture (pattern));
+        undoStack.push_back (std::move (step));
         if (undoStack.size() > 64) undoStack.erase (undoStack.begin());
         redoStack.clear();
         markDirty();
     }
-    bool undo()
+    /** Call before changing a pattern's notes, steps, lanes or length (once per gesture). */
+    void snapshot (int pattern) { pushUndo ({ capture (pattern) }); }
+    /** Before an edit of every pattern (a scale change moving the notes). */
+    void snapshotAll() { UndoStep s; for (int p = 0; p < kPatterns; ++p) s.push_back (capture (p)); pushUndo (std::move (s)); }
+    bool undo() { return swapStep (undoStack, redoStack); }
+    bool redo() { return swapStep (redoStack, undoStack); }
+    bool swapStep (std::vector<UndoStep>& from, std::vector<UndoStep>& to)
     {
-        if (undoStack.empty()) return false;
-        redoStack.push_back (capture (undoStack.back().pattern));
-        restore (undoStack.back());
-        undoStack.pop_back();
-        markDirty();
-        if (onSequenceRestored) onSequenceRestored();
-        return true;
-    }
-    bool redo()
-    {
-        if (redoStack.empty()) return false;
-        undoStack.push_back (capture (redoStack.back().pattern));
-        restore (redoStack.back());
-        redoStack.pop_back();
+        if (from.empty()) return false;
+        UndoStep back;
+        for (auto& s : from.back()) back.push_back (capture (s.pattern));
+        to.push_back (std::move (back));
+        for (auto& s : from.back()) restore (s);
+        from.pop_back();
         markDirty();
         if (onSequenceRestored) onSequenceRestored();
         return true;

@@ -1,5 +1,6 @@
 #include "Tests.h"
 #include "app/MainComponent.h"
+#include "seq/ScaleTranspose.h"
 
 using namespace mb;
 using namespace mb::ui;
@@ -309,4 +310,47 @@ MB_TEST (menus_open_at_their_button)
     ctx.check (found && area == pill, "the menu opens at the pill (" + pill.toString() + " / " + area.toString() + ")");
     juce::PopupMenu::dismissAllActiveMenus();
     mc.removeFromDesktop();
+}
+
+/** Changing the scale moves the notes: a new root shifts (C → F up a fourth), a new mode keeps degrees
+    (Phrygian D♭ → Minor D), chromatic changes nothing, drums stay; one undo step restores every pattern. */
+MB_TEST (scale_change_transposes)
+{
+    Engine e;
+    e.prepare (48000.0, 512);
+    e.setDevice (0, 0, createDevice (DeviceType::Poly));
+    e.setDevice (0, 1, createDevice (DeviceType::Drums));
+    e.setDevice (1, 0, createDevice (DeviceType::Poly));
+    MainComponent mc (e);
+    auto& p = e.project();
+    auto& steps = p.patterns[0].slots[0].track.steps;
+    steps[0].addNote (60); steps[0].addNote (61); steps[0].addNote (67);   // C, D♭, G
+    ClipNote c; c.start = 0; c.length = 480; c.note = 63; c.vel = 100;   // E♭ in a clip of pattern B
+    p.patterns[1].slots[0].track.addClipNote (c);
+    auto& drum = p.patterns[0].slots[1].track.lanes[0][0];
+    drum.on = true;
+    auto isDrum = [&] (int pt, int t) { auto* d = e.device (pt, t); return d == nullptr || d->laneCount() > 0; };
+    auto notes = [&] { juce::String s; for (int i = 0; i < steps[0].noteCount; ++i) s << (int) steps[0].notes[i] << " "; return s.trim(); };
+    const int phr = 3, minor = 6;
+    ScaleSettings from; from.root = 0; from.scale = phr;
+    ScaleSettings to = from; to.root = 5;
+    ctx.check (scaletranspose::project (p, from, to, isDrum) && notes() == "65 66 72", "C Phrygian → F Phrygian: up a fourth (" + notes() + ")");
+    ScaleSettings back = to; back.root = 0;
+    scaletranspose::project (p, to, back, isDrum);
+    ctx.check (notes() == "60 61 67", "F → C: down a fourth, not up a fifth (" + notes() + ")");
+    mc.context().snapshotAll();
+    ScaleSettings cmin = back; cmin.scale = minor;
+    scaletranspose::project (p, back, cmin, isDrum);
+    ctx.check (notes() == "60 62 67", "C Phrygian → C Minor: D♭ becomes D (" + notes() + ")");
+    ctx.check (p.patterns[1].slots[0].track.clip[0].note == 63, "E♭ is in both: it stays");
+    ScaleSettings fmin = cmin; fmin.root = 5;
+    scaletranspose::project (p, back, fmin, isDrum);   // C Phrygian → F Minor from the restored notes below
+    ScaleSettings chrom = fmin; chrom.scale = 0;
+    ctx.check (! scaletranspose::project (p, fmin, chrom, isDrum), "to Chromatic: no change");
+    ctx.check (drum.on && p.patterns[0].slots[1].track.lanes[0][0].on, "drum lanes untouched");
+    ctx.check (mc.context().undo() && notes() == "60 61 67" && p.patterns[1].slots[0].track.clip[0].note == 63, "one undo restores every pattern");
+    scaletranspose::project (p, back, fmin, isDrum);
+    ctx.check (notes() == "65 67 72", "C Phrygian → F Minor: up a fourth and the minor second (" + notes() + ")");
+    ctx.check (scaletranspose::note (62, 0, { 0, 1, 3, 5, 7, 8, 10 }, 0, { 0, 2, 3, 5, 7, 8, 10 }) == 63,
+               "an off-scale note keeps its distance from the degree below");
 }

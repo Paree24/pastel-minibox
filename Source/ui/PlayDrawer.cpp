@@ -1,5 +1,6 @@
 #include "PlayDrawer.h"
 #include "seq/Scales.h"
+#include "seq/ScaleTranspose.h"
 
 namespace mb::ui
 {
@@ -278,6 +279,19 @@ void PlayDrawer::paint (juce::Graphics& g)
     fb.paint (g);
 }
 
+void PlayDrawer::moveNotes (const ScaleSettings& before)
+{
+    const auto after = ctx.engine.project().scale;
+    auto isDrum = [this] (int p, int t) { auto* d = ctx.engine.device (p, t); return d == nullptr || d->laneCount() > 0; };
+    const auto& facts = Scales::factoryScales();
+    if (before.root == after.root && before.scale == after.scale) return;
+    if (facts[(size_t) std::clamp (before.scale, 0, (int) facts.size() - 1)].intervals.size() >= 12
+        || facts[(size_t) std::clamp (after.scale, 0, (int) facts.size() - 1)].intervals.size() >= 12) return;   // chromatic: nothing moves
+    ctx.snapshotAll();
+    const Engine::ScopedEdit ed (ctx.engine);
+    scaletranspose::project (ctx.engine.project(), before, after, isDrum);
+}
+
 void PlayDrawer::chooseScale()
 {
     juce::PopupMenu m;
@@ -285,7 +299,13 @@ void PlayDrawer::chooseScale()
     for (int i = 0; i < (int) facts.size(); ++i) m.addItem (i + 1, facts[(size_t) i].name, true, i == ctx.engine.project().scale.scale);
     m.showMenuAsync (menuAt (*this, menuArea).withMaximumNumColumns (3), [this] (int id)
     {
-        if (id > 0) { ctx.engine.project().scale.scale = id - 1; ctx.markDirty(); repaint(); }
+        if (id <= 0) return;
+        auto& sc = ctx.engine.project().scale;
+        const auto before = sc;
+        sc.scale = id - 1;
+        moveNotes (before);   // the notes follow the new mode, degree for degree
+        ctx.markDirty();
+        repaint();
     });
 }
 
@@ -328,7 +348,13 @@ void PlayDrawer::mouseUp (const juce::MouseEvent& e)
     const auto& id = z->id;
     if (id == "close") { if (onClose) onClose(); return; }
     if (id == "lock") sc.lock = ! sc.lock;
-    else if (id == "root") { sc.root = z->a; sc.lock = true; }
+    else if (id == "root")
+    {
+        // a new root: the notes move with the scale (one undo step)
+        const auto before = sc;
+        sc.root = z->a; sc.lock = true;
+        moveNotes (before);
+    }
     else if (id == "scale") { chooseScale(); return; }
     else if (id == "snap") sc.snap = z->a;
     else if (id == "white") sc.whiteKeys = ! sc.whiteKeys;

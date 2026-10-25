@@ -20,6 +20,8 @@ private:
     PlaySettings& play();
     juce::Rectangle<float> box (int i) const;
     void chooseScale();
+    /** The project's scale changed from `before`: every melodic note moves with it (one undo step). */
+    void moveNotes (const ScaleSettings& before);
     void chooseChord (int degree);
     void chooseRate();
     juce::String chordName (int degree, int& count) const;
