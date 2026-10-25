@@ -120,9 +120,8 @@ MB_TEST (midi_learn)
         MidiMap map;
         const auto files = MidiMap::factoryMaps();
         ctx.check (files.size() >= 1 && map.load (files[0]) && map.mappings.size() > 30, "the factory controller map loads");
-        ctx.check (map.filter (kMid, cc (74, 10)) && map.filter (kMid, juce::MidiMessage::noteOn (10, 36, 1.0f))
-                       && ! map.filter (kMid, juce::MidiMessage::noteOn (1, 36, 1.0f)),
-                   "its knobs and pads (performance effects) are mapped; the keys play");
+        ctx.check (map.filter (kMid, cc (74, 10)) && ! map.filter (kMid, juce::MidiMessage::noteOn (1, 36, 1.0f)) && map.fxKeysBase.load() == 36,
+                   "its knobs are mapped; pads and keys play (FX keys from note 36)");
         ctx.check (map.filter (kDaw, juce::MidiMessage::pitchWheel (1, 8192)), "its DAW faders are mapped");
     }
     MidiMap::currentFileOverride() = juce::File();

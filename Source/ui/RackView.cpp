@@ -1,5 +1,6 @@
 #include "RackView.h"
 #include "efx/MasterFx.h"
+#include "model/MidiMap.h"
 #include "app/presets/PresetBank.h"
 #include "EditorView.h"
 
@@ -271,7 +272,20 @@ void MasterRow::paint (juce::Graphics& g)
     }
     // performance effects: on while a pad is held (mouse, keys 1–8, the controller's pads)
     paint::text (g, "PERFORM", padR[0].getX(), 18, 10, Weight::Black, col::quiet);
-    paint::text (g, "hold a pad", padR[3].getRight(), 18, 10, Weight::Bold, col::faint, juce::Justification::right);
+    // FX keys: while on, 8 notes from any controller hold the effects (click: on / off; right-click: the first note)
+    {
+        const auto* map = ctx.midiMap;
+        const bool on = map != nullptr && map->fxKeysOn.load(), learning = map != nullptr && map->fxKeysLearning.load();
+        const int base = map != nullptr ? map->fxKeysBase.load() : 36;
+        const auto range = juce::MidiMessage::getMidiNoteName (base, true, true, 4) + juce::String (juce::CharPointer_UTF8 ("\xe2\x80\x93"))
+                         + juce::MidiMessage::getMidiNoteName (base + 7, true, true, 4);
+        const auto label = learning ? juce::String ("Press a pad or key") : "FX keys  " + range;
+        const float right = padR[3].getRight();
+        const float pw = paint::pill (g, right, 6, label, 10, on || learning ? col::pattern : col::control, on || learning ? col::bg : col::quiet,
+                                      18, 9, on ? Weight::Black : Weight::Bold, false, juce::Justification::right);
+        fxKeysR = { right - pw, 6, pw, 18 };
+        fb.hot (fxKeysR, 9);
+    }
     for (int i = 0; i < kPerformFx; ++i)
     {
         const auto r = padR[(size_t) i];
@@ -323,6 +337,30 @@ void MasterRow::mouseUp (const juce::MouseEvent& e)
     {
         return std::make_unique<KnobView> (std::make_unique<FloatBinding> (v, lo, hi, def, f, false, &ctx), lab, col::pattern, 18.0f, true);
     };
+    if (fxKeysR.contains (e.position) && ctx.midiMap != nullptr)
+    {
+        auto* map = ctx.midiMap;
+        if (! e.mods.isRightButtonDown())
+        {
+            if (map->fxKeysLearning.exchange (false)) { repaint(); return; }
+            if (ctx.setFxKeys) ctx.setFxKeys (! map->fxKeysOn.load());
+            repaint();
+            return;
+        }
+        juce::PopupMenu m;
+        m.addSectionHeader ("FX keys: 8 notes from your controller hold the effects");
+        m.addItem (1, "FX keys on", true, map->fxKeysOn.load());
+        m.addItem (2, "Set the first note: press a pad or key...");
+        m.addItem (3, "First note back to " + juce::MidiMessage::getMidiNoteName (36, true, true, 4), map->fxKeysBase.load() != 36);
+        m.showMenuAsync (menuAt (*this, fxKeysR), [this, map] (int r)
+        {
+            if (r == 1 && ctx.setFxKeys) ctx.setFxKeys (! map->fxKeysOn.load());
+            if (r == 2) map->fxKeysLearning = true;
+            if (r == 3) { map->fxKeysBase = 36; map->changed(); }
+            repaint();
+        });
+        return;
+    }
     if (effectsR.contains (e.position)) { if (ctx.onMasterFx) ctx.onMasterFx (false, 0); }
     else if (e.mods.isRightButtonDown())
     {
@@ -357,6 +395,7 @@ void MasterRow::refresh()
     juce::String s;
     for (int i = 0; i < kPerformFx; ++i) s << (ctx.masterFx != nullptr && ctx.masterFx->isHeld (i) ? 1 : 0);
     for (const auto& fx : ctx.engine.project().masterFx) s << fx.effect << (int) fx.bypass;
+    if (ctx.midiMap != nullptr) s << (int) ctx.midiMap->fxKeysOn.load() << (int) ctx.midiMap->fxKeysLearning.load() << ctx.midiMap->fxKeysBase.load();
     if (s != shown) { shown = s; repaint(); }
     repaint (juce::Rectangle<int> ((int) (1160 + extra * 0.75f), 0, (int) (230 + extra * 0.25f), getHeight()));
 }

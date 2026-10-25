@@ -61,6 +61,7 @@ juce::String learnTargetName (AppContext& ctx, const juce::String& target)
     if (target == "tempo") return "Tempo";
     if (target == "swing") return "Swing";
     if (target.startsWith ("perform:")) return juce::String ("Perform") + dot + MasterFx::padName (target.getTrailingIntValue());
+    if (target == "fxkeys") return "FX keys on / off";
     const auto kind = target.upToFirstOccurrenceOf (":", false, false);
     const auto rest = target.fromLastOccurrenceOf (":", false, false);
     if (kind == "master") return "Master" + dot + rest.substring (0, 1).toUpperCase() + rest.substring (1);
@@ -104,6 +105,21 @@ std::unique_ptr<Binding> learnBinding (AppContext& ctx, const juce::String& targ
             int steps() const override { return 2; }
         };
         return std::make_unique<PerformBinding> (ctx, juce::jlimit (0, kPerformFx - 1, target.getTrailingIntValue()));
+    }
+    if (target == "fxkeys")
+    {
+        // FX keys: Toggle on a button, or Momentary on a pedal / held button (FX keys while it is down)
+        struct FxKeysBinding : Binding
+        {
+            AppContext& c;
+            explicit FxKeysBinding (AppContext& cx) : c (cx) {}
+            float getNorm() const override { return c.midiMap != nullptr && c.midiMap->fxKeysOn.load() ? 1.0f : 0.0f; }
+            void setNorm (float v) override { if (c.setFxKeys) c.setFxKeys (v > 0.5f); }
+            float defaultNorm() const override { return 0.0f; }
+            juce::String text() const override { return getNorm() > 0.5f ? "On" : "Off"; }
+            int steps() const override { return 2; }
+        };
+        return std::make_unique<FxKeysBinding> (ctx);
     }
     if (target == "swing")
         return std::make_unique<FloatBinding> (&proj.swing, 0.5f, 0.75f, 0.5f, [] (float v) { return juce::String (juce::roundToInt (v * 100)) + "%"; }, false, &ctx);
@@ -454,6 +470,8 @@ juce::PopupMenu learnTargetMenu (AppContext& ctx, std::vector<juce::String>& ids
     item (m, "swing", "Swing");
     juce::PopupMenu perform;
     for (int i = 0; i < kPerformFx; ++i) item (perform, "perform:" + juce::String (i), juce::String (i + 1) + "  " + MasterFx::padName (i) + " (hold)");
+    perform.addSeparator();
+    item (perform, "fxkeys", "FX keys on / off (a button: Toggle; a pedal: Momentary)");
     m.addSubMenu ("Performance effects", perform);
     for (auto& [id, name] : learnActions()) item (actions, "action:" + id, name);
     m.addSubMenu ("Actions", actions);

@@ -35,4 +35,4 @@ add, remove). Built from the controller's documented factory user-preset CCs; ch
 - **DAW mode (DAW port, Mackie protocol):** Play, Stop, Record, Rewind (back to start), Fast-forward (next bar),
   Metro, Save, Undo; track ◀ ▶ → previous / next instrument, bank ◀ ▶ → previous / next preset; encoders
   (CC 16–23, relative) → macros 1–8; faders 1–8 → track levels, master fader → volume.
-- Pads 1–8 (channel 10, notes 36–43) hold the performance effects (docs/master-fx.md); the keys (channel 1) play the selected instrument.
+- Pads and keys play the selected instrument. The pads send notes 36–43 on the keys' channel, so with **FX keys** on (docs/master-fx.md) they hold the performance effects instead.

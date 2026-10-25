@@ -92,11 +92,22 @@ public:
     static juce::Array<juce::File> factoryMaps();
     void changed (bool persist = true);
 
+    // ---- FX keys (docs/master-fx.md): while on, 8 notes from any input, from fxKeysBase up, hold the performance
+    // effects instead of playing (for controllers whose pads send the same notes as the keys). Saved with the map.
+    std::atomic<bool> fxKeysOn { false };
+    std::atomic<int> fxKeysBase { 36 };
+    /** The next note-on from any input becomes the first FX key (and turns FX keys on). */
+    std::atomic<bool> fxKeysLearning { false };
+    /** MIDI thread: an FX key went down / up (index 0–7). Null (the plugin): FX keys are off. */
+    std::function<void (int index, bool down)> onFxKey;
+    void setFxKeys (bool on);   // message thread (saved)
+
     /** Converts a CC / note / pitch-bend message for a mapping into what it asks of the target. */
     static bool control (MidiMapping&, const juce::MidiMessage&, MidiControl&);
 
 private:
-    void handleAsyncUpdate() override { dispatch(); }
+    void handleAsyncUpdate() override { if (fxKeysChanged.exchange (false)) changed(); dispatch(); }
+    std::atomic<bool> fxKeysChanged { false };
     void publish();   // copies the match keys for the MIDI thread
     void learn (const juce::String& port, const juce::MidiMessage&);
 

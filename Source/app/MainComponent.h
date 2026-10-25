@@ -52,7 +52,7 @@ public:
     bool learnOpen() const { return learnDrawer.isVisible(); }
     /** Master effects drawer (docs/master-fx.md): the chain, or the pads' effects. */
     void showMasterFx (bool on, bool pads = false, int index = 0);
-    /** A controller map saved from a shipped map before its performance pads existed gets the pads' mappings. */
+    /** Removes the KeyLab pad mappings (channel 10) a short-lived shipped map added: the pads use FX keys. */
     static void upgradeControllerMap (MidiMap&);
     bool masterFxOpen() const { return masterFxDrawer.isVisible(); }
     MasterFx& masterEffects() { return masterFx; }

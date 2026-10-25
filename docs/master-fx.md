@@ -24,21 +24,26 @@ The strip's **Effects** button shows a dot per slot in use, in its category's co
 
 Eight pads on the MASTER strip, on only while held:
 
-| Pad | Key | KeyLab pad | Effect (EFX Grid) | Held setting |
+| Pad | Key | FX key | Effect (EFX Grid) | Held setting |
 |---|---|---|---|---|
-| Stutter | 1 | 1 | Stutter | 1/16 repeats of the slice caught at the press, held |
-| Glitch | 2 | 2 | Glitch | Wild, full density |
-| Shuffle | 3 | 3 | Buffer Shuffler | its Shuffle macro |
-| Slicer | 4 | 4 | Slicer | short Euclidean gate |
-| Crush | 5 | 5 | Bitcrusher | 4 bits, 2.5 kHz |
-| Filter | 6 | 6 | Multimode Filter | low-pass at 200 Hz, resonant |
-| Drive | 7 | 7 | Soft Clip Drive | +30 dB drive, −6 dB out |
-| Reverse | 8 | 8 | Reverse | each slice backwards, fully wet |
+| Stutter | 1 | first + 0 |  Stutter | 1/16 repeats of the slice caught at the press, held |
+| Glitch | 2 | first + 1 |  Glitch | Wild, full density |
+| Shuffle | 3 | first + 2 |  Buffer Shuffler | its Shuffle macro |
+| Slicer | 4 | first + 3 |  Slicer | short Euclidean gate |
+| Crush | 5 | first + 4 |  Bitcrusher | 4 bits, 2.5 kHz |
+| Filter | 6 | first + 5 |  Multimode Filter | low-pass at 200 Hz, resonant |
+| Drive | 7 | first + 6 |  Soft Clip Drive | +30 dB drive, −6 dB out |
+| Reverse | 8 | first + 7 |  Reverse | each slice backwards, fully wet |
 
-- Hold with the mouse, the keys 1–8 (rebindable in Settings ▸ Keyboard), the KeyLab's pads, or any button mapped to
-  `Performance effects` in MIDI learn (Momentary). Several can be held together.
+- Hold with the mouse, the keys 1–8 (rebindable in Settings ▸ Keyboard), **FX keys**, or any controller control
+  mapped to `Performance effects` in MIDI learn (Momentary). Several can be held together.
+- **FX keys** (the PERFORM header's toggle, Ctrl+Shift+K, or a learnable button / pedal: `Performance effects ▸ FX keys`):
+  while on, 8 notes from any controller (any input, any channel) hold the effects instead of playing; every other
+  note plays. It works with any keyboard, including controllers whose pads send the same notes as the keys (the
+  KeyLab Essential's pads send notes 36–43 on the keys' channel). The first note is 36 (C2) by default;
+  right-click the toggle ▸ *Set the first note* and press a pad or key to move it. Saved with the controller map.
+- Controllers whose pads or buttons send something of their own (another channel, port or a CC) can map each effect
+  directly in MIDI learn instead.
 - A press starts the effect fresh (Stutter repeats what plays at that moment); a release fades it out in a few ms.
 - Effects follow the tempo; their grid starts with Play.
 - Tune a pad: right-click it (or the drawer's **Pads** view): its controls and mix; **Reset** restores the pad's settings.
-- KeyLab Essential 49 mk2: the pads send notes 36–43 on channel 10, the keys play on channel 1, so the keys
-  stay notes even on the same pitches. A map saved before the pads existed gets them when the app starts.

@@ -122,6 +122,7 @@ Shortcuts::Shortcuts()
         add (perform0 + i, "Hold performance effect " + juce::String (i + 1) + " (" + juce::String (i == 0 ? "Stutter" : i == 1 ? "Glitch" : i == 2 ? "Shuffle" : i == 3 ? "Slicer" : i == 4 ? "Crush" : i == 5 ? "Filter" : i == 6 ? "Drive" : "Reverse") + ")",
              "Performance effects (held)", { key ('1' + i) });
     add (masterEffects, "Master effects (the chain and the pads' effects)", "Pages and drawers", { key ('F', ctrl | shift) });
+    add (fxKeys, "FX keys on / off (8 notes from a controller hold the performance effects)", "Performance effects (held)", { key ('K', ctrl | shift) });
     load();
 }
 

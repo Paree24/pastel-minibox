@@ -16,6 +16,15 @@ MainComponent::MainComponent (Engine& e)
 {
     // the groovebox's master and performance effects (the plugin has none)
     ctx.masterFx = &masterFx;
+    ctx.midiMap = &map;
+    // FX keys: 8 notes from any controller hold the performance effects while the mode is on (MIDI thread)
+    map.onFxKey = [this] (int i, bool down) { masterFx.setHeld (i, down); };
+    ctx.setFxKeys = [this] (bool on)
+    {
+        if (! on) for (int i = 0; i < kPerformFx; ++i) masterFx.setHeld (i, false);
+        map.fxKeysLearning = false;
+        map.setFxKeys (on);
+    };
     masterFx.sync();
     engine.setMasterInsert (&masterFx);
     ctx.onMasterFx = [this] (bool pads, int index)
@@ -149,18 +158,14 @@ void MainComponent::showPage (int page, int track)
 
 void MainComponent::upgradeControllerMap (MidiMap& m)
 {
-    // a map saved from a shipped one before its performance pads existed gets them (nothing else is touched)
-    for (auto& f : MidiMap::factoryMaps())
+    // a short-lived KeyLab map sent the pads' notes 36–43 on channel 10 to the performance effects, but the KeyLab's
+    // pads send the keys' channel: those mappings go (FX keys does the job for any controller)
+    for (int i = (int) m.mappings.size(); --i >= 0;)
     {
-        MidiMap shipped;
-        if (! shipped.fromVar (juce::JSON::parse (f)) || shipped.name != m.name) continue;
-        for (auto& sm : shipped.mappings)
-        {
-            if (! sm.target.startsWith ("perform:")) continue;
-            bool taken = false;
-            for (auto& mm : m.mappings) taken = taken || mm.target == sm.target || mm.sameSource (sm);
-            if (! taken) m.add (sm);   // published to the MIDI thread and saved
-        }
+        const auto& mp = m.mappings[(size_t) i];
+        if (mp.target.startsWith ("perform:") && mp.kind == MidiMapping::Kind::Note && mp.channel == 10
+            && mp.number == 36 + mp.target.getTrailingIntValue() && mp.label == "Pad " + juce::String (mp.target.getTrailingIntValue() + 1))
+            m.remove (i);
     }
 }
 
@@ -657,6 +662,7 @@ void MainComponent::runCommand (juce::CommandID id)
         case cmd::exportDawProject: this->exportDawProject(); break;
         case cmd::recordSettings: topBar.showRecording(); break;
         case cmd::masterEffects: showMasterFx (! masterFxOpen()); break;
+        case cmd::fxKeys: ctx.setFxKeys (! map.fxKeysOn.load()); break;
         case cmd::importMidi: this->importMidi(); break;
         case cmd::settings: showSettings(); break;
         case cmd::playStop: if (engine.isPlaying()) engine.stop(); else engine.play(); break;

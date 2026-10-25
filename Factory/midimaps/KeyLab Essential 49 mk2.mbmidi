@@ -3,7 +3,7 @@
  "version": 1,
  "name": "KeyLab Essential 49 mk2",
  "detect": "KeyLab Essential 49",
- "notes": "User mode (MID port): knobs 1-8 = macros of the selected instrument, knob 9 = its pan, faders 1-8 = track levels 1-8, master fader = volume. DAW mode (DAW port, Mackie): transport, Save, Undo, Metro, Part / bank buttons = instrument / preset, encoders = macros, faders 1-8 = levels. Pads 1-8 (channel 10, notes 36-43; the keys play on channel 1, so they stay notes) hold the performance effects: Stutter, Glitch, Shuffle, Slicer, Crush, Filter, Drive, Reverse.",
+ "notes": "User mode (MID port): knobs 1-8 = macros of the selected instrument, knob 9 = its pan, faders 1-8 = track levels 1-8, master fader = volume. DAW mode (DAW port, Mackie): transport, Save, Undo, Metro, Part / bank buttons = instrument / preset, encoders = macros, faders 1-8 = levels. Pads 1-8 send notes 36-43 on the keys' channel: turn FX keys on (the PERFORM toggle, Ctrl+Shift+K) and they hold the performance effects; off, they play.",
  "mappings": [
   {
    "type": "cc",
@@ -418,78 +418,7 @@
    "target": "action:preset-next",
    "mode": "trigger",
    "label": "Bank right"
-  },
-  {
-   "type": "note",
-   "channel": 10,
-   "number": 36,
-   "port": "KeyLab Essential 49 MID",
-   "target": "perform:0",
-   "mode": "momentary",
-   "label": "Pad 1"
-  },
-  {
-   "type": "note",
-   "channel": 10,
-   "number": 37,
-   "port": "KeyLab Essential 49 MID",
-   "target": "perform:1",
-   "mode": "momentary",
-   "label": "Pad 2"
-  },
-  {
-   "type": "note",
-   "channel": 10,
-   "number": 38,
-   "port": "KeyLab Essential 49 MID",
-   "target": "perform:2",
-   "mode": "momentary",
-   "label": "Pad 3"
-  },
-  {
-   "type": "note",
-   "channel": 10,
-   "number": 39,
-   "port": "KeyLab Essential 49 MID",
-   "target": "perform:3",
-   "mode": "momentary",
-   "label": "Pad 4"
-  },
-  {
-   "type": "note",
-   "channel": 10,
-   "number": 40,
-   "port": "KeyLab Essential 49 MID",
-   "target": "perform:4",
-   "mode": "momentary",
-   "label": "Pad 5"
-  },
-  {
-   "type": "note",
-   "channel": 10,
-   "number": 41,
-   "port": "KeyLab Essential 49 MID",
-   "target": "perform:5",
-   "mode": "momentary",
-   "label": "Pad 6"
-  },
-  {
-   "type": "note",
-   "channel": 10,
-   "number": 42,
-   "port": "KeyLab Essential 49 MID",
-   "target": "perform:6",
-   "mode": "momentary",
-   "label": "Pad 7"
-  },
-  {
-   "type": "note",
-   "channel": 10,
-   "number": 43,
-   "port": "KeyLab Essential 49 MID",
-   "target": "perform:7",
-   "mode": "momentary",
-   "label": "Pad 8"
   }
- ]
+ ],
+ "fxKeysBase": 36
 }

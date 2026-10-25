@@ -122,20 +122,26 @@ MB_TEST (master_fx_saved_with_project)
     f.deleteFile();
 }
 
-/** The controller's pads hold the performance effects (KeyLab: pads on channel 10, notes 36–43); the keys play the
-    same notes on channel 1 and stay notes. A map saved before the pads existed gets them. */
-MB_TEST (master_fx_controller_pads)
+/** FX keys: off, every note plays; on, 8 notes from any controller (any channel) hold the effects and the rest play.
+    The first note is learnt from the next note. The KeyLab pad mappings a short-lived map added are removed. */
+MB_TEST (master_fx_keys)
 {
-    // an old copy of the shipped KeyLab map: without the pads
-    const auto factory = MidiMap::factoryMaps();
-    juce::File keylab;
-    for (auto& f : factory) if (f.getFileName().contains ("KeyLab")) keylab = f;
-    ctx.check (keylab.existsAsFile(), "the shipped KeyLab map");
-    auto v = juce::JSON::parse (keylab);
-    auto* list = v["mappings"].getArray();
-    for (int i = list->size(); --i >= 0;) if ((*list)[i]["target"].toString().startsWith ("perform:")) list->remove (i);
+    // a saved map from the short-lived KeyLab version: pads on channel 10 → the effects
     const auto old = juce::File::getSpecialLocation (juce::File::tempDirectory).getChildFile ("minibox-old-keylab.mbmidi");
-    old.replaceWithText (juce::JSON::toString (v));
+    {
+        MidiMap m;
+        m.name = "KeyLab Essential 49 mk2";
+        for (int i = 0; i < 8; ++i)
+        {
+            MidiMapping mp;
+            mp.kind = MidiMapping::Kind::Note; mp.channel = 10; mp.number = 36 + i; mp.port = "KeyLab Essential 49 MID";
+            mp.target = "perform:" + juce::String (i); mp.mode = MidiMapping::Mode::Momentary; mp.label = "Pad " + juce::String (i + 1);
+            m.mappings.push_back (mp);
+        }
+        MidiMapping knob; knob.kind = MidiMapping::Kind::CC; knob.number = 74; knob.target = "macro:sel:0"; knob.label = "Knob 1";
+        m.mappings.push_back (knob);
+        m.save (old);
+    }
     MidiMap::currentFileOverride() = old;
     Engine e;
     e.prepare (48000.0, 512);
@@ -143,17 +149,28 @@ MB_TEST (master_fx_controller_pads)
         MainComponent mc (e);
         auto& map = mc.midiMap();
         int pads = 0;
-        for (auto& m : map.mappings) pads += m.target.startsWith ("perform:") && m.channel == 10 && m.mode == MidiMapping::Mode::Momentary;
-        ctx.check (pads == 8, "the saved map got the 8 pads (" + juce::String (pads) + ")");
+        for (auto& m : map.mappings) pads += m.target.startsWith ("perform:");
+        ctx.check (pads == 0 && map.mappings.size() == 1, "the old channel-10 pad mappings are gone, the knob stays");
         const juce::String port = "KeyLab Essential 49 MID";
-        ctx.check (map.filter (port, juce::MidiMessage::noteOn (10, 37, (juce::uint8) 100)), "pad 2 (channel 10) is taken by the map");
+        ctx.check (! map.filter (port, juce::MidiMessage::noteOn (1, 37, (juce::uint8) 100)), "FX keys off: the pad's note plays");
+        map.filter (port, juce::MidiMessage::noteOff (1, 37));
+        mc.context().setFxKeys (true);
+        ctx.check (map.filter (port, juce::MidiMessage::noteOn (1, 37, (juce::uint8) 100)) && mc.masterEffects().isHeld (1), "FX keys on: note 37 holds Glitch (channel 1)");
+        ctx.check (map.filter (port, juce::MidiMessage::noteOff (1, 37)) && ! mc.masterEffects().isHeld (1), "released: Glitch off");
+        ctx.check (map.filter ("Any keyboard", juce::MidiMessage::noteOn (5, 43, (juce::uint8) 90)) && mc.masterEffects().isHeld (7), "any input, any channel: note 43 holds Reverse");
+        map.filter ("Any keyboard", juce::MidiMessage::noteOff (5, 43));
+        ctx.check (! map.filter (port, juce::MidiMessage::noteOn (1, 60, (juce::uint8) 100)), "notes outside the 8 still play");
+        // learn the first note from the next note
+        map.fxKeysLearning = true;
+        ctx.check (map.filter (port, juce::MidiMessage::noteOn (1, 48, (juce::uint8) 100)) && map.fxKeysBase.load() == 48, "the next note sets the first FX key (48)");
+        ctx.check (map.filter (port, juce::MidiMessage::noteOn (1, 50, (juce::uint8) 100)) && mc.masterEffects().isHeld (2), "now 50 holds Shuffle");
+        map.filter (port, juce::MidiMessage::noteOff (1, 50));
+        mc.context().setFxKeys (false);
+        ctx.check (! map.filter (port, juce::MidiMessage::noteOn (1, 50, (juce::uint8) 100)), "FX keys off: it plays again");
         map.dispatch();
-        ctx.check (mc.masterEffects().isHeld (1), "pad 2 holds Glitch");
-        map.filter (port, juce::MidiMessage::noteOff (10, 37));
-        map.dispatch();
-        ctx.check (! mc.masterEffects().isHeld (1), "released: Glitch off");
-        ctx.check (! map.filter (port, juce::MidiMessage::noteOn (1, 37, (juce::uint8) 100)), "the same note from the keys (channel 1) plays as a note");
     }
+    MidiMap reread;
+    ctx.check (reread.load (old) && reread.fxKeysBase.load() == 48 && ! reread.fxKeysOn.load(), "the first note and the mode are saved with the map");
     MidiMap::currentFileOverride() = juce::File();
     old.deleteFile();
 }

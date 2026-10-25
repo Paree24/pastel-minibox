@@ -49,7 +49,7 @@ private:
     AppContext& ctx;
     std::vector<std::unique_ptr<KnobView>> knobs;
     std::unique_ptr<FaderView> volume;
-    juce::Rectangle<float> delayR, reverbR, effectsR;
+    juce::Rectangle<float> delayR, reverbR, effectsR, fxKeysR;
     std::array<juce::Rectangle<float>, 8> padR;
     int pressedPad = -1;
     float extra = 0.0f;   // the width beyond the 16:10 layout

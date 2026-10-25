@@ -4,7 +4,7 @@
 #include <functional>
 #include <unordered_map>
 
-namespace mb { class MasterFx; }
+namespace mb { class MasterFx; class MidiMap; }
 
 namespace mb::ui
 {
@@ -29,7 +29,11 @@ struct AppContext
     const bool standalone;
     /** The groovebox's master and performance effects (null in the plugin) and the drawer that edits them. */
     MasterFx* masterFx = nullptr;
-    std::function<void (bool pads, int index)> onMasterFx;   // opens the drawer on a chain slot or a pad (toggles when already there)
+    std::function<void (bool pads, int index)> onMasterFx;
+    /** The controller map (null in the plugin): FX keys live there. */
+    MidiMap* midiMap = nullptr;
+    /** FX keys on / off (releases the effects the keys held). */
+    std::function<void (bool)> setFxKeys;   // opens the drawer on a chain slot or a pad (toggles when already there)
 
     int focusPattern() const { return engine.focusPattern.load(); }
     int focusTrack() const { return engine.focusTrack.load(); }

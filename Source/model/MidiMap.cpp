@@ -55,6 +55,21 @@ MidiMap::~MidiMap() { cancelPendingUpdate(); }
 
 bool MidiMap::filter (const juce::String& portName, const juce::MidiMessage& m)
 {
+    // FX keys: 8 notes hold the performance effects (any channel, any input) while the mode is on
+    if (onFxKey && (m.isNoteOn() || m.isNoteOff()))
+    {
+        const int n = m.getNoteNumber();
+        if (m.isNoteOn() && fxKeysLearning.exchange (false))
+        {
+            fxKeysBase = std::clamp (n, 0, 120);
+            fxKeysOn = true;
+            fxKeysChanged = true;
+            triggerAsyncUpdate();
+            return true;
+        }
+        const int base = fxKeysBase.load();
+        if (fxKeysOn.load() && n >= base && n < base + 8) { onFxKey (n - base, m.isNoteOn()); return true; }
+    }
     Src s;
     if (! sourceOf (m, s)) return false;
     bool mapped = false;
@@ -251,6 +266,12 @@ void MidiMap::changed (bool persist)
 }
 
 // ------------------------------------------------------------------------------------------- files
+void MidiMap::setFxKeys (bool on)
+{
+    fxKeysOn = on;
+    changed();
+}
+
 juce::var MidiMap::toVar() const
 {
     juce::Array<juce::var> list;
@@ -272,6 +293,8 @@ juce::var MidiMap::toVar() const
     auto* root = new juce::DynamicObject();
     root->setProperty ("format", "minibox-midimap");
     root->setProperty ("version", 1);
+    root->setProperty ("fxKeysOn", fxKeysOn.load());
+    root->setProperty ("fxKeysBase", fxKeysBase.load());
     root->setProperty ("name", name);
     root->setProperty ("mappings", list);
     return juce::var (root);
@@ -303,6 +326,8 @@ bool MidiMap::fromVar (const juce::var& v)
     }
     mappings = std::move (out);
     name = v.getProperty ("name", "Custom").toString();
+    fxKeysOn = (bool) v.getProperty ("fxKeysOn", false);
+    fxKeysBase = std::clamp ((int) v.getProperty ("fxKeysBase", 36), 0, 120);
     return true;
 }
 
