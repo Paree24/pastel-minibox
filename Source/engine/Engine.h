@@ -187,6 +187,10 @@ private:
     bool growAtEnd (int pattern) override;
     std::atomic<int> takeLastStep { -1 };            // audio thread: the last step the take's notes reach
     std::array<int, kPatterns> takeStartBars {};     // message thread: the lengths when the take started
+    // the recorded pattern's tracks as they were before the take (a clip form too): doubling copies the
+    // recorded track's earlier content into the new bars, never the take itself
+    std::array<Track, kTracks> takeBefore, takeBeforeClip;
+    int takePattern = -1;
     std::atomic<bool> takeOpen { false };
     void beginTake();   // message thread: record armed and playing (Play with record on, or record on while playing)
     void endTake();     // message thread: Stop or record off; trims what the take grew

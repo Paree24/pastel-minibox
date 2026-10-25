@@ -850,3 +850,28 @@ MB_TEST (record_knob_motion)
     ctx.check (point, "a macro turned on a piano-roll track writes its lane");
     e.setRecord (false);
 }
+
+/** Doubling during a take copies the recorded track's earlier content into the new bars, never the take; when
+    the take stops, the bars past its last note go, copies included. */
+MB_TEST (record_doubling_copies_pre_take_content)
+{
+    Rig rig (1);
+    auto& p = rig.e.project();
+    auto& tr = rig.track();
+    const int st = rig.stepT();
+    tr.pianoRoll = true;
+    ClipNote bass; bass.start = 0; bass.length = st * 4; bass.note = 36; tr.addClipNote (bass);   // there before the take
+    rig.e.setRecord (true);
+    rig.e.play();
+    rig.runTo (0.1);  rig.midi (1, 60, true); rig.runTo (12.0); rig.midi (1, 60, false);
+    rig.runTo (16.1); rig.midi (1, 62, true); rig.runTo (28.0); rig.midi (1, 62, false);
+    rig.runTo (70.0);   // on into bars 3–5 (the pattern doubles to 8)
+    auto count = [&] (int note, int bar) { int c = 0; for (auto& n : tr.clip) c += n.note == note && n.start / (16 * st) == bar; return c; };
+    ctx.check (p.patterns[0].lengthBars == 8, "recording: doubled to 8 bars (" + juce::String (p.patterns[0].lengthBars) + ")");
+    ctx.check (count (36, 1) == 1 && count (36, 2) == 1 && count (36, 5) == 1, "the bass that was there repeats into the new bars");
+    ctx.check (count (60, 1) == 0 && count (60, 4) == 0, "the take's own notes are not copied");
+    rig.e.stop(); rig.runTo (70.5);
+    ctx.check (p.patterns[0].lengthBars == 2, "stopped: 2 bars, the take's reach (" + juce::String (p.patterns[0].lengthBars) + ")");
+    ctx.check (count (36, 0) == 1 && count (36, 1) == 1 && count (62, 1) == 1 && count (36, 2) == 0 && count (36, 5) == 0,
+               "bar 2 holds the bass copy and the second chord; the copies past bar 2 are gone");
+}

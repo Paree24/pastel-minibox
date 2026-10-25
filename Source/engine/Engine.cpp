@@ -79,6 +79,13 @@ void Engine::beginTake()
         for (auto& sl : pt.slots)
             if (sl.track.pianoRoll) sl.track.clip.reserve (sl.track.clip.size() * (size_t) (kMaxBars + 1) + 256);   // doubling up to the longest
     for (int p = 0; p < kPatterns; ++p) takeStartBars[(size_t) p] = proj.patterns[(size_t) p].lengthBars;
+    takePattern = seq.activePattern;
+    for (int t = 0; t < kTracks; ++t)
+    {
+        takeBefore[(size_t) t] = proj.patterns[(size_t) takePattern].slots[(size_t) t].track;
+        takeBeforeClip[(size_t) t] = takeBefore[(size_t) t];
+        takeBeforeClip[(size_t) t].convertToPianoRoll (proj.stepTicks (takePattern), proj.patternSteps (takePattern));
+    }
     takeLastStep = -1;
     takeOpen = true;
 }
@@ -104,7 +111,22 @@ void Engine::endTake()
         const int reach = p == seq.activePattern && last >= 0 ? last / spb + 1 : 0;
         int bars = takeStartBars[(size_t) p];
         while (bars < reach && bars < pt.lengthBars) bars *= 2;
-        pt.lengthBars = std::clamp (bars, takeStartBars[(size_t) p], pt.lengthBars);
+        bars = std::clamp (bars, takeStartBars[(size_t) p], pt.lengthBars);
+        // the bars the take added past that go, with the copies made in them
+        const int stT = proj.stepTicks (p), from = bars * spb, to = pt.lengthBars * spb;
+        for (auto& sl : pt.slots)
+        {
+            auto& tr = sl.track;
+            for (int s = from; s < to && s < kMaxSteps; ++s)
+            {
+                tr.steps[(size_t) s].clear();
+                for (auto& lane : tr.lanes) lane[(size_t) s].clear();
+                for (auto& l : tr.locks) l.values[(size_t) s] = std::numeric_limits<float>::quiet_NaN();
+            }
+            tr.clip.erase (std::remove_if (tr.clip.begin(), tr.clip.end(), [&] (const ClipNote& n) { return n.start >= from * stT && n.start < to * stT; }), tr.clip.end());
+            tr.erasePoints (-1, from * stT, to * stT);
+        }
+        pt.lengthBars = bars;
     }
 }
 
@@ -130,8 +152,32 @@ bool Engine::growAtEnd (int pat)
     for (int nb = oldBars; nb < newBars; ++nb)
     {
         const int src = nb % oldBars;
-        if (t == rec) continue;
         auto& tr = pt.slots[(size_t) t].track;
+        if (t == rec)
+        {
+            // the recorded track: what it held before the take repeats into the new bar (the take is not copied)
+            if (pat != takePattern) continue;
+            const int startBars = std::max (1, takeStartBars[(size_t) pat]), sb = nb % startBars;
+            const auto& before = takeBefore[(size_t) t];
+            for (int i = 0; i < spb; ++i)
+            {
+                const auto from = (size_t) (sb * spb + i), to = (size_t) (nb * spb + i);
+                if (! tr.pianoRoll && before.steps[from].noteCount > 0) tr.steps[to] = before.steps[from];
+                for (size_t l = 0; l < tr.lanes.size(); ++l) if (before.lanes[l][from].on) tr.lanes[l][to] = before.lanes[l][from];
+                for (auto& bl : before.locks)
+                    if (! std::isnan (bl.values[from]))
+                        for (auto& l : tr.locks) if (l.param == bl.param) l.values[to] = bl.values[from];
+            }
+            if (tr.pianoRoll)
+                for (const auto& c : takeBeforeClip[(size_t) t].clip)
+                    if (c.start >= sb * barT && c.start < (sb + 1) * barT && tr.clip.size() < tr.clip.capacity())
+                    {
+                        auto n = c;
+                        n.start += (nb - sb) * barT;
+                        tr.addClipNote (n);
+                    }
+            continue;
+        }
         bool empty = true;
         for (int s = nb * spb; s < (nb + 1) * spb && empty; ++s)
         {
@@ -545,7 +591,11 @@ bool Engine::applyRecorded()
             auto& open = recOpen[(size_t) e.track][(size_t) (e.note & 127)];
             if (e.kind == RecEvent::On)
             {
-                if (! tr.pianoRoll) tr.convertToPianoRoll (proj.stepTicks (e.pattern), proj.patternSteps (e.pattern));
+                if (! tr.pianoRoll)
+                {
+                    tr.convertToPianoRoll (proj.stepTicks (e.pattern), proj.patternSteps (e.pattern));
+                    tr.clip.reserve (tr.clip.size() * (size_t) (kMaxBars + 1) + 256);   // room for doubling on the audio thread
+                }
                 ClipNote n;
                 n.start = e.tick; n.length = std::max (1, e.len > 0 ? e.len : proj.stepTicks (e.pattern) / 4);
                 n.note = (uint8_t) e.note; n.vel = (uint8_t) std::clamp (e.vel, 1, 127);
