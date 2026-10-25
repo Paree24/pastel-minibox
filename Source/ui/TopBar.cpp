@@ -65,6 +65,8 @@ void TopBar::paint (juce::Graphics& g)
     }
     paint::text (g, "STEP", 372, 59, 8, Weight::Black, step ? col::record : col::faint, juce::Justification::horizontallyCentred);
     zone ({ 355, 13, 34, 34 }, "recstep", "Step record: each key or chord is written at the cursor, which then moves on (Ctrl+Shift+R)");
+    paint::chevron (g, 395.5f, 31, 7, col::quiet, 'd');
+    zone ({ 389, 20, 13, 24 }, "recmenu", "Recording settings: Live / Step, Extend / Overdub, count-in, quantize, step length (Alt+R)");
     g.setColour (col::control); g.fillEllipse (420 - 18, 32 - 18, 36, 36);
     g.setColour (col::divider); g.drawEllipse (420 - 21, 32 - 21, 42, 42, 2.5f);
     if (playing)
@@ -213,12 +215,132 @@ void TopBar::tap()
     }
 }
 
+
 namespace
 {
 // the time signature panel: the common signatures first (one click), then beats and unit for any other
 constexpr int kCommon[6][2] = { { 4, 4 }, { 3, 4 }, { 5, 4 }, { 6, 8 }, { 7, 8 }, { 12, 8 } };
 constexpr int kY = 56;   // the rows below the common ones
+// the recording popover's quantize strengths
+constexpr float kQuant[4] = { 0.0f, 0.5f, 0.75f, 1.0f };
 } // namespace
+
+std::unique_ptr<juce::Component> TopBar::createRecordingPanel()
+{
+    // mockup 18_recording: Live / Step, then how the chosen mode writes notes
+    struct Panel : juce::Component
+    {
+        explicit Panel (AppContext& c) : ctx (c) { setSize (330, 262); setWantsKeyboardFocus (true); }
+        AppContext& ctx;
+        int row = 0;
+        struct Z { juce::Rectangle<float> r; int row, value; };
+        std::vector<Z> zones;
+        int rows() const { return ctx.engine.project().recordMode == 0 ? 4 : 3; }
+        void visibilityChanged() override { if (isShowing()) grabKeyboardFocus(); }
+        void parentHierarchyChanged() override { juce::MessageManager::callAsync ([sp = juce::Component::SafePointer<Panel> (this)] { if (sp != nullptr && sp->isShowing()) sp->grabKeyboardFocus(); }); }
+        int quantIndex() const
+        {
+            int best = 0;
+            for (int i = 1; i < 4; ++i) if (std::abs (kQuant[i] - ctx.engine.project().recordQuantize) < std::abs (kQuant[best] - ctx.engine.project().recordQuantize)) best = i;
+            return best;
+        }
+        // row 0 mode; Live: 1 takes, 2 count-in, 3 quantize; Step: 1 length, 2 Rest / Back. value −1: the to-start button
+        void apply (int r, int v)
+        {
+            auto& p = ctx.engine.project();
+            if (v < 0) { ctx.engine.toStart(); return; }
+            if (r == 0) p.recordMode = v;
+            else if (p.recordMode == 0 && r == 1) p.overdub = v == 1;
+            else if (p.recordMode == 0 && r == 2) p.countIn = v == 1;
+            else if (p.recordMode == 0 && r == 3) p.recordQuantize = kQuant[juce::jlimit (0, 3, v)];
+            else if (r == 1) p.stepLength = juce::jlimit (0, 3, v);
+            else if (r == 2) { if (v == 0) ctx.engine.stepRest(); else { ctx.snapshot (ctx.focusPattern()); ctx.engine.stepBack(); } }
+            ctx.markDirty();
+            repaint();
+        }
+        int valueOf (int r) const
+        {
+            const auto& p = ctx.engine.project();
+            if (r == 0) return p.recordMode;
+            if (p.recordMode == 0) return r == 1 ? (int) p.overdub : r == 2 ? (int) p.countIn : quantIndex();
+            return r == 1 ? p.stepLength : 0;
+        }
+        bool keyPressed (const juce::KeyPress& k) override
+        {
+            const int code = k.getKeyCode();
+            if (code == juce::KeyPress::upKey || code == juce::KeyPress::downKey) { row = (row + (code == juce::KeyPress::upKey ? rows() - 1 : 1)) % rows(); repaint(); return true; }
+            const int d = code == juce::KeyPress::leftKey ? -1 : (code == juce::KeyPress::rightKey ? 1 : 0);
+            const bool step = ctx.engine.project().recordMode == 1;
+            if (step && row == 2 && (d != 0 || code == juce::KeyPress::returnKey)) { apply (2, d < 0 ? 1 : 0); return true; }   // ← Back, → / Enter Rest
+            if (d == 0) return false;
+            const int count = row == 0 ? 2 : (! step && row == 3) || (step && row == 1) ? 4 : 2;
+            apply (row, juce::jlimit (0, count - 1, valueOf (row) + d));
+            return true;
+        }
+        void paint (juce::Graphics& g) override
+        {
+            const auto& p = ctx.engine.project();
+            zones.clear();
+            g.fillAll (col::surface);
+            paint::text (g, "RECORDING", 16, 26, 11, Weight::Black, col::quiet);
+            const paint::R ts (getWidth() - 46.0f, 10, 32, 22);
+            g.setColour (col::control); g.fillRoundedRectangle (ts, 11);
+            paint::toStartIcon (g, ts.getCentreX(), ts.getCentreY(), 10, col::text);
+            zones.push_back ({ ts, 0, -1 });
+            auto seg = [&] (int r, paint::R area, const juce::StringArray& opts, int sel, float size)
+            {
+                const auto rs = paint::segmented (g, area, opts, sel, col::record, size);
+                for (size_t i = 0; i < rs.size(); ++i) zones.push_back ({ rs[i], r, (int) i });
+            };
+            seg (0, { 16, 42, getWidth() - 32.0f, 30 }, { "Live", "Step" }, p.recordMode, 12);
+            const float w = getWidth() - 126.0f;
+            std::vector<float> ys { 42 };
+            if (p.recordMode == 0)
+            {
+                const char* labels[3] = { "Takes", "Count-in", "Quantize" };
+                for (int i = 0; i < 3; ++i) { paint::text (g, labels[i], 16, 88 + i * 44 + 19, 12, Weight::Bold, col::quiet); ys.push_back (88 + i * 44.0f); }
+                seg (1, { 110, 88, w, 28 }, { "Extend", "Overdub" }, (int) p.overdub, 11);
+                seg (2, { 110, 132, w, 28 }, { "Off", "1 bar" }, (int) p.countIn, 11);
+                seg (3, { 110, 176, w, 28 }, { "Off", "50%", "75%", "100%" }, quantIndex(), 11);
+                paint::text (g, "Extend: the pattern grows while you record (1, 2, 4 ... bars)", 16, getHeight() - 40.0f, 10, Weight::Bold, col::faint);
+                paint::text (g, "Overdub: the pattern loops and layers", 16, getHeight() - 22.0f, 10, Weight::Bold, col::faint);
+            }
+            else
+            {
+                paint::text (g, "Length", 16, 88 + 19, 12, Weight::Bold, col::quiet);
+                seg (1, { 110, 88, w, 28 }, { "1/16", "1/8", "1/4", "1/2" }, p.stepLength, 11);
+                float rx = 110;
+                for (int i = 0; i < 2; ++i)
+                {
+                    const auto label = i == 0 ? "Rest" : "Back";
+                    const float bw = paint::pill (g, rx, 132, label, 11, col::control, col::text, 28, 14);
+                    zones.push_back ({ { rx, 132, bw, 28 }, 2, i });
+                    rx += bw + 6;
+                }
+                ys.push_back (88); ys.push_back (132);
+                const int total = std::max (1, p.patternSteps (ctx.focusPattern()));
+                paint::text (g, "Cursor", 16, 190, 12, Weight::Bold, col::quiet);
+                paint::text (g, "step " + juce::String (ctx.engine.stepRecordCursor.load() % total + 1) + " of " + juce::String (total), 110, 190, 12, Weight::Black, col::record);
+                paint::text (g, "Hold keys together for a chord", 16, getHeight() - 22.0f, 10, Weight::Bold, col::faint);
+            }
+            if (hasKeyboardFocus (false) && row < (int) ys.size())
+            {
+                g.setColour (col::text.withAlpha (0.8f));
+                g.drawRoundedRectangle (8, ys[(size_t) row] - 5, getWidth() - 16.0f, 38, 8, 1.5f);
+            }
+        }
+        void mouseUp (const juce::MouseEvent& e) override
+        {
+            for (auto& z : zones) if (z.r.contains (e.position)) { row = std::max (0, z.row); apply (z.row, z.value); return; }
+        }
+    };
+    return std::make_unique<Panel> (ctx);
+}
+
+void TopBar::showRecording()
+{
+    juce::CallOutBox::launchAsynchronously (createRecordingPanel(), { 389, 20, 13, 24 }, this);
+}
 
 void TopBar::showTimeSignature()
 {
@@ -349,7 +471,9 @@ void TopBar::trigger (const juce::String& id, juce::ModifierKeys mods)
     const double inc = mods.isShiftDown() ? 0.1 : 1.0;
     if (id == "rack" && onView) onView (View::Rack);
     else if (id == "seq" && onView) onView (View::Seq);
+    else if ((id == "rec" || id == "recstep") && mods.isRightButtonDown()) showRecording();
     else if (id == "rec" || id == "recstep") toggleRecord (id == "recstep" ? 1 : 0);
+    else if (id == "recmenu") showRecording();
     else if (id == "play") { if (eng.isPlaying()) eng.stop(); else eng.play(); }
     else if (id == "stop") eng.stop();
     else if (id == "bpm-") { proj.bpm = juce::jlimit (30.0, 300.0, std::round ((proj.bpm - inc) * 10.0) / 10.0); ctx.markDirty(); }

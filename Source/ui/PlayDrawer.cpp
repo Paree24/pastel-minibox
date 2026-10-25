@@ -32,12 +32,11 @@ struct FnBinding : Binding
 };
 
 constexpr float kTop = 44;
-const float kWeights[4] = { 1.3f, 1.35f, 1.25f, 1.0f };
+const float kWeights[3] = { 1.3f, 1.35f, 1.25f };   // Scale, Chord, Arp (recording has its own popover: TopBar)
 } // namespace
 
 PlayDrawer::PlayDrawer (AppContext& c) : ctx (c)
 {
-    auto& proj = ctx.engine.project();
     auto add = [this] (std::unique_ptr<Binding> b, const juce::String& label, juce::Colour colour)
     {
         auto k = std::make_unique<KnobView> (std::move (b), label, colour, 18.0f, true);
@@ -53,8 +52,6 @@ PlayDrawer::PlayDrawer (AppContext& c) : ctx (c)
                                       [] (float v) { return juce::String (juce::roundToInt (v)) + "%"; }), "Gate", colour);
     add (std::make_unique<FnBinding> ([this] { return play().arpSwing; }, [this] (float v) { play().arpSwing = v; ctx.markDirty(); }, 0.0f, 60.0f, 0.0f,
                                       [] (float v) { return juce::String (juce::roundToInt (v)) + "%"; }), "Swing", colour);
-    add (std::make_unique<FnBinding> ([&proj] { return proj.recordQuantize; }, [this, &proj] (float v) { proj.recordQuantize = v; ctx.markDirty(); }, 0.0f, 1.0f, 1.0f,
-                                      [] (float v) { return juce::String (juce::roundToInt (v * 100)) + "%"; }), "Quantize", col::record);
 }
 
 PlaySettings& PlayDrawer::play()
@@ -65,7 +62,7 @@ PlaySettings& PlayDrawer::play()
 R PlayDrawer::box (int i) const
 {
     const float iw = (float) getWidth() - 28, ih = (float) getHeight() - kTop - 14;
-    const float unit = (iw - 12 * 3) / (kWeights[0] + kWeights[1] + kWeights[2] + kWeights[3]);
+    const float unit = (iw - 12 * 2) / (kWeights[0] + kWeights[1] + kWeights[2]);
     float x = 14;
     for (int k = 0; k < i; ++k) x += unit * kWeights[k] + 12;
     return { x, kTop, unit * kWeights[i], ih };
@@ -74,10 +71,9 @@ R PlayDrawer::box (int i) const
 void PlayDrawer::resized()
 {
     auto place = [] (KnobView& k, float cx, float cy) { k.setBounds (juce::Rectangle<float> (cx - 43, cy - 24, 86, 80).toNearestInt()); };
-    const auto chord = box (1), arp = box (2), rec = box (3);
+    const auto chord = box (1), arp = box (2);
     place (*knobs[0], chord.getX() + 46, chord.getY() + 176);
     for (int i = 0; i < 3; ++i) place (*knobs[(size_t) (1 + i)], arp.getX() + arp.getWidth() / 6 + i * arp.getWidth() / 3, arp.getY() + 174);
-    place (*knobs[4], rec.getX() + 46, rec.getY() + 176);
 }
 
 juce::String PlayDrawer::chordName (int degree, int& count) const
@@ -245,37 +241,6 @@ void PlayDrawer::paint (juce::Graphics& g)
             g.fillRoundedRectangle (well.getX() + 10 + i * dx - 5, well.getBottom() - 10 - pts[std::clamp (ps.arpMode, 0, 5)][i] * 12.0f - 6, 10, 6, 3);
     }
 
-    // ---- Record
-    {
-        const auto b = box (3);
-        panel (b, "RECORD");
-        const R ts (b.getRight() - 44, b.getY() + 8, 32, 22);
-        g.setColour (col::control); g.fillRoundedRectangle (ts, 11);
-        paint::toStartIcon (g, ts.getCentreX(), ts.getCentreY(), 10, col::text);
-        zone (ts, "start", 0, 11);
-        seg ({ b.getX() + 14, b.getY() + 38, b.getWidth() - 28, 28 }, { "Live", "Step" }, proj.recordMode, col::record, "recMode");
-        if (proj.recordMode == 1)
-        {
-            paint::text (g, "Length", b.getX() + 14, b.getY() + 92, 11, Weight::Bold, col::quiet);
-            seg ({ b.getX() + 70, b.getY() + 76, b.getWidth() - 84, 26 }, { "1/16", "1/8", "1/4", "1/2" }, proj.stepLength, col::record, "len");
-            float rx = b.getX() + 14;
-            rx += pillAt (rx, b.getY() + 116, "Rest", false, col::record, "rest") + 6;
-            pillAt (rx, b.getY() + 116, "Back", false, col::record, "back");
-            const int total = std::max (1, proj.patternSteps (ctx.focusPattern()));
-            paint::text (g, "Cursor", b.getX() + 14, b.getY() + 172, 11, Weight::Bold, col::quiet);
-            paint::text (g, "step " + juce::String (ctx.engine.stepRecordCursor.load() % total + 1) + " of " + juce::String (total), b.getX() + 70, b.getY() + 172, 12, Weight::Black, col::record);
-            paint::text (g, "Hold keys together for a chord", b.getX() + 14, b.getBottom() - 16, 10, Weight::Bold, col::faint);
-        }
-        else
-        {
-            float rx = b.getX() + 14;
-            rx += pillAt (rx, b.getY() + 80, proj.overdub ? "Overdub" : "Extend", proj.overdub, col::record, "overdub") + 6;
-            pillAt (rx, b.getY() + 80, "Count-in", proj.countIn, col::record, "countIn");
-            paint::text (g, "Plays and records in time with the pattern", b.getX() + 92, b.getY() + 172, 10, Weight::Bold, col::faint);
-            paint::text (g, "Chords and arp are recorded as heard", b.getX() + 92, b.getY() + 188, 10, Weight::Bold, col::faint);
-        }
-        knobs[4]->setVisible (proj.recordMode == 0);
-    }
     fb.paint (g);
 }
 
@@ -367,13 +332,6 @@ void PlayDrawer::mouseUp (const juce::MouseEvent& e)
     else if (id == "latch") ps.arpLatch = ! ps.arpLatch;
     else if (id == "mode") ps.arpMode = z->a;
     else if (id == "rate") { chooseRate(); return; }
-    else if (id == "start") ctx.engine.toStart();
-    else if (id == "recMode") proj.recordMode = z->a;
-    else if (id == "len") proj.stepLength = z->a;
-    else if (id == "rest") ctx.engine.stepRest();
-    else if (id == "back") { ctx.snapshot (ctx.focusPattern()); ctx.engine.stepBack(); }
-    else if (id == "overdub") proj.overdub = ! proj.overdub;
-    else if (id == "countIn") proj.countIn = ! proj.countIn;
     else if (id.endsWith ("menu"))
     {
         // a segmented control drawn as a dropdown (narrow window): pick from a menu
@@ -394,7 +352,7 @@ void PlayDrawer::refresh()
     juce::String s;
     s << ctx.focusTrack() << ctx.focusPattern() << (int) proj.scale.lock << proj.scale.root << proj.scale.scale << proj.scale.snap << (int) proj.scale.whiteKeys
       << (int) ps.chordOn << ps.inversion << (int) ps.invLower << (int) ps.bassBelow << (int) ps.arpOn << (int) ps.arpLatch << ps.arpMode << ps.arpRate
-      << proj.recordMode << proj.stepLength << (int) proj.overdub << (int) proj.countIn << ctx.engine.stepRecordCursor.load();
+      ;
     for (auto t : ps.chordType) s << (int) t;
     if (auto* d = ctx.focusDevice()) s << (int) d->type();
     if (s != sig) { sig = s; repaint(); }

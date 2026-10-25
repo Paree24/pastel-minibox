@@ -91,6 +91,14 @@ MB_TEST (tool_ui_shots)
     e.focusPattern = 0;
     shot (0, 0, "01_rack");
     shot (1, 1, "02_seq");
+    for (int mode = 0; mode < 2; ++mode)
+    {
+        // the recording popover's content (mockup 18_recording / 18b_recording_step)
+        e.project().recordMode = mode;
+        auto panel = mc.topBarView().createRecordingPanel();
+        snap (*panel, mode == 0 ? "18_recording" : "18b_recording_step");
+        e.project().recordMode = 0;
+    }
     {
         // playing: bar 2 outlined and filling, the top bar's position, some swing
         e.project().swing = 0.58f;
@@ -102,6 +110,7 @@ MB_TEST (tool_ui_shots)
         e.stop();
         e.process (l.data(), r.data(), 512, nullptr);
         e.project().swing = 0.5f;
+        mc.context().viewBar = 0;   // the view followed the playhead: back to bar 1 for the shots below
     }
     {
         // the step sequence viewed as a piano roll; zoomed out to the whole pattern on a 1/8 triplet grid

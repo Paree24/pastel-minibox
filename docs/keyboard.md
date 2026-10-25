@@ -22,7 +22,7 @@ Status is kept current. Test: `Test/KeyboardTests.cpp` (drives the real window b
 | 8 | Play / stop; back to start | Space; Home | done |
 | 9 | Record | Ctrl+R live record, Ctrl+Shift+R step record (the LIVE and STEP buttons; again turns it off) | done |
 | 10 | Pages | Ctrl+1 Rack, Ctrl+2 Seq, Ctrl+3 editor of the selected instrument (also Enter on a rack strip); Esc goes back | done |
-| 11 | Drawers | Ctrl+P Play drawer, Ctrl+M MIDI learn | done |
+| 11 | Drawers | Ctrl+P Play drawer, Ctrl+M MIDI learn, Alt+R recording settings (↑ ↓ a row, ← → its value; Step: ← Back, → Rest) | done |
 | 12 | Instrument | ↑/↓ select (when nothing is focused, every page); Rack and editor pages: ←/→ previous / next preset; Ctrl+B its preset browser; Ctrl+[ / Ctrl+] previous / next preset; + / = adds an instrument to the first empty track (device menu) | done |
 | 13 | Patterns | Alt+1…8 switch to A–H (in performance mode: queued to the pattern's end); Ctrl+Shift+P performance mode | done |
 | 14 | Tempo | Ctrl+↑ / Ctrl+↓ ±1 BPM (Shift ±0.1); metronome Ctrl+K | done |

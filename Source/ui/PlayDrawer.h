@@ -4,8 +4,8 @@
 namespace mb::ui
 {
 /** The Play drawer (desktop.py play_drawer, mockup 14_play): how live input plays and records.
-    Scale (the project's key: lock, root, scale, snap, white keys), Chord and Arp (for the input track)
-    and Record (Live / Step, quantize, overdub, count-in, step length, Rest / Back, back to start). */
+    Scale (the project's key: lock, root, scale, snap, white keys), Chord and Arp (for the input track).
+    Recording's settings have their own popover by the record buttons (TopBar::showRecording, mockup 18_recording). */
 class PlayDrawer : public juce::Component
 {
 public:
@@ -27,7 +27,7 @@ private:
     juce::String chordName (int degree, int& count) const;
 
     AppContext& ctx;
-    std::vector<std::unique_ptr<KnobView>> knobs;   // strum, octaves, gate, swing, quantize
+    std::vector<std::unique_ptr<KnobView>> knobs;   // strum, octaves, gate, swing
     struct Zone { juce::Rectangle<float> r; juce::String id; int a = 0; };
     std::vector<Zone> zones;
     juce::String sig;

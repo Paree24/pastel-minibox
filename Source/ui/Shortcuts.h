@@ -31,7 +31,7 @@ enum : juce::CommandID
     // the computer keyboard as a piano: 16 keys from C up, and the octave
     note0, note15 = note0 + 15, octaveDown, octaveUp,
     // added later (at the end, so saved key maps keep their IDs)
-    exportDawProject
+    exportDawProject, recordSettings
 };
 } // namespace cmd
 

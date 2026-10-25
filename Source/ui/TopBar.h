@@ -24,6 +24,10 @@ public:
     juce::Rectangle<float> zoneRect (const juce::String& id) const { for (auto& z : zones) if (z.id == id) return z.r; return {}; }
     /** Live (0) / Step (1) record buttons: arm in that mode, or turn recording off when it is the armed one. */
     void toggleRecord (int mode);
+    /** The recording settings (the ▾ by the record buttons, right-click on them, Alt+R; mockup 18_recording). */
+    void showRecording();
+    /** The popover's content (screenshots, tests). */
+    std::unique_ptr<juce::Component> createRecordingPanel();
 
     enum class View { Rack, Seq, Editor };
     View view = View::Rack;

@@ -54,6 +54,7 @@ public:
     bool onSeqPage() const { return view == ui::TopBar::View::Seq; }
     ui::AppContext& context() { return ctx; }
     ui::SeqView& seqView() { return seq; }
+    ui::TopBar& topBarView() { return topBar; }
     /** The track the device menu was last opened for (tests). */
     int lastPickerTrack = -1;
     std::function<void()> showAudioSettings;

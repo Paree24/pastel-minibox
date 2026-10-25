@@ -596,6 +596,7 @@ void MainComponent::runCommand (juce::CommandID id)
         case cmd::exportWav: this->exportWav(); break;
         case cmd::exportMidi: this->exportMidi(); break;
         case cmd::exportDawProject: this->exportDawProject(); break;
+        case cmd::recordSettings: topBar.showRecording(); break;
         case cmd::importMidi: this->importMidi(); break;
         case cmd::settings: showSettings(); break;
         case cmd::playStop: if (engine.isPlaying()) engine.stop(); else engine.play(); break;

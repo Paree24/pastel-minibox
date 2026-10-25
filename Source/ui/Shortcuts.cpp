@@ -48,6 +48,7 @@ Shortcuts::Shortcuts()
     add (tempoUpFine, "Tempo +0.1", "Transport and recording", { key (K::upKey, ctrl | shift) });
     add (tempoDownFine, "Tempo -0.1", "Transport and recording", { key (K::downKey, ctrl | shift) });
     add (perform, "Performance mode", "Transport and recording", { key ('P', ctrl | shift) });
+    add (recordSettings, "Recording settings (Live / Step, Extend / Overdub, count-in, quantize)", "Transport and recording", { key ('R', alt) });
 
     add (pageRack, "Rack page", "Pages and drawers", { key ('1', ctrl) });
     add (pageSeq, "Seq page", "Pages and drawers", { key ('2', ctrl) });
