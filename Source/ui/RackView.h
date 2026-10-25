@@ -40,13 +40,19 @@ public:
     explicit MasterRow (AppContext&);
     void paint (juce::Graphics&) override;
     void resized() override;
+    void mouseDown (const juce::MouseEvent&) override;
     void mouseUp (const juce::MouseEvent&) override;
     void refresh();
+    /** A performance pad's area (tests). */
+    juce::Rectangle<float> padArea (int pad) const { return padR[(size_t) pad]; }
 private:
     AppContext& ctx;
     std::vector<std::unique_ptr<KnobView>> knobs;
     std::unique_ptr<FaderView> volume;
-    juce::Rectangle<float> delayR, reverbR;
+    juce::Rectangle<float> delayR, reverbR, effectsR;
+    std::array<juce::Rectangle<float>, 8> padR;
+    int pressedPad = -1;
+    juce::String shown;
     float divProxy = 9.0f;
     Feedback fb { *this };
 };

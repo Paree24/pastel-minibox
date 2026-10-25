@@ -90,6 +90,21 @@ MB_TEST (tool_ui_shots)
     };
     e.focusPattern = 0;
     shot (0, 0, "01_rack");
+    {
+        // the master effects drawer with a mastering chain, Stutter held (mockup 19_master_fx)
+        auto& fx = mc.masterEffects();
+        const char* chain[] = { "3-Band EQ", "Compressor", "Saturation", "Stereo Width", "Limiter" };
+        for (int i = 0; i < 5; ++i) fx.setSlotEffect (false, i, chain[i]);
+        e.project().masterFx[2].bypass = true;
+        fx.setHeld (0, true);
+        mc.showMasterFx (true, false, 1);
+        shot (0, 0, "19_master_fx");
+        mc.showMasterFx (true, true, 3);
+        shot (0, 0, "19b_master_fx_pads");
+        mc.showMasterFx (false);
+        fx.setHeld (0, false);
+        for (int i = 4; i >= 0; --i) fx.removeSlot (i);
+    }
     shot (1, 1, "02_seq");
     for (int mode = 0; mode < 2; ++mode)
     {

@@ -320,6 +320,23 @@ juce::var projectToJson (const Project& p)
     m->setProperty ("reverbDamp", ms.reverbDamp); m->setProperty ("glue", ms.glue);
     m->setProperty ("limitDb", ms.limitDb); m->setProperty ("volume", ms.volume); m->setProperty ("lookAhead", ms.lookAhead);
     o->setProperty ("master", juce::var (m));
+    auto slots = [] (const auto& arr)
+    {
+        juce::Array<juce::var> out;
+        for (const auto& fx : arr)
+        {
+            auto* so = new juce::DynamicObject();
+            so->setProperty ("effect", fx.effect);
+            juce::Array<juce::var> norm;
+            for (float v : fx.norm) norm.add (v);
+            so->setProperty ("norm", norm);
+            so->setProperty ("mode", fx.mode); so->setProperty ("mix", fx.mix); so->setProperty ("bypass", fx.bypass);
+            out.add (juce::var (so));
+        }
+        return out;
+    };
+    o->setProperty ("masterFx", slots (p.masterFx));
+    o->setProperty ("performFx", slots (p.performFx));
     juce::Array<juce::var> pats;
     for (auto& pat : p.patterns)
     {
@@ -384,6 +401,25 @@ void projectFromJson (Project& p, const juce::var& v)
     ms.limitDb = (float) m.getProperty ("limitDb", ms.limitDb);
     ms.volume = (float) m.getProperty ("volume", ms.volume);
     ms.lookAhead = (bool) m.getProperty ("lookAhead", true);
+    auto readSlots = [&v] (const char* key, auto& arr)
+    {
+        auto* a = v.getProperty (key, {}).getArray();
+        for (size_t i = 0; i < arr.size(); ++i)
+        {
+            auto& fx = arr[i];
+            fx = FxSlot();
+            if (a == nullptr || (int) i >= a->size()) continue;
+            const auto& so = (*a)[(int) i];
+            fx.effect = so.getProperty ("effect", "").toString();
+            if (auto* norm = so.getProperty ("norm", {}).getArray())
+                for (int k = 0; k < std::min (FxSlot::kParams, norm->size()); ++k) fx.norm[(size_t) k] = std::clamp ((float) (*norm)[k], 0.0f, 1.0f);
+            fx.mode = (int) so.getProperty ("mode", 0);
+            fx.mix = std::clamp ((float) so.getProperty ("mix", 1.0f), 0.0f, 1.0f);
+            fx.bypass = (bool) so.getProperty ("bypass", false);
+        }
+    };
+    readSlots ("masterFx", p.masterFx);
+    readSlots ("performFx", p.performFx);
     if (auto* pats = v.getProperty ("patterns", {}).getArray())
         for (int i = 0; i < std::min (kPatterns, pats->size()); ++i)
         {

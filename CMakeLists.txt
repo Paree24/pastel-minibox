@@ -24,7 +24,8 @@ juce_add_binary_data(MiniboxAssets
 # Shared core: engine, model, sequencer, DSP, devices and UI. Compiled into each target.
 file(GLOB_RECURSE MINIBOX_CORE CONFIGURE_DEPENDS
   Source/engine/*.cpp Source/model/*.cpp Source/seq/*.cpp Source/dsp/*.cpp
-  Source/devices/*.cpp Source/ui/*.cpp Source/app/presets/*.cpp)
+  Source/devices/*.cpp Source/ui/*.cpp Source/app/presets/*.cpp
+  Source/efx/*.cpp)   # the groovebox's master and performance effects, from Pastel EFX Grid (Source/efx/README.md)
 
 set(MINIBOX_DEFS JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0 JUCE_VST3_CAN_REPLACE_VST2=0
     JUCE_DISPLAY_SPLASH_SCREEN=0 JUCE_MODAL_LOOPS_PERMITTED=1)
@@ -32,7 +33,7 @@ set(MINIBOX_LIBS juce::juce_audio_utils juce::juce_dsp MiniboxAssets
     juce::juce_recommended_config_flags juce::juce_recommended_lto_flags juce::juce_recommended_warning_flags)
 
 function(minibox_setup target)
-  target_include_directories(${target} PRIVATE Source)
+  target_include_directories(${target} PRIVATE Source Source/efx)
   target_compile_definitions(${target} PRIVATE ${MINIBOX_DEFS} ${ARGN})
   target_sources(${target} PRIVATE ${MINIBOX_CORE})
 endfunction()

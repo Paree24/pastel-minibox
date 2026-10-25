@@ -107,6 +107,11 @@ public:
     // ---- metering
     std::atomic<float> slotPeak[kPatterns][kTracks] {};
     MasterBus& master() { return masterBus; }
+    /** The standalone's master / performance effects (message thread; null removes them). */
+    void setMasterInsert (MasterInsert*);
+    bool masterInsertIs (const MasterInsert* m) const { return masterInsert == m; }
+    /** Bumped (under the lock) whenever a whole project replaces the current one. */
+    int projectGeneration() const { return projectGen; }
     std::atomic<float> cpuLoad { 0.0f };
 
     juce::CriticalSection audioLock;
@@ -131,6 +136,10 @@ private:
     std::array<std::array<std::unique_ptr<DeviceProcessor>, kTracks>, kPatterns> devices;
     Sequencer seq;
     MasterBus masterBus;
+    MasterInsert* masterInsert = nullptr;
+    int projectGen = 0;
+    double beatClock = 0.0;      // beats since Play (free-running while stopped): the master effects' tempo grid
+    bool clockWasPlaying = false;
     double sampleRate = 48000.0;
     int maxBlock = 512;
     std::vector<float> slotL, slotR, auxAL, auxAR, auxBL, auxBR;

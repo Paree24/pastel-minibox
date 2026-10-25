@@ -5,6 +5,8 @@
 #include "ui/EditorView.h"
 #include "ui/PlayDrawer.h"
 #include "ui/LearnDrawer.h"
+#include "ui/MasterFxDrawer.h"
+#include "efx/MasterFx.h"
 #include "ui/SettingsWindow.h"
 #include "ui/LookAndFeel.h"
 
@@ -48,6 +50,13 @@ public:
     /** MIDI learn mode and its drawer (docs/midi-learn.md). */
     void showLearn (bool on);
     bool learnOpen() const { return learnDrawer.isVisible(); }
+    /** Master effects drawer (docs/master-fx.md): the chain, or the pads' effects. */
+    void showMasterFx (bool on, bool pads = false, int index = 0);
+    /** A controller map saved from a shipped map before its performance pads existed gets the pads' mappings. */
+    static void upgradeControllerMap (MidiMap&);
+    bool masterFxOpen() const { return masterFxDrawer.isVisible(); }
+    MasterFx& masterEffects() { return masterFx; }
+    ui::MasterFxDrawer& masterFxView() { return masterFxDrawer; }
     MidiMap& midiMap() { return map; }
     /** Runs a mappable action (learnActions(): top-bar ids, track-prev, bar-next, undo, …). */
     void runAction (const juce::String& id);
@@ -79,6 +88,7 @@ private:
     ui::AppContext ctx;
     MidiMap map;
     int mapRevision = -1;
+    MasterFx masterFx { engine };   // before the views: they point at it
     juce::Component content;
     ui::TopBar topBar;
     ui::RackView rack;
@@ -86,6 +96,7 @@ private:
     ui::EditorView editor;
     ui::PlayDrawer drawer;
     ui::LearnDrawer learnDrawer;
+    ui::MasterFxDrawer masterFxDrawer;
     ui::TopBar::View view = ui::TopBar::View::Rack;
     juce::File currentFile;
     std::unique_ptr<juce::FileChooser> chooser;
@@ -93,6 +104,7 @@ private:
     // computer keyboard: A S D F G H J K white keys, W E T Y U O P black keys, Z / X octave
     int keyboardOctave = 4;
     std::map<int, int> keysDown;   // key code → note
+    std::array<bool, kPerformFx> padKeysDown {};
     int retireCounter = 0;
     bool autosaveOn = false;
     int autosaveCounter = 0;

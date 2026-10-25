@@ -254,6 +254,19 @@ struct MasterSettings
     bool lookAhead = true;   // 1.5 ms: the limiter ramps down before a peak instead of clamping it
 };
 
+/** A master or performance effect of the groovebox (efx/MasterFx, docs/master-fx.md): one of Pastel EFX Grid's
+    effects by name ("" = empty), its controls (0–1 knob positions, in the effect's own order), mode, mix, bypass. */
+struct FxSlot
+{
+    static constexpr int kParams = 16;
+    juce::String effect;
+    std::array<float, kParams> norm {};
+    int mode = 0;
+    float mix = 1.0f;
+    bool bypass = false;
+};
+constexpr int kMasterFxSlots = 8, kPerformFx = 8;
+
 struct Project
 {
     juce::String name { "Untitled" };
@@ -273,6 +286,8 @@ struct Project
     ScaleSettings scale;
     static int stepLengthSteps (int index) { return 1 << std::clamp (index, 0, 3); }
     MasterSettings master;
+    std::array<FxSlot, kMasterFxSlots> masterFx;   // in series, left to right (standalone)
+    std::array<FxSlot, kPerformFx> performFx;      // the 8 hold-to-play pads (filled with their effects by MasterFx)
     std::array<Pattern, kPatterns> patterns;
 
     // ---- timing helpers

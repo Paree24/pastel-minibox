@@ -21,7 +21,7 @@ void MasterBus::clearSends (int n)
     for (auto& s : sends) std::fill (s.begin(), s.begin() + n, 0.0f);
 }
 
-void MasterBus::process (float* L, float* R, int n, const MasterSettings& m, double bpm)
+void MasterBus::process (float* L, float* R, int n, const MasterSettings& m, double bpm, MasterInsert* insert, double ppq, bool playing)
 {
     const float delaySecs = (float) (dsp::divisionBeats ((float) m.delayDiv) * 60.0 / std::max (20.0, bpm));
     delay.setTone (m.delayTone);
@@ -36,7 +36,13 @@ void MasterBus::process (float* L, float* R, int n, const MasterSettings& m, dou
         float rl = 0.0f, rr = 0.0f;
         reverb.process (sends[2][(size_t) i], sends[3][(size_t) i], rl, rr, m.reverbReturn * 1.4f);
         l += rl; r += rr;
-        l = hpL.hp (l); r = hpR.hp (r);
+        L[i] = hpL.hp (l); R[i] = hpR.hp (r);
+    }
+    // the standalone's effects sit between the returns and the bus's glue and limiter
+    if (insert != nullptr) insert->process (L, R, n, bpm, ppq, playing);
+    for (int i = 0; i < n; ++i)
+    {
+        float l = L[i], r = R[i];
         glue.process (l, r, m.glue);
         const float v = volSm.tick (m.volume);
         l *= v; r *= v;

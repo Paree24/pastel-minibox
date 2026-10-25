@@ -69,7 +69,7 @@ Threading (as built):
 Project
  ├─ tempo: 30–300 BPM (0.1 resolution)    ├─ timeSig: beats 1–16 / unit {4, 8, 16}
  ├─ swing: 50–75 %                        ├─ countIn: off | 1 bar
- ├─ master: { delay, reverb, glue, limiter, volume }
+ ├─ master: { delay, reverb, [performance pads, effects chain: standalone], glue, limiter, volume }
  └─ patterns[8]  (A–H)
       ├─ lengthBars: 1–16
       ├─ stepRes: 1/8 | 1/16 | 1/32      (default 1/16)
@@ -413,7 +413,7 @@ Both engines are subtractive polysynths built from the same blocks (`PolyBlepOsc
 ### 9.1 Views
 | View | Build | Content |
 |---|---|---|
-| **Rack** (`00_new_project`, `01_rack`) | standalone | 4 slot strips showing identity, preset, M/S, 8 macros, a device visual, level, pan, Delay and Reverb sends and an open-editor button, plus a master row (Delay, Reverb, Glue, Limit, meter, volume; click the delay or reverb visual for time, feedback, tone, decay and damp). A new project starts empty: no devices and no notes. |
+| **Rack** (`00_new_project`, `01_rack`) | standalone | 4 slot strips showing identity, preset, M/S, 8 macros, a device visual, level, pan, Delay and Reverb sends and an open-editor button, plus a master row (Effects, Delay, Reverb, Glue, Limit, the Delay / Reverb settings buttons, the 8 PERFORM pads, meter, volume; mockup `19_master_fx`, docs/master-fx.md). A new project starts empty: no devices and no notes. |
 | **Device editor** (`03`–`10`, plugin: `11_plugin`) | both | Header (track pill, track dots, preset browser, save, Compare, `⋯`), signal-flow section cards, and a step strip in standalone or a MIDI activity row in the plugin |
 | **Seq** (`02_seq`) | standalone | Bar strip, 4 track rows for the current bar (with the Input marker), and a detail editor for the selected track (piano roll with note-length handles, Velocity/Gate/Locks lanes, accent and slide lanes for Acid) |
 | **Play drawer** (`14_play`) | standalone | Over any view, from the top-bar keyboard button: Scale, Chord and Arp cards (§4.5) |

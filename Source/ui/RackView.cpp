@@ -1,4 +1,5 @@
 #include "RackView.h"
+#include "efx/MasterFx.h"
 #include "app/presets/PresetBank.h"
 #include "EditorView.h"
 
@@ -229,45 +230,100 @@ MasterRow::MasterRow (AppContext& c) : ctx (c)
 
 void MasterRow::resized()
 {
+    // mockup 19_master_fx: Effects, the returns and bus, Delay / Reverb settings, the 8 performance pads, meter, volume
     const float h = (float) getHeight();
     for (size_t i = 0; i < knobs.size(); ++i)
-        knobs[i]->setBounds (juce::Rectangle<float> (210 + i * 110 - 43, h / 2 - 8 - 28, 86, 104).toNearestInt());
+        knobs[i]->setBounds (juce::Rectangle<float> (230 + i * 104 - 43, h / 2 - 8 - 28, 86, 104).toNearestInt());
     volume->setBounds (juce::Rectangle<float> ((float) getWidth() - 71, 10, 40, h - 20).toNearestInt());
-    delayR = { 680, 18, 220, h - 36 };
-    reverbR = { 912, 18, 220, h - 36 };
+    effectsR = { 16, h - 46, 150, 30 };
+    delayR = { 590, 30, 62, 28 };
+    reverbR = { 590, 70, 62, 28 };
+    for (int i = 0; i < kPerformFx; ++i) padR[(size_t) i] = { 664.0f + (i % 4) * 120.0f, 28.0f + (i / 4) * 46.0f, 112, 38 };
 }
 
 void MasterRow::paint (juce::Graphics& g)
 {
     paint::card (g, getLocalBounds().toFloat(), "Master");
-    fb.begin(); fb.hot (delayR); fb.hot (reverbR);
-    const auto& m = ctx.engine.project().master;
-    draw::delayTaps (g, delayR, col::pattern, m.delayFeedback);
-    draw::ring (g, reverbR, col::pattern, 0.2f + m.reverbDecay * 0.6f, 24);
-    paint::text (g, dsp::divisions()[std::clamp (m.delayDiv, 0, dsp::kNumDivisions - 1)].name, delayR.getRight() - 8, delayR.getY() + 16, 10, Weight::Bold, col::quiet, juce::Justification::right);
+    fb.begin();
+    // the master effects chain: a dot per slot in use (its category's colour)
+    g.setColour (col::control); g.fillRoundedRectangle (effectsR, 15);
+    paint::text (g, "Effects", effectsR.getX() + 14, effectsR.getY() + 20, 11, Weight::Bold, col::text);
+    int dot = 0;
+    for (const auto& fx : ctx.engine.project().masterFx)
+        if (const auto* d = efx::defForId (efx::idForName (fx.effect)); d != nullptr && dot < 6)
+        {
+            g.setColour (fx.bypass ? col::control.brighter (0.3f) : efx::catAccent (d->cat));
+            g.fillEllipse (effectsR.getX() + 72 + dot++ * 11.0f, effectsR.getCentreY() - 3.5f, 7, 7);
+        }
+    paint::chevron (g, effectsR.getRight() - 14, effectsR.getCentreY(), 7, col::quiet, 'r');
+    fb.hot (effectsR, 15);
+    for (auto [r, lab] : { std::pair<juce::Rectangle<float>, const char*> { delayR, "Delay" }, { reverbR, "Reverb" } })
+    {
+        g.setColour (col::control); g.fillRoundedRectangle (r, 14);
+        paint::text (g, lab, r.getX() + 12, r.getY() + 18, 10, Weight::Bold, col::text);
+        paint::chevron (g, r.getRight() - 10, r.getCentreY(), 6, col::quiet, 'd');
+        fb.hot (r, 14);
+    }
+    // performance effects: on while a pad is held (mouse, keys 1–8, the controller's pads)
+    paint::text (g, "PERFORM", padR[0].getX(), 18, 10, Weight::Black, col::quiet);
+    paint::text (g, "hold a pad", padR[3].getRight(), 18, 10, Weight::Bold, col::faint, juce::Justification::right);
+    for (int i = 0; i < kPerformFx; ++i)
+    {
+        const auto r = padR[(size_t) i];
+        const bool on = ctx.masterFx != nullptr && ctx.masterFx->isHeld (i);
+        g.setColour (on ? col::pattern : col::control); g.fillRoundedRectangle (r, 10);
+        paint::text (g, MasterFx::padName (i), r.getX() + 12, r.getY() + 24, 12, Weight::Black, on ? col::bg : col::text);
+        paint::text (g, juce::String (i + 1), r.getRight() - 12, r.getY() + 24, 10, Weight::Black, on ? col::bg : col::faint, juce::Justification::right);
+        fb.hot (r, 10);
+    }
     const float pl = ctx.engine.master().peakL.load(), pr = ctx.engine.master().peakR.load();
     const float lv[2] = { juce::jlimit (0.0f, 1.0f, (dsp::gainToDb (pl) + 48) / 48), juce::jlimit (0.0f, 1.0f, (dsp::gainToDb (pr) + 48) / 48) };
     const float h = (float) getHeight();
     for (int i = 0; i < 2; ++i)
     {
         const float yy = h / 2 - 9 + i * 12;
-        g.setColour (col::control); g.fillRoundedRectangle (1160, yy, 220, 6, 3);
-        g.setColour (col::pattern.withAlpha (0.75f)); g.fillRoundedRectangle (1160, yy, 220 * lv[i], 6, 3);
+        g.setColour (col::control); g.fillRoundedRectangle (1168, yy, 200, 6, 3);
+        g.setColour (col::pattern.withAlpha (0.75f)); g.fillRoundedRectangle (1168, yy, 200 * lv[i], 6, 3);
     }
     const float pk = dsp::gainToDb (std::max (pl, pr));
-    paint::text (g, pk < -90.0f ? juce::String ("-inf") : juce::String (pk, 1), 1160, h / 2 + 28, 11, Weight::Bold, col::faint);
-    paint::text (g, "CPU " + juce::String (juce::roundToInt (ctx.engine.cpuLoad.load() * 100)) + "%", 1380, h / 2 + 28, 11, Weight::Bold, col::faint, juce::Justification::right);
+    paint::text (g, pk < -90.0f ? juce::String ("-inf") : juce::String (pk, 1), 1168, h / 2 + 28, 11, Weight::Bold, col::faint);
+    paint::text (g, "CPU " + juce::String (juce::roundToInt (ctx.engine.cpuLoad.load() * 100)) + "%", 1368, h / 2 + 28, 11, Weight::Bold, col::faint, juce::Justification::right);
     fb.paint (g);
+}
+
+void MasterRow::mouseDown (const juce::MouseEvent& e)
+{
+    // a pad plays while the button is down
+    for (int i = 0; i < kPerformFx; ++i)
+        if (padR[(size_t) i].contains (e.position) && ctx.masterFx != nullptr && ! e.mods.isRightButtonDown())
+        {
+            pressedPad = i;
+            ctx.masterFx->setHeld (i, true);
+            repaint();
+        }
 }
 
 void MasterRow::mouseUp (const juce::MouseEvent& e)
 {
+    if (pressedPad >= 0)
+    {
+        if (ctx.masterFx != nullptr) ctx.masterFx->setHeld (pressedPad, false);
+        pressedPad = -1;
+        repaint();
+        return;
+    }
     auto& m = ctx.engine.project().master;
     auto knob = [this] (float* v, float lo, float hi, float def, std::function<juce::String (float)> f, const juce::String& lab)
     {
         return std::make_unique<KnobView> (std::make_unique<FloatBinding> (v, lo, hi, def, f, false, &ctx), lab, col::pattern, 18.0f, true);
     };
-    if (delayR.contains (e.position))
+    if (effectsR.contains (e.position)) { if (ctx.onMasterFx) ctx.onMasterFx (false, 0); }
+    else if (e.mods.isRightButtonDown())
+    {
+        // a pad's right-click (Shift+F10 when focused): tune its effect
+        for (int i = 0; i < kPerformFx; ++i) if (padR[(size_t) i].contains (e.position) && ctx.onMasterFx) ctx.onMasterFx (true, i);
+    }
+    else if (delayR.contains (e.position))
     {
         std::vector<std::unique_ptr<KnobView>> k;
         auto divBinding = std::make_unique<FloatBinding> (&divProxy, 0, (float) (dsp::kNumDivisions - 1), 9,
@@ -292,7 +348,11 @@ void MasterRow::refresh()
 {
     for (auto& k : knobs) k->refresh();
     volume->refresh();
-    repaint (juce::Rectangle<int> (1150, 0, 260, getHeight()));
+    juce::String s;
+    for (int i = 0; i < kPerformFx; ++i) s << (ctx.masterFx != nullptr && ctx.masterFx->isHeld (i) ? 1 : 0);
+    for (const auto& fx : ctx.engine.project().masterFx) s << fx.effect << (int) fx.bypass;
+    if (s != shown) { shown = s; repaint(); }
+    repaint (juce::Rectangle<int> (1160, 0, 230, getHeight()));
 }
 
 // ------------------------------------------------------------------------------------------- rack view

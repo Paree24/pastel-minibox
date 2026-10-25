@@ -18,7 +18,15 @@ void Engine::prepare (double sr, int block)
     for (auto& row : devices) for (auto& d : row) if (d) d->prepare (sr, maxBlock);
     seq.prepare (sr);
     masterBus.prepare (sr, maxBlock, proj.master.lookAhead);
+    if (masterInsert != nullptr) masterInsert->prepare (sr, maxBlock);
     for (auto& in : inputs) in.prepare (sr);
+}
+
+void Engine::setMasterInsert (MasterInsert* m)
+{
+    if (m != nullptr) m->prepare (sampleRate, maxBlock);   // before it is reachable from the audio thread
+    const ScopedEdit edit (*this);
+    masterInsert = m;
 }
 
 std::unique_ptr<DeviceProcessor> Engine::setDevice (int pattern, int track, std::unique_ptr<DeviceProcessor> d)
@@ -48,6 +56,7 @@ void Engine::replaceProject (std::unique_ptr<Project> p, std::array<std::array<s
         seq.queuedPattern = -1;
         std::swap (proj, *p);
         std::swap (devices, devs);
+        ++projectGen;
         tailPattern = -1;
         masterBus.reset();
         recording = false;
@@ -922,7 +931,11 @@ void Engine::process (float* L, float* R, int n, const juce::MidiBuffer* midi)
         }
     }
 
-    masterBus.process (L, R, n, proj.master, proj.bpm);
+    const bool clockRuns = seq.isPlaying();
+    if (clockRuns && ! clockWasPlaying) beatClock = 0.0;   // Play: the effects' grid starts with the pattern
+    clockWasPlaying = clockRuns;
+    masterBus.process (L, R, n, proj.master, proj.bpm, masterInsert, beatClock, clockRuns);
+    beatClock += n * std::max (20.0, proj.bpm) / (60.0 * sampleRate);
 
     // publish state for the UI
     activePat = plugin ? 0 : seq.activePattern;

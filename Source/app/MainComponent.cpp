@@ -12,8 +12,17 @@ namespace mb
 using namespace ui;
 
 MainComponent::MainComponent (Engine& e)
-    : engine (e), ctx (e, true), topBar (ctx), rack (ctx), seq (ctx), editor (ctx), drawer (ctx), learnDrawer (ctx, map)
+    : engine (e), ctx (e, true), topBar (ctx), rack (ctx), seq (ctx), editor (ctx), drawer (ctx), learnDrawer (ctx, map), masterFxDrawer (ctx)
 {
+    // the groovebox's master and performance effects (the plugin has none)
+    ctx.masterFx = &masterFx;
+    masterFx.sync();
+    engine.setMasterInsert (&masterFx);
+    ctx.onMasterFx = [this] (bool pads, int index)
+    {
+        const bool same = masterFxOpen() && masterFxDrawer.showingPads() == pads && (! pads || masterFxDrawer.selected() == index);
+        showMasterFx (! same, pads, index);
+    };
     juce::LookAndFeel::setDefaultLookAndFeel (&laf);
     setLookAndFeel (&laf);
     setOpaque (true);
@@ -29,6 +38,10 @@ MainComponent::MainComponent (Engine& e)
     content.addChildComponent (learnDrawer);
     learnDrawer.setBounds (drawer.getBounds());
     learnDrawer.onClose = [this] { showLearn (false); };
+    content.addChildComponent (masterFxDrawer);
+    // above the master strip, so the pads stay in reach (mockup 19_master_fx)
+    masterFxDrawer.setBounds (geo::M, geo::H - geo::M - 124 - geo::GAP - 300, geo::W - 2 * geo::M, 300);
+    masterFxDrawer.onClose = [this] { showMasterFx (false); };
     // MIDI learn: the controls arm through these hooks; mapped messages reach their targets here
     auto& hooks = learnHooks();
     hooks.arm = [this] (const juce::String& t) { map.arm (learnDrawer.armTarget (t)); };
@@ -55,6 +68,7 @@ MainComponent::MainComponent (Engine& e)
             for (auto& in : juce::MidiInput::getAvailableDevices()) found = found || (detect.isNotEmpty() && in.name.containsIgnoreCase (detect));
             if (found) { map.load (f); map.save (MidiMap::currentFile()); break; }
         }
+    upgradeControllerMap (map);
     topBar.setBounds (0, 0, geo::W, geo::TOP);
     for (auto* c : std::initializer_list<juce::Component*> { &rack, &seq, &editor }) c->setBounds (0, geo::TOP, geo::W, geo::H - geo::TOP);
     content.setSize (geo::W, geo::H);
@@ -119,9 +133,36 @@ void MainComponent::showPage (int page, int track)
     else { engine.focusTrack = track; setView (page == 1 ? TopBar::View::Seq : TopBar::View::Rack); }
 }
 
+void MainComponent::upgradeControllerMap (MidiMap& m)
+{
+    // a map saved from a shipped one before its performance pads existed gets them (nothing else is touched)
+    for (auto& f : MidiMap::factoryMaps())
+    {
+        MidiMap shipped;
+        if (! shipped.fromVar (juce::JSON::parse (f)) || shipped.name != m.name) continue;
+        for (auto& sm : shipped.mappings)
+        {
+            if (! sm.target.startsWith ("perform:")) continue;
+            bool taken = false;
+            for (auto& mm : m.mappings) taken = taken || mm.target == sm.target || mm.sameSource (sm);
+            if (! taken) m.add (sm);   // published to the MIDI thread and saved
+        }
+    }
+}
+
+void MainComponent::showMasterFx (bool on, bool pads, int index)
+{
+    if (on && learnOpen()) showLearn (false);
+    if (on && drawer.isVisible()) showDrawer (false);
+    if (on) { masterFxDrawer.show (pads, index); masterFxDrawer.toFront (false); }
+    masterFxDrawer.setVisible (on);
+    content.repaint();
+}
+
 void MainComponent::showDrawer (bool on)
 {
     if (on && learnOpen()) showLearn (false);
+    if (on && masterFxOpen()) showMasterFx (false);
     drawer.setVisible (on);
     if (on) drawer.toFront (false);
     topBar.playOpen = on;
@@ -131,6 +172,7 @@ void MainComponent::showDrawer (bool on)
 void MainComponent::showLearn (bool on)
 {
     if (on && drawer.isVisible()) showDrawer (false);
+    if (on && masterFxOpen()) showMasterFx (false);
     learnDrawer.setVisible (on);
     if (on) learnDrawer.toFront (false);
     learnHooks().active = on;
@@ -223,6 +265,8 @@ void MainComponent::timerCallback()
     if (seq.isVisible()) seq.refresh();
     if (editor.isVisible()) editor.refresh();
     if (drawer.isVisible()) drawer.refresh();
+    masterFx.sync();   // a loaded or new project: its effects (only what changed is rebuilt)
+    if (masterFxDrawer.isVisible()) masterFxDrawer.refresh();
     map.dispatch();
     if (engine.applyRecorded()) ctx.markDirty();   // live / step recording into piano-roll clips
     engine.recordTouched();                        // knobs still being turned write the steps the playhead reaches
@@ -572,6 +616,7 @@ bool MainComponent::keyPressed (const juce::KeyPress& k)
     {
         if (learnOpen()) showLearn (false);
         else if (drawer.isVisible()) showDrawer (false);
+        else if (masterFxOpen()) showMasterFx (false);
         else if (ctx.lockStep >= 0) ctx.lockStep = -1;
         else if (view == TopBar::View::Editor) setView (TopBar::View::Rack);
         return true;
@@ -597,6 +642,7 @@ void MainComponent::runCommand (juce::CommandID id)
         case cmd::exportMidi: this->exportMidi(); break;
         case cmd::exportDawProject: this->exportDawProject(); break;
         case cmd::recordSettings: topBar.showRecording(); break;
+        case cmd::masterEffects: showMasterFx (! masterFxOpen()); break;
         case cmd::importMidi: this->importMidi(); break;
         case cmd::settings: showSettings(); break;
         case cmd::playStop: if (engine.isPlaying()) engine.stop(); else engine.play(); break;
@@ -640,6 +686,19 @@ bool MainComponent::keyStateChanged (bool)
     }
     if (juce::ModifierKeys::currentModifiers.isCommandDown()) return false;
     bool used = false;
+    // performance effects: on while their keys (1–8) are held
+    for (int i = 0; i < kPerformFx; ++i)
+    {
+        const int key = shortcuts().keyCode (cmd::perform0 + i);
+        if (key == 0) continue;
+        const bool down = juce::KeyPress::isKeyCurrentlyDown (key) && ! juce::ModifierKeys::currentModifiers.isAltDown();
+        if (down != padKeysDown[(size_t) i])
+        {
+            padKeysDown[(size_t) i] = down;
+            masterFx.setHeld (i, down);
+            used = true;
+        }
+    }
     auto* dev = ctx.focusDevice();
     const int track = ctx.focusTrack();
     for (auto [key, semi] : keys)

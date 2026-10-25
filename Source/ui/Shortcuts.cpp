@@ -118,6 +118,10 @@ Shortcuts::Shortcuts()
     for (int i = 0; i < 16; ++i) add (note0 + i, juce::String ("Play ") + notes[i], "Computer keyboard notes", { key (keys[i]) });
     add (octaveDown, "Octave down", "Computer keyboard notes", { key ('Z') });
     add (octaveUp, "Octave up", "Computer keyboard notes", { key ('X') });
+    for (int i = 0; i < 8; ++i)
+        add (perform0 + i, "Hold performance effect " + juce::String (i + 1) + " (" + juce::String (i == 0 ? "Stutter" : i == 1 ? "Glitch" : i == 2 ? "Shuffle" : i == 3 ? "Slicer" : i == 4 ? "Crush" : i == 5 ? "Filter" : i == 6 ? "Drive" : "Reverse") + ")",
+             "Performance effects (held)", { key ('1' + i) });
+    add (masterEffects, "Master effects (the chain and the pads' effects)", "Pages and drawers", { key ('F', ctrl | shift) });
     load();
 }
 

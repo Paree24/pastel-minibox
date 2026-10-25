@@ -4,6 +4,8 @@
 #include <functional>
 #include <unordered_map>
 
+namespace mb { class MasterFx; }
+
 namespace mb::ui
 {
 /** Each device's colour, as in its editor mockup (03–10): the plugin shows every device in it. */
@@ -25,6 +27,9 @@ struct AppContext
 
     Engine& engine;
     const bool standalone;
+    /** The groovebox's master and performance effects (null in the plugin) and the drawer that edits them. */
+    MasterFx* masterFx = nullptr;
+    std::function<void (bool pads, int index)> onMasterFx;   // opens the drawer on a chain slot or a pad (toggles when already there)
 
     int focusPattern() const { return engine.focusPattern.load(); }
     int focusTrack() const { return engine.focusTrack.load(); }

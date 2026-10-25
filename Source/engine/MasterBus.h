@@ -1,4 +1,5 @@
 #pragma once
+#include "MasterInsert.h"
 #include "dsp/Effects.h"
 #include "model/Project.h"
 #include <atomic>
@@ -16,7 +17,7 @@ public:
     float* sendB (int ch) { return sends[2 + (size_t) ch].data(); }
     void clearSends (int n);
     /** Mixes the returns into L/R and runs the master chain in place. */
-    void process (float* L, float* R, int n, const MasterSettings& m, double bpm);
+    void process (float* L, float* R, int n, const MasterSettings& m, double bpm, MasterInsert* insert = nullptr, double ppq = 0.0, bool playing = false);
     int latency() const { return limiter.latency(); }
 
     std::atomic<float> peakL { 0.0f }, peakR { 0.0f }, glueReduction { 0.0f };

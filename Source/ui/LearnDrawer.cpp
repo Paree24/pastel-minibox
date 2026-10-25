@@ -1,4 +1,5 @@
 #include "LearnDrawer.h"
+#include "efx/MasterFx.h"
 
 namespace mb::ui
 {
@@ -59,6 +60,7 @@ juce::String learnTargetName (AppContext& ctx, const juce::String& target)
     }
     if (target == "tempo") return "Tempo";
     if (target == "swing") return "Swing";
+    if (target.startsWith ("perform:")) return juce::String ("Perform") + dot + MasterFx::padName (target.getTrailingIntValue());
     const auto kind = target.upToFirstOccurrenceOf (":", false, false);
     const auto rest = target.fromLastOccurrenceOf (":", false, false);
     if (kind == "master") return "Master" + dot + rest.substring (0, 1).toUpperCase() + rest.substring (1);
@@ -88,6 +90,21 @@ std::unique_ptr<Binding> learnBinding (AppContext& ctx, const juce::String& targ
     if (target == "tempo")
         return std::make_unique<FnBinding> ([&proj] { return (float) proj.bpm; },
                                             [&ctx, &proj] (float v) { proj.bpm = std::round (v * 10.0) / 10.0; ctx.markDirty(); }, 40.0f, 240.0f);
+    if (target.startsWith ("perform:"))
+    {
+        // a performance pad: on while the mapped pad / key / button is held (Momentary)
+        struct PerformBinding : Binding
+        {
+            AppContext& c; int pad;
+            PerformBinding (AppContext& cx, int p) : c (cx), pad (p) {}
+            float getNorm() const override { return c.masterFx != nullptr && c.masterFx->isHeld (pad) ? 1.0f : 0.0f; }
+            void setNorm (float v) override { if (c.masterFx != nullptr) c.masterFx->setHeld (pad, v > 0.5f); }
+            float defaultNorm() const override { return 0.0f; }
+            juce::String text() const override { return getNorm() > 0.5f ? "On" : "Off"; }
+            int steps() const override { return 2; }
+        };
+        return std::make_unique<PerformBinding> (ctx, juce::jlimit (0, kPerformFx - 1, target.getTrailingIntValue()));
+    }
     if (target == "swing")
         return std::make_unique<FloatBinding> (&proj.swing, 0.5f, 0.75f, 0.5f, [] (float v) { return juce::String (juce::roundToInt (v * 100)) + "%"; }, false, &ctx);
     const auto kind = target.upToFirstOccurrenceOf (":", false, false);
@@ -435,6 +452,9 @@ juce::PopupMenu learnTargetMenu (AppContext& ctx, std::vector<juce::String>& ids
     m.addSubMenu ("Master", master);
     item (m, "tempo", "Tempo");
     item (m, "swing", "Swing");
+    juce::PopupMenu perform;
+    for (int i = 0; i < kPerformFx; ++i) item (perform, "perform:" + juce::String (i), juce::String (i + 1) + "  " + MasterFx::padName (i) + " (hold)");
+    m.addSubMenu ("Performance effects", perform);
     for (auto& [id, name] : learnActions()) item (actions, "action:" + id, name);
     m.addSubMenu ("Actions", actions);
     return m;
