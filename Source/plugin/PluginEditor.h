@@ -56,6 +56,7 @@ private:
     ui::EditorHeader header;
     std::unique_ptr<ui::EditorBody> body;
     MidiRow midiRow;
+    pastel::MidiLearnButton midiBtn;
     DeviceProcessor* shown = nullptr;
     std::array<float, 8> uiMacro {};
 };

@@ -1,6 +1,7 @@
 #pragma once
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "engine/Engine.h"
+#include "MidiLearn.h"
 
 namespace mb
 {
@@ -36,8 +37,15 @@ public:
     DeviceProcessor* device() { return eng.pluginDevice(); }
     /** Switch the instrument (message thread). Loads the device's default preset. */
     void switchInstrument (DeviceType);
-    /** Called by the editor when a macro changes in the UI, so the host sees it. */
+    /** Called by the editor when a macro changes in the UI, so the host sees it (as a gesture when the
+        UI moved it, which also arms MIDI learn). */
     void macroChangedByUi (int macro, float value);
+    /** Step the instrument's presets (message thread): the MIDI-learned preset knob without an editor. */
+    void stepPreset (int delta);
+    /** Global MIDI learn of the host parameters (~/.config/PastelMidiLearn/Minibox.xml). */
+    pastel::MidiLearn& midiLearn() { return *learn; }
+    /** Set by an open editor so the preset knob steps exactly like its header arrows. */
+    std::function<void (int)> presetStepInEditor;
 
     std::array<juce::AudioParameterFloat*, 8> macroParams {};
     juce::AudioParameterFloat *levelParam = nullptr, *panParam = nullptr, *masterParam = nullptr, *delayParam = nullptr, *reverbParam = nullptr;
@@ -45,6 +53,8 @@ public:
 
 private:
     void syncHostParameters();
+    void pullMacrosFromDevice();
+    std::unique_ptr<pastel::MidiLearn> learn;   // made after the parameters exist
     Engine eng { Engine::Mode::Plugin };
     std::array<float, 14> lastHost {};
     std::array<float, 8> lastMacro {};

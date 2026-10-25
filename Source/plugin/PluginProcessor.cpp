@@ -22,6 +22,8 @@ MiniboxProcessor::MiniboxProcessor()
     for (auto* p : std::initializer_list<juce::AudioProcessorParameter*> { levelParam, panParam, muteParam, masterParam, delayParam, reverbParam }) addParameter (p);
     eng.project().master.glue = 0.0f;   // the plugin is one instrument: no bus compression by default
     switchInstrument (DeviceType::Poly);
+    learn = std::make_unique<pastel::MidiLearn> (*this, "Minibox");
+    learn->onPresetStep = [this] (int delta) { if (presetStepInEditor) presetStepInEditor (delta); else stepPreset (delta); };
 }
 
 MiniboxProcessor::~MiniboxProcessor() = default;
@@ -44,6 +46,11 @@ void MiniboxProcessor::switchInstrument (DeviceType t)
     presets::loadDefault (*d);
     auto old = eng.setDevice (0, 0, std::move (d));
     old.reset();
+    pullMacrosFromDevice();
+}
+
+void MiniboxProcessor::pullMacrosFromDevice()
+{
     if (auto* dev = eng.pluginDevice())
         for (int m = 0; m < 8; ++m)
         {
@@ -53,11 +60,30 @@ void MiniboxProcessor::switchInstrument (DeviceType t)
         }
 }
 
+void MiniboxProcessor::stepPreset (int delta)
+{
+    auto* d = eng.pluginDevice();
+    if (d == nullptr) return;
+    auto list = presets::list (d->type());
+    if (list.empty()) return;
+    int cur = -1;
+    for (int i = 0; i < (int) list.size(); ++i) if (list[(size_t) i].name == d->presetName) { cur = i; break; }
+    const int n = (int) list.size();
+    const int next = cur < 0 ? (delta > 0 ? 0 : n - 1) : ((cur + delta) % n + n) % n;
+    presets::apply (*d, list[(size_t) next]);
+    pullMacrosFromDevice();
+}
+
 void MiniboxProcessor::macroChangedByUi (int m, float v)
 {
+    auto* p = macroParams[(size_t) m];
+    // the host (or a learned CC) already wrote the parameter when it is equal: only UI moves are gestures
+    const bool fromUi = std::abs (p->get() - v) > 1.0e-5f;
     lastMacro[(size_t) m] = v;
-    macroParams[(size_t) m]->setValueNotifyingHost (v);
-    lastHost[(size_t) m] = macroParams[(size_t) m]->get();
+    if (fromUi) p->beginChangeGesture();
+    p->setValueNotifyingHost (v);
+    if (fromUi) p->endChangeGesture();
+    lastHost[(size_t) m] = p->get();
 }
 
 void MiniboxProcessor::syncHostParameters()
@@ -82,6 +108,7 @@ void MiniboxProcessor::syncHostParameters()
 void MiniboxProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi)
 {
     juce::ScopedNoDenormals noDenormals;
+    learn->process (midi);   // learned CCs move the host parameters before they reach the engine
     syncHostParameters();
     if (auto* ph = getPlayHead())
         if (auto pos = ph->getPosition())

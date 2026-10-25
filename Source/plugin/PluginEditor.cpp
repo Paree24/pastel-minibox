@@ -103,7 +103,7 @@ void MidiRow::paint (juce::Graphics& g)
 
 // ------------------------------------------------------------------------------------------- editor
 MiniboxEditor::MiniboxEditor (MiniboxProcessor& p)
-    : AudioProcessorEditor (p), proc (p), ctx (p.engine(), false), topBar (p), header (ctx), midiRow (p)
+    : AudioProcessorEditor (p), proc (p), ctx (p.engine(), false), topBar (p), header (ctx), midiRow (p), midiBtn (p.midiLearn())
 {
     setLookAndFeel (&laf);
     setWantsKeyboardFocus (true);
@@ -117,6 +117,15 @@ MiniboxEditor::MiniboxEditor (MiniboxProcessor& p)
     topBar.setBounds (0, 0, W, TOP);
     header.setBounds (0, TOP + 8, W, 52);
     midiRow.setBounds (M, H - M - stripH, W - 2 * M, stripH);
+    // MIDI learn at the right end of the top bar, the height of the instrument tabs
+    content.addAndMakeVisible (midiBtn);
+    midiBtn.setBounds (W - M - 84, 18, 84, 28);
+    midiBtn.setColour (juce::TextButton::buttonOnColourId, col::pattern);
+    midiBtn.setColour (juce::TextButton::textColourOnId, col::pattern);
+    proc.presetStepInEditor = [this] (int delta)
+    {
+        if (auto* d = proc.device()) { presetActions::step (ctx, *d, delta); header.repaint(); }
+    };
     ctx.showDevicePicker = [this] (int, juce::Component* anchor) { showInstrumentMenu (anchor); };
     ctx.showPresetBrowser = [this] (DeviceProcessor* d, juce::Component* anchor) { PresetBrowser::show (ctx, *d, anchor, [this] { header.repaint(); }); };
     topBar.onSwitched = [this] { attachDevice(); };
@@ -131,6 +140,7 @@ MiniboxEditor::MiniboxEditor (MiniboxProcessor& p)
 MiniboxEditor::~MiniboxEditor()
 {
     stopTimer();
+    proc.presetStepInEditor = nullptr;
     setLookAndFeel (nullptr);
 }
 
