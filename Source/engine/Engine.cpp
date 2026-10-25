@@ -87,6 +87,8 @@ void Engine::beginTake()
         takeBeforeClip[(size_t) t].convertToPianoRoll (proj.stepTicks (takePattern), proj.patternSteps (takePattern));
     }
     takeLastStep = -1;
+    takeAuto.clear();
+    takeAuto.reserve (4096);
     takeOpen = true;
 }
 
@@ -112,8 +114,37 @@ void Engine::endTake()
         int bars = takeStartBars[(size_t) p];
         while (bars < reach && bars < pt.lengthBars) bars *= 2;
         bars = std::clamp (bars, takeStartBars[(size_t) p], pt.lengthBars);
-        // the bars the take added past that go, with the copies made in them
         const int stT = proj.stepTicks (p), from = bars * spb, to = pt.lengthBars * spb;
+        // automation recorded in the bars that go folds back onto the kept ones, the later pass winning: turning a
+        // knob keeps its motion without lengthening the pattern (or copying its clips)
+        if (p == takePattern)
+        {
+            const int keptT = from * stT;
+            for (auto& a : takeAuto)
+                if (! a.lane && a.pos >= from && a.pos < to)
+                    if (auto* l = pt.slots[(size_t) a.track].track.lockFor (a.key, true)) l->values[(size_t) (a.pos % from)] = a.value;
+            // a lane: each later pass replaces the stretch it covered
+            struct Span { int track, lane, pass, lo, hi; };
+            std::vector<Span> spans;
+            for (auto& a : takeAuto)
+            {
+                if (! a.lane || a.pos < keptT || a.pos >= to * stT) continue;
+                const int pass = a.pos / keptT, at = a.pos % keptT;
+                auto it = std::find_if (spans.begin(), spans.end(), [&] (const Span& s) { return s.track == a.track && s.lane == a.key && s.pass == pass; });
+                if (it == spans.end()) spans.push_back ({ a.track, a.key, pass, at, at });
+                else { it->lo = std::min (it->lo, at); it->hi = std::max (it->hi, at); }
+            }
+            std::stable_sort (spans.begin(), spans.end(), [] (const Span& x, const Span& y) { return x.pass < y.pass; });
+            for (auto& s : spans)
+            {
+                auto& tr = pt.slots[(size_t) s.track].track;
+                tr.erasePoints (s.lane, s.lo, s.hi + 1);
+                for (auto& a : takeAuto)
+                    if (a.lane && a.track == s.track && a.key == s.lane && a.pos >= keptT && a.pos < to * stT && a.pos / keptT == s.pass)
+                        tr.setPoint (s.lane, a.pos % keptT, a.value);
+            }
+        }
+        // the bars the take added past that go, with the copies made in them
         for (auto& sl : pt.slots)
         {
             auto& tr = sl.track;
@@ -264,7 +295,7 @@ void Engine::recordKnob (int pattern, int track, int param, float value)
     auto& tr = proj.patterns[(size_t) pattern].slots[(size_t) track].track;
     const int step = std::clamp (curStep.load(), 0, kMaxSteps - 1);
     if (auto* lane = tr.lockFor (param, true)) lane->values[(size_t) step] = value;
-    if (pattern == seq.activePattern) takeLastStep = std::max (takeLastStep.load(), step);   // automation keeps its bars too
+    if (takeOpen.load() && pattern == takePattern) takeAuto.push_back ({ track, param, step, value, false });
 }
 
 void Engine::touchParam (int pattern, int track, int param, float value)
@@ -290,7 +321,7 @@ void Engine::recordMacro (const DeviceProcessor* dev, int macro, float value)
                 const ScopedEdit edit (*this);
                 const int tick = std::clamp ((int) std::lround ((curStep.load() + stepPhaseNow.load()) * proj.stepTicks (p)), 0, proj.patternTicks (p));
                 tr.setPoint (100 + macro, tick, value);
-                takeLastStep = std::max (takeLastStep.load(), tick / std::max (1, proj.stepTicks (p)));
+                if (takeOpen.load() && p == takePattern) takeAuto.push_back ({ t, 100 + macro, tick, value, true });
             }
             else
             {
@@ -606,6 +637,7 @@ bool Engine::applyRecorded()
             {
                 if (! tr.pianoRoll) tr.convertToPianoRoll (proj.stepTicks (e.pattern), proj.patternSteps (e.pattern));
                 tr.setPoint (e.note, e.tick, e.value);
+                if (takeOpen.load() && e.pattern == takePattern) takeAuto.push_back ({ e.track, e.note, e.tick, e.value, true });
             }
             else if (e.kind == RecEvent::Off)
             {

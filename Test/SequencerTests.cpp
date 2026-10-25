@@ -875,3 +875,43 @@ MB_TEST (record_doubling_copies_pre_take_content)
     ctx.check (count (36, 0) == 1 && count (36, 1) == 1 && count (62, 1) == 1 && count (36, 2) == 0 && count (36, 5) == 0,
                "bar 2 holds the bass copy and the second chord; the copies past bar 2 are gone");
 }
+
+/** Recording only automation never lengthens the pattern or copies its clips: the motion recorded past the
+    pattern's end folds back onto it, the later pass winning. */
+MB_TEST (record_automation_does_not_duplicate)
+{
+    Rig rig (1);
+    auto& p = rig.e.project();
+    auto& tr = rig.track();
+    const int st = rig.stepT();
+    tr.pianoRoll = true;
+    ClipNote bass; bass.start = 0; bass.length = st * 4; bass.note = 36; tr.addClipNote (bass);
+    auto other = std::make_unique<ProbeDevice> (0);
+    rig.e.setDevice (0, 2, std::move (other));
+    rig.track (2).steps[0].addNote (60);
+    rig.e.setRecord (true);
+    rig.e.play();
+    // a lane point every step for two and a half passes (the pattern doubles while recording)
+    for (int s = 0; s < 40; ++s)
+    {
+        rig.runTo (s + 0.5);
+        juce::MidiBuffer cc;                                  // the mod wheel, from the keyboard
+        cc.addEvent (juce::MidiMessage::controllerEvent (1, 1, juce::roundToInt (s / 40.0f * 127.0f)), 0);
+        rig.e.process (rig.l.data(), rig.r.data(), 128, &cc); rig.pos += 128; rig.e.applyRecorded();
+        rig.e.recordKnob (0, 1, 0, s / 40.0f);              // a lock on parameter 0
+    }
+    rig.runTo (40.5);
+    ctx.check (p.patterns[0].lengthBars >= 2, "while recording the pattern grew (" + juce::String (p.patterns[0].lengthBars) + " bars)");
+    rig.e.stop(); rig.runTo (41.0);
+    ctx.check (p.patterns[0].lengthBars == 1, "automation alone: still 1 bar (" + juce::String (p.patterns[0].lengthBars) + ")");
+    int basses = 0; for (auto& n : tr.clip) basses += n.note == 36;
+    ctx.check (basses == 1, "the clip is not duplicated (" + juce::String (basses) + " bass notes)");
+    int chords = 0; for (int s = 0; s < kMaxSteps; ++s) chords += rig.track (2).steps[(size_t) s].noteCount;
+    ctx.check (chords == 1, "the other track is not duplicated either");
+    auto* lock = tr.lockFor (0, false);
+    ctx.check (lock != nullptr && std::abs (lock->values[3] - 35 / 40.0f) < 1e-4f, "step 4 holds the last pass's lock (" + juce::String (lock ? lock->values[3] : -1.0f) + ")");
+    ctx.check (lock != nullptr && std::abs (lock->values[10] - 26 / 40.0f) < 1e-4f, "step 11: its value from pass 2 (pass 3 stopped before it)");
+    int points = 0; float at3 = -1.0f;
+    for (auto& c : tr.cc) if (c.lane == 1) { ++points; if (c.tick >= 3 * st && c.tick < 4 * st) at3 = c.value; }
+    ctx.check (points > 0 && points <= 16 && std::abs (at3 - juce::roundToInt (35 / 40.0f * 127.0f) / 127.0f) < 1e-3f, "mod wheel: one pass's points, the latest at step 4 (" + juce::String (points) + ", " + juce::String (at3) + ")");
+}

@@ -191,6 +191,10 @@ private:
     // recorded track's earlier content into the new bars, never the take itself
     std::array<Track, kTracks> takeBefore, takeBeforeClip;
     int takePattern = -1;
+    // the take's automation in record order (message thread): a lock (key = parameter, pos = step) or a lane point
+    // (key = lane, pos = tick). Automation never lengthens the pattern: what lands past the kept bars folds back
+    struct TakeAuto { int track = 0, key = 0, pos = 0; float value = 0.0f; bool lane = false; };
+    std::vector<TakeAuto> takeAuto;
     std::atomic<bool> takeOpen { false };
     void beginTake();   // message thread: record armed and playing (Play with record on, or record on while playing)
     void endTake();     // message thread: Stop or record off; trims what the take grew
