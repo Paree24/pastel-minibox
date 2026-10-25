@@ -23,7 +23,7 @@ Status is kept current. Test: `Test/KeyboardTests.cpp` (drives the real window b
 | 9 | Record | Ctrl+R live record, Ctrl+Shift+R step record (the LIVE and STEP buttons; again turns it off) | done |
 | 10 | Pages | Ctrl+1 Rack, Ctrl+2 Seq, Ctrl+3 editor of the selected instrument (also Enter on a rack strip); Esc goes back | done |
 | 11 | Drawers | Ctrl+P Play drawer, Ctrl+M MIDI learn | done |
-| 12 | Instrument | ↑/↓ select (when nothing is focused); Ctrl+B its preset browser; Ctrl+[ / Ctrl+] previous / next preset; + / = adds an instrument to the first empty track (device menu) | done |
+| 12 | Instrument | ↑/↓ select (when nothing is focused, every page); Rack and editor pages: ←/→ previous / next preset; Ctrl+B its preset browser; Ctrl+[ / Ctrl+] previous / next preset; + / = adds an instrument to the first empty track (device menu) | done |
 | 13 | Patterns | Alt+1…8 switch to A–H (in performance mode: queued to the pattern's end); Ctrl+Shift+P performance mode | done |
 | 14 | Tempo | Ctrl+↑ / Ctrl+↓ ±1 BPM (Shift ±0.1); metronome Ctrl+K | done |
 | 15 | Undo / redo, save, new, open, export | Ctrl+Z, Ctrl+Shift+Z / Ctrl+Y, Ctrl+S, Ctrl+N, Ctrl+O, Ctrl+E | done |
@@ -31,7 +31,7 @@ Status is kept current. Test: `Test/KeyboardTests.cpp` (drives the real window b
 ## Sequencer
 | # | Function | Keys | Status |
 |---|---|---|---|
-| 16 | Bars | ← / → previous / next bar (when nothing is focused or selected) | done |
+| 16 | Bars | Seq page: ← / → previous / next bar (when nothing is focused or selected) | done |
 | 17 | Step recording | ← / → move the record cursor (nothing is erased); Rest, Back and To start as in the drawer | done |
 | 18 | Piano roll with focus | arrows move a cursor cell (Shift: a bar / an octave), Enter adds / removes the note there, Shift+Enter adds / removes it from the selection, Alt+arrows nudge the selection; the editing keys of docs/sequencer.md apply | done |
 | 19 | Step rows and drum grid | arrow between cells, Enter toggles | done |
@@ -39,6 +39,9 @@ Status is kept current. Test: `Test/KeyboardTests.cpp` (drives the real window b
 | 21 | Piano roll nudge | ←/→ a grid unit (Shift a bar, Ctrl 1/48 step) with notes selected | done |
 
 ## Shortcuts are configurable
+The arrows are page keys: each page has its own entry in Settings ▸ Keyboard (Rack page, Seq page, Editor page),
+so the same keys can do what fits the page.
+
 Every shortcut above (global, piano roll, the computer-keyboard notes and octave) is rebindable in **Settings ▸
 Keyboard** (`⋯ ▸ Settings`, Ctrl+,): change, add a second key, reset to defaults; saved to
 `<user app data>/Pastel Minibox/shortcuts.xml`. Focus keys (Tab, arrows, Enter, Esc) stay fixed.

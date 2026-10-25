@@ -543,7 +543,8 @@ bool MainComponent::keyPressed (const juce::KeyPress& k)
     if (Feedback::handleKey (k, content)) return true;
     // the piano roll's editing keys (Delete, Ctrl+A/C/X/V/D, arrows nudge, Q, 0, B, zoom …)
     if (view == TopBar::View::Seq && seq.keyCommand (k)) return true;
-    if (const auto id = sc.find (k, Shortcuts::globalCategories()); id != 0) { runCommand (id); return true; }
+    const int page = view == TopBar::View::Rack ? 0 : (view == TopBar::View::Seq ? 1 : 2);
+    if (const auto id = sc.find (k, Shortcuts::categoriesFor (page)); id != 0) { runCommand (id); return true; }
     if (code == juce::KeyPress::returnKey && view == TopBar::View::Rack) { if (ctx.openEditor) ctx.openEditor (ctx.focusTrack()); return true; }
     if (code == juce::KeyPress::escapeKey)
     {
@@ -589,14 +590,16 @@ void MainComponent::runCommand (juce::CommandID id)
         case cmd::pageEditor: if (ctx.openEditor) ctx.openEditor (ctx.focusTrack()); break;
         case cmd::playDrawer: showDrawer (! drawer.isVisible()); break;
         case cmd::midiLearn: showLearn (! learnOpen()); break;
-        case cmd::trackPrev: selectTrack (-1); break;
-        case cmd::trackNext: selectTrack (1); break;
+        case cmd::trackPrev: case cmd::rackTrackPrev: case cmd::seqTrackPrev: case cmd::editorTrackPrev: selectTrack (-1); break;
+        case cmd::trackNext: case cmd::rackTrackNext: case cmd::seqTrackNext: case cmd::editorTrackNext: selectTrack (1); break;
+        case cmd::rackPresetPrev: case cmd::editorPresetPrev: if (auto* d = ctx.focusDevice()) { presetActions::step (ctx, *d, -1); rack.refresh(); editor.refresh(); } break;
+        case cmd::rackPresetNext: case cmd::editorPresetNext: if (auto* d = ctx.focusDevice()) { presetActions::step (ctx, *d, 1); rack.refresh(); editor.refresh(); } break;
         case cmd::addDevice: this->addDevice(); break;
         case cmd::presetBrowser: if (auto* d = ctx.focusDevice()) if (ctx.showPresetBrowser) ctx.showPresetBrowser (d, &topBar); break;
         case cmd::presetPrev: if (auto* d = ctx.focusDevice()) presetActions::step (ctx, *d, -1); break;
         case cmd::presetNext: if (auto* d = ctx.focusDevice()) presetActions::step (ctx, *d, 1); break;
-        case cmd::barPrev: moveBar (-1); break;
-        case cmd::barNext: moveBar (1); break;
+        case cmd::barPrev: case cmd::seqBarPrev: moveBar (-1); break;
+        case cmd::barNext: case cmd::seqBarNext: moveBar (1); break;
         default: break;
     }
 }

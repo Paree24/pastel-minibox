@@ -306,6 +306,9 @@ RackView::RackView (AppContext& c) : ctx (c), master (c)
     viewport.setViewedComponent (&strips, false);
     viewport.setScrollBarsShown (true, false);
     viewport.setScrollBarThickness (6);
+    // the arrows keep selecting instruments (the scroll area never takes the keyboard; the wheel scrolls it)
+    viewport.setWantsKeyboardFocus (false);
+    strips.setWantsKeyboardFocus (false);
     addAndMakeVisible (viewport);
     addAndMakeVisible (master);
 }

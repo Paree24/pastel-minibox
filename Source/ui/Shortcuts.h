@@ -24,6 +24,10 @@ enum : juce::CommandID
     rollMute, rollLock, rollTool, rollSnap, rollZoomIn, rollZoomOut, rollRowsIn, rollRowsOut, rollFit, rollFitNotes,
     rollTransposeUp, rollTransposeDown, rollOctaveUp, rollOctaveDown, rollShorter, rollLonger, rollVelocityDown, rollVelocityUp,
     rollPlayFromCursor, rollLoopSelection, rollLoopToggle,
+    // page keys: the same keys do what fits the page in view
+    rackTrackPrev, rackTrackNext, rackPresetPrev, rackPresetNext,
+    seqTrackPrev, seqTrackNext, seqBarPrev, seqBarNext,
+    editorTrackPrev, editorTrackNext, editorPresetPrev, editorPresetNext,
     // the computer keyboard as a piano: 16 keys from C up, and the octave
     note0, note15 = note0 + 15, octaveDown, octaveUp
 };
@@ -46,6 +50,8 @@ public:
     void load();
     static juce::File file();
     static const juce::StringArray& globalCategories();
+    /** The page's own keys first, then the global ones (page: 0 Rack, 1 Seq, 2 the editor). */
+    static juce::StringArray categoriesFor (int page);
 
 private:
     void add (juce::CommandID, const juce::String& name, const juce::String& category, std::initializer_list<juce::KeyPress> keys);

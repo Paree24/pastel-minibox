@@ -248,3 +248,38 @@ MB_TEST (keyboard_mouse_equivalents)
     key ('L', juce::ModifierKeys (juce::ModifierKeys::commandModifier | juce::ModifierKeys::shiftModifier));
     ctx.check (e.project().patterns[0].loopOn && e.project().patterns[0].loopStart == 0 && e.project().patterns[0].loopEnd == 2, "Ctrl+Shift+L loops the selection");
 }
+
+/** The rack scrolls with eight tracks, but ↑ / ↓ still select the instrument after a click in it. */
+MB_TEST (keyboard_rack_arrows_select)
+{
+    ui::shortcuts().mappings().resetToDefaultMappings();
+    Engine e;
+    e.prepare (48000.0, 512);
+    for (int t = 0; t < 6; ++t) e.setDevice (0, t, createDevice (DeviceType::Poly));
+    e.focusTrack = 0;
+    MainComponent mc (e);
+    mc.setSize (1600, 1000);
+    mc.addToDesktop (0);
+    mc.setVisible (true);
+    mc.grabKeyboardFocus();
+    mc.refreshAll();
+    // a click in the rack's scroll area (where the focus would go)
+    juce::Component* hit = mc.getComponentAt (800, 300);
+    while (hit != nullptr && ! hit->getWantsKeyboardFocus()) hit = hit->getParentComponent();
+    ctx.check (hit == &mc, "a click in the rack leaves the keyboard with the app (" + juce::String (hit != nullptr ? hit->getName() : "none") + ")");
+    ctx.check (mc.keyPressed (juce::KeyPress (juce::KeyPress::downKey)) && e.focusTrack.load() == 1, "↓ selects the next instrument");
+    // page keys: on the rack ← / → step the selected instrument's presets; on the Seq page they walk the bars
+    mc.keyPressed (juce::KeyPress (juce::KeyPress::rightKey));   // from "Init" onto the first factory preset
+    const auto before = e.device (0, 1)->presetName;
+    mc.keyPressed (juce::KeyPress (juce::KeyPress::rightKey));
+    const auto after = e.device (0, 1)->presetName;
+    ctx.check (after != before, "Rack: → the next preset (" + before + " -> " + after + ")");
+    mc.keyPressed (juce::KeyPress (juce::KeyPress::leftKey));
+    ctx.check (e.device (0, 1)->presetName == before, "Rack: ← back to the previous one");
+    e.project().patterns[0].lengthBars = 2;
+    mc.showPage (1, 1);
+    mc.context().viewBar = 0;
+    mc.keyPressed (juce::KeyPress (juce::KeyPress::rightKey));
+    ctx.check (mc.context().viewBar == 1 && e.device (0, 1)->presetName == before, "Seq: → the next bar (the preset stays)");
+    mc.removeFromDesktop();
+}

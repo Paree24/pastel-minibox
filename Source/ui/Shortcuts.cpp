@@ -12,6 +12,13 @@ K key (int code, int mods = 0) { return K (code, M (mods), 0); }
 
 Shortcuts& shortcuts() { static Shortcuts s; return s; }
 
+juce::StringArray Shortcuts::categoriesFor (int page)
+{
+    juce::StringArray c { page == 0 ? "Rack page" : (page == 1 ? "Seq page" : "Editor page") };
+    c.addArray (globalCategories());
+    return c;
+}
+
 const juce::StringArray& Shortcuts::globalCategories()
 {
     static const juce::StringArray c { "Project", "Transport and recording", "Pages and drawers", "Instruments", "Patterns" };
@@ -47,17 +54,28 @@ Shortcuts::Shortcuts()
     add (playDrawer, "Play drawer", "Pages and drawers", { key ('P', ctrl) });
     add (midiLearn, "MIDI learn", "Pages and drawers", { key ('M', ctrl) });
 
-    add (trackPrev, "Previous instrument", "Instruments", { key (K::upKey) });
-    add (trackNext, "Next instrument", "Instruments", { key (K::downKey) });
     add (addDevice, "Add an instrument", "Instruments", { key ('='), key ('+', shift) });
     add (presetBrowser, "Preset browser", "Instruments", { key ('B', ctrl) });
     add (presetPrev, "Previous preset", "Instruments", { key ('[', ctrl) });
     add (presetNext, "Next preset", "Instruments", { key (']', ctrl) });
-    add (barPrev, "Previous bar", "Instruments", { key (K::leftKey) });
-    add (barNext, "Next bar", "Instruments", { key (K::rightKey) });
     add (undo, "Undo", "Instruments", { key ('Z', ctrl) });
     add (redo, "Redo", "Instruments", { key ('Z', ctrl | shift) });
     add (redoAlt, "Redo (second key)", "Instruments", { key ('Y', ctrl) });
+
+    // the arrows (and any keys you give them) do what fits the page: the rack and the editor walk instruments and
+    // presets, the Seq page walks instruments and bars
+    add (rackTrackPrev, "Previous instrument", "Rack page", { key (K::upKey) });
+    add (rackTrackNext, "Next instrument", "Rack page", { key (K::downKey) });
+    add (rackPresetPrev, "Previous preset of the selected instrument", "Rack page", { key (K::leftKey) });
+    add (rackPresetNext, "Next preset of the selected instrument", "Rack page", { key (K::rightKey) });
+    add (seqTrackPrev, "Previous instrument", "Seq page", { key (K::upKey) });
+    add (seqTrackNext, "Next instrument", "Seq page", { key (K::downKey) });
+    add (seqBarPrev, "Previous bar (step record: the cursor back)", "Seq page", { key (K::leftKey) });
+    add (seqBarNext, "Next bar (step record: the cursor on)", "Seq page", { key (K::rightKey) });
+    add (editorTrackPrev, "Previous instrument", "Editor page", { key (K::upKey) });
+    add (editorTrackNext, "Next instrument", "Editor page", { key (K::downKey) });
+    add (editorPresetPrev, "Previous preset", "Editor page", { key (K::leftKey) });
+    add (editorPresetNext, "Next preset", "Editor page", { key (K::rightKey) });
 
     for (int p = 0; p < 8; ++p)
         add (pattern0 + p, "Pattern " + juce::String::charToString ("ABCDEFGH"[p]), "Patterns", { key ('1' + p, alt) });
