@@ -760,8 +760,9 @@ void SeqView::mouseDown (const juce::MouseEvent& e)
     }
     switch (t.kind)
     {
-        case Target::BarLess: { const Engine::ScopedEdit ed (ctx.engine); pattern.lengthBars = std::max (1, pattern.lengthBars - 1); ctx.markDirty(); break; }
-        case Target::BarMore: { const Engine::ScopedEdit ed (ctx.engine); proj.setLengthBars (pat, pattern.lengthBars + 1); ctx.markDirty(); break; }
+        // the length doubles and halves: 1 → 2 → 4 → 8 → 16 bars (growing repeats the bars into the new ones)
+        case Target::BarLess: { const Engine::ScopedEdit ed (ctx.engine); pattern.lengthBars = std::max (1, pattern.lengthBars / 2); ctx.markDirty(); break; }
+        case Target::BarMore: { const Engine::ScopedEdit ed (ctx.engine); proj.setLengthBars (pat, std::min (proj.maxBarsFor (pat), pattern.lengthBars * 2)); ctx.markDirty(); break; }
         case Target::Res:
         {
             const Engine::ScopedEdit ed (ctx.engine);

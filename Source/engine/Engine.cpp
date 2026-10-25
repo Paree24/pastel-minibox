@@ -77,7 +77,7 @@ void Engine::beginTake()
     const ScopedEdit edit (*this);
     for (auto& pt : proj.patterns)
         for (auto& sl : pt.slots)
-            if (sl.track.pianoRoll) sl.track.clip.reserve (sl.track.clip.size() * 2 + 256);
+            if (sl.track.pianoRoll) sl.track.clip.reserve (sl.track.clip.size() * (size_t) (kMaxBars + 1) + 256);   // doubling up to the longest
     for (int p = 0; p < kPatterns; ++p) takeStartBars[(size_t) p] = proj.patterns[(size_t) p].lengthBars;
     takeLastStep = -1;
     takeOpen = true;
@@ -99,10 +99,12 @@ void Engine::endTake()
     {
         auto& pt = proj.patterns[(size_t) p];
         if (pt.lengthBars <= takeStartBars[(size_t) p]) continue;
-        // the bars the take's notes reach (two one-bar chords: two bars); a take without notes leaves the length as it was
+        // the doubling the take's notes reach (two one-bar chords: 2 bars, three: 4); a take without notes leaves the length as it was
         const int spb = proj.stepsPerBar (p);
         const int reach = p == seq.activePattern && last >= 0 ? last / spb + 1 : 0;
-        pt.lengthBars = std::clamp (reach, takeStartBars[(size_t) p], pt.lengthBars);
+        int bars = takeStartBars[(size_t) p];
+        while (bars < reach && bars < pt.lengthBars) bars *= 2;
+        pt.lengthBars = std::clamp (bars, takeStartBars[(size_t) p], pt.lengthBars);
     }
 }
 
@@ -121,11 +123,13 @@ bool Engine::growAtEnd (int pat)
     if (engineMode == Mode::Plugin || ! recording.load() || ! takeOpen.load() || proj.recordMode != 0 || proj.overdub || seq.countInSamplesLeft > 0) return false;
     auto& pt = proj.patterns[(size_t) pat];
     if ((pt.loopOn && pt.loopEnd > pt.loopStart) || pt.lengthBars >= proj.maxBarsFor (pat)) return false;
-    // the other tracks repeat into the new bar (as growing a pattern does); the recorded track's stays for the take
-    const int spb = proj.stepsPerBar (pat), oldBars = pt.lengthBars, nb = oldBars, src = nb % oldBars;
+    // the pattern doubles (1 → 2 → 4 → 8 → 16 bars): the other tracks repeat into the new bars; the recorded track's stay for the take
+    const int spb = proj.stepsPerBar (pat), oldBars = pt.lengthBars, newBars = std::min (proj.maxBarsFor (pat), oldBars * 2);
     const int stT = proj.stepTicks (pat), barT = spb * stT, rec = focusTrack.load();
     for (int t = 0; t < kTracks; ++t)
+    for (int nb = oldBars; nb < newBars; ++nb)
     {
+        const int src = nb % oldBars;
         if (t == rec) continue;
         auto& tr = pt.slots[(size_t) t].track;
         bool empty = true;
@@ -151,7 +155,7 @@ bool Engine::growAtEnd (int pat)
                 tr.addClipNote (c);
             }
     }
-    pt.lengthBars = oldBars + 1;
+    pt.lengthBars = newBars;
     return true;
 }
 

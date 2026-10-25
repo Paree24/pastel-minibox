@@ -671,7 +671,7 @@ MB_TEST (record_live_grows_pattern)
         rig.runTo (40.0);
         if (! overdub)
         {
-            ctx.check (p.patterns[0].lengthBars == 3, "recording: the pattern grew instead of looping (" + juce::String (p.patterns[0].lengthBars) + " bars)");
+            ctx.check (p.patterns[0].lengthBars == 4, "recording: the pattern doubled (1 → 2 → 4) instead of looping (" + juce::String (p.patterns[0].lengthBars) + " bars)");
             ctx.check (p.patterns[0].slots[0].track.lanes[0][16].on && p.patterns[0].slots[0].track.lanes[0][32].on, "the drums repeat into the new bars");
             const auto* d = rig.clipNote (62);
             ctx.check (d != nullptr && d->start == 16 * rig.stepT(), "the second chord is in bar 2");
