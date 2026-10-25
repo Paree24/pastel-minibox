@@ -134,6 +134,9 @@ public:
     void clearLocks() { std::fill (locks.begin(), locks.end(), std::numeric_limits<float>::quiet_NaN()); }
     /** Value the DSP uses: a lock overrides the stored value for one step. */
     float pv (int i) const { const float l = locks[(size_t) i]; return std::isnan (l) ? get (i) : l; }
+    /** What a control shows: the value playing now (a step's lock while it plays), else the stored one. */
+    float shownNorm (int i) const { return layout[i].toNorm (pv (i)); }
+    float shownMacro (int m) const;
 
     // ---- macros
     std::array<MacroMap, 8>& macros() { return macroMaps; }

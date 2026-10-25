@@ -172,7 +172,7 @@ struct ParamBinding : Binding
 struct MacroBinding : Binding
 {
     MacroBinding (AppContext* c, DeviceProcessor* d, int m) : ctx (c), dev (d), macro (m) {}
-    float getNorm() const override { return dev->getMacro (macro); }
+    float getNorm() const override { return dev->shownMacro (macro); }   // follows automation
     void setNorm (float n) override { dev->setMacro (macro, n); if (ctx) { ctx->engine.recordMacro (dev, macro, n); ctx->markDirty(); } }
     float defaultNorm() const override { return 0.5f; }
     juce::String text() const override;

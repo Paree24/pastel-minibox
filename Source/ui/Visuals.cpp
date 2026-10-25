@@ -430,14 +430,14 @@ bool VisualView::keyOnHot (int index, const juce::KeyPress& k)
 float VisualView::v (int k) const
 {
     if (k < 0 || k >= (int) idx.size() || idx[(size_t) k] < 0) return 0.0f;
-    return dev.get (idx[(size_t) k]);
+    return dev.pv (idx[(size_t) k]);   // automation moves the curve too
 }
 
 uint64_t VisualView::signature() const
 {
     uint64_t h = 1469598103934665603ull;
     auto mix = [&h] (uint64_t x) { h ^= x; h *= 1099511628211ull; };
-    for (int i : idx) if (i >= 0) { float f = dev.get (i); uint32_t u; std::memcpy (&u, &f, 4); mix (u); }
+    for (int i : idx) if (i >= 0) { float f = dev.pv (i); uint32_t u; std::memcpy (&u, &f, 4); mix (u); }
     mix ((uint64_t) ctx.selection (&dev));
     mix ((uint64_t) ctx.viewBar * 31 + (uint64_t) ctx.laneView);
     for (auto& w : dev.heldNotes) mix (w.load());

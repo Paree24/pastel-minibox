@@ -168,6 +168,15 @@ float DeviceProcessor::getMacro (int m) const
     return dsp::clamp ((n - t.lo) / (t.hi - t.lo), 0.0f, 1.0f);
 }
 
+float DeviceProcessor::shownMacro (int m) const
+{
+    const auto& mm = macroMaps[(size_t) m];
+    if (mm.count == 0) return 0.0f;
+    const auto& t = mm.targets[0];
+    if (std::abs (t.hi - t.lo) < 1.0e-6f) return 0.0f;
+    return dsp::clamp ((shownNorm (t.param) - t.lo) / (t.hi - t.lo), 0.0f, 1.0f);
+}
+
 void DeviceProcessor::setMacro (int m, float v01)
 {
     const auto& mm = macroMaps[(size_t) m];

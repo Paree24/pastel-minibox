@@ -55,7 +55,7 @@ SectionCard::SectionCard (AppContext& c, DeviceProcessor& d, const SectionSpec& 
             const auto& info = dev.params()[idx];
             juce::StringArray opts = info.choices;
             if (opts.isEmpty()) for (int i = (int) info.min; i <= (int) info.max; ++i) opts.add (info.format ((float) i));
-            choice = std::make_unique<ChoiceView> (opts, [this, idx] { return (int) (dev.get (idx) - dev.params()[idx].min); },
+            choice = std::make_unique<ChoiceView> (opts, [this, idx] { return (int) std::lround (dev.pv (idx) - dev.params()[idx].min); },
                                                    [this, idx, onParamChange] (int i)
                                                    {
                                                        const float val = dev.params()[idx].min + (float) i;

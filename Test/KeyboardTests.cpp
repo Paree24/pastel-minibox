@@ -354,3 +354,34 @@ MB_TEST (scale_change_transposes)
     ctx.check (scaletranspose::note (62, 0, { 0, 1, 3, 5, 7, 8, 10 }, 0, { 0, 2, 3, 5, 7, 8, 10 }) == 63,
                "an off-scale note keeps its distance from the degree below");
 }
+
+/** Automation moves the controls: a step lock playing turns its knob (and a macro on it); stopped, they return. */
+MB_TEST (automated_knob_moves)
+{
+    Engine e;
+    e.prepare (48000.0, 512);
+    auto dev = createDevice (DeviceType::Mono);
+    auto* d = dev.get();
+    e.setDevice (0, 0, std::move (dev));
+    const int cut = d->params().indexOf ("cutoff");
+    d->setNorm (cut, 0.2f);
+    auto& tr = e.project().patterns[0].slots[0].track;
+    for (int s = 0; s < 16; ++s) tr.steps[(size_t) s].addNote (36);
+    tr.lockFor (cut, true)->values[0] = d->params()[cut].fromNorm (0.9f);
+    ParamBinding knob (nullptr, d, cut);
+    ctx.check (std::abs (knob.getNorm() - 0.2f) < 1e-3f, "stopped: the stored value");
+    e.project().countIn = false;
+    e.play();
+    std::vector<float> l (512), r (512);
+    e.process (l.data(), r.data(), 512, nullptr);
+    e.process (l.data(), r.data(), 512, nullptr);
+    ctx.check (std::abs (knob.getNorm() - 0.9f) < 1e-3f, "step 1 plays its lock: the knob shows it (" + juce::String (knob.getNorm()) + ")");
+    int macro = -1;
+    for (int m = 0; m < 8; ++m)
+        if (macro < 0 && d->macros()[(size_t) m].count > 0 && d->macros()[(size_t) m].targets[0].param == cut) macro = m;
+    ctx.check (macro >= 0 && std::abs (MacroBinding (nullptr, d, macro).getNorm() - d->getMacro (macro)) > 0.1f,
+               "the macro on the locked parameter follows it");
+    e.stop();
+    e.process (l.data(), r.data(), 512, nullptr);
+    ctx.check (std::abs (knob.getNorm() - 0.2f) < 1e-3f, "stopped: back to the stored value (" + juce::String (knob.getNorm()) + ")");
+}

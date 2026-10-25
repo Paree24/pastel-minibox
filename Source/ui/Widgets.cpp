@@ -17,7 +17,7 @@ float ParamBinding::getNorm() const
             const float v = lane->values[(size_t) ctx->lockStep];
             if (! std::isnan (v)) return dev->params()[idx].toNorm (v);
         }
-    return dev->getNorm (idx);
+    return dev->shownNorm (idx);   // automation (a playing step lock) moves the knob
 }
 
 void ParamBinding::setNorm (float n)
@@ -60,7 +60,7 @@ juce::String MacroBinding::text() const
     const auto& mm = dev->macros()[(size_t) macro];
     if (mm.count == 0) return {};
     const auto& p = dev->params()[mm.targets[0].param];
-    return p.format (dev->get (mm.targets[0].param));
+    return p.format (dev->pv (mm.targets[0].param));
 }
 
 // ------------------------------------------------------------------------------------------- knob
