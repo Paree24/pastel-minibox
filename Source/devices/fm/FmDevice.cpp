@@ -130,6 +130,7 @@ void FmDevice::noteOn (int note, float vel)
     {
         if (! wasActive) { v->fadeIn = 0.0f; for (auto& o : v->op) o.phase = 0.0f; }
         for (auto& e : v->env) e.gateOn();
+        if (! v->pitchEnv.active()) v->pitchEnv.value = 0.5f;   // the pitch EG rests at its centre (0 would be an octave down)
         v->pitchEnv.gateOn();
     }
     v->slot.note = note; v->slot.held = true; v->slot.active = true; v->slot.age = ++clock;
@@ -190,7 +191,7 @@ void FmDevice::render (float* outL, float* outR, int n)
     const float mAtk = pv (pMacro[0]), mDec = pv (pMacro[1]), mLvl = pv (pMacro[2]);
     const float cAtk = pv (pMacro[3]), cDec = pv (pMacro[4]), cLvl = pv (pMacro[5]);
 
-    struct OpSnap { float ratio, freq, det, amp, velSens, keyScale, rateScale; bool fixed, muted; int wave; float r[4], l[4]; };
+    struct OpSnap { float ratio, freq, det, detRatio, amp, velSens, keyScale, rateScale; bool fixed, muted; int wave; float r[4], l[4]; };
     std::array<OpSnap, kOps> s;
     int numCarriers = 0;
     for (int o = 0; o < kOps; ++o)
@@ -199,6 +200,7 @@ void FmDevice::render (float* outL, float* outR, int n)
         const bool car = (A.carriers >> o) & 1u;
         x.ratio = pv (opParam (o, Ratio)); x.fixed = pv (opParam (o, Fixed)) > 0.5f; x.freq = pv (opParam (o, Freq));
         x.det = pv (opParam (o, Detune)) / 100.0f;
+        x.detRatio = semisToRatio (x.det) * x.ratio;   // once per block, not per sample
         float lvl = clamp (pv (opParam (o, Level)) + (car ? cLvl : mLvl) * 0.25f, 0.0f, 1.0f);
         x.amp = lvl <= 0.0005f ? 0.0f : dbToGain ((lvl - 1.0f) * 60.0f);
         x.velSens = pv (opParam (o, VelSens)); x.keyScale = pv (opParam (o, KeyScale)); x.rateScale = pv (opParam (o, RateScale));
@@ -224,19 +226,20 @@ void FmDevice::render (float* outL, float* outR, int n)
     std::fill (bufR.begin(), bufR.begin() + n, 0.0f);
     std::vector<float>& lfoBuf = bufR;   // reuse: LFO first, then stereo copy at the end
     for (int i = 0; i < n; ++i) lfoBuf[(size_t) i] = lfo.process (lShape);
-    float mono[4096];
-    jassert (n <= 4096);
-    std::fill (mono, mono + n, 0.0f);
+    float* mono = bufL.data();   // the voices sum here (sized in prepare: any block length)
     const float fadeStep = 1.0f / (0.002f * sr);
 
     for (auto& v : voices)
     {
-        if (! v.env[0].active() && ! v.env[1].active() && ! v.env[2].active() && ! v.env[3].active() && ! v.env[4].active() && ! v.env[5].active())
-        { v.slot.active = false; continue; }
+        // the voice lasts while a carrier sounds (a modulator still releasing toward a level above 0 doesn't keep it)
+        bool sounding = false;
+        for (int o = 0; o < kOps; ++o) sounding = sounding || (((A.carriers >> o) & 1u) && v.env[(size_t) o].active());
+        if (! sounding) { for (auto& e : v.env) e.kill(); v.pitchEnv.kill(); v.slot.active = false; continue; }
         for (int o = 0; o < kOps; ++o)
         {
             auto& e = v.env[(size_t) o];
             for (int k = 0; k < 4; ++k) { e.rates[k] = s[(size_t) o].r[k]; e.levels[k] = s[(size_t) o].l[k]; }
+            if ((A.carriers >> o) & 1u) e.levels[3] = 0.0f;   // a carrier's release ends in silence: the voice frees
             e.rateScale = std::exp2 (s[(size_t) o].rateScale * (v.pitch - 60.0f) / 24.0f);
         }
         if (pegActive)
@@ -264,7 +267,7 @@ void FmDevice::render (float* outL, float* outR, int n)
             {
                 const auto& x = s[(size_t) o];
                 auto& op = v.op[(size_t) o];
-                const float hz = x.fixed ? x.freq : baseHz * x.ratio * semisToRatio (x.det);
+                const float hz = x.fixed ? x.freq : baseHz * x.detRatio;
                 op.setFreq (hz, sr);
                 float pm = 0.0f;
                 const uint8_t mods = A.mods[(size_t) o];
@@ -280,7 +283,7 @@ void FmDevice::render (float* outL, float* outR, int n)
         float lvl = 0.0f; for (auto& e : v.env) lvl = std::max (lvl, e.value);
         v.slot.level = lvl;
     }
-    for (int i = 0; i < n; ++i) { bufL[(size_t) i] = mono[i]; bufR[(size_t) i] = mono[i]; }
+    for (int i = 0; i < n; ++i) bufR[(size_t) i] = mono[i];
     const float lvlT = pv (pLevel) * kLevelScale;   // headroom for eight voices: a full-velocity 8-note chord peaks below 0 dBFS
     for (int i = 0; i < n; ++i) { const float g = levelSm.tick (lvlT); bufL[(size_t) i] *= g; bufR[(size_t) i] *= g; }
     fx.process (bufL.data(), bufR.data(), n, 1 + (int) pv (pChorusMode), pv (pChorusMix), 0.0f, 0.5, 0.0f,
@@ -300,7 +303,10 @@ std::vector<FmDevice::ImportedVoice> FmDevice::parseBank (const juce::MemoryBloc
     if (size >= 4104 && d[0] == 0xF0) off = 6;          // full sysex dump with header
     else if (size < 4096) return outVoices;
     auto rate = [] (int r) { return std::clamp (r, 0, 99) / 99.0f; };
-    auto lvl = [] (int l) { return std::clamp (l, 0, 99) / 99.0f; };
+    // DX7 levels are logarithmic, ~0.75 dB a step: an envelope level becomes an amplitude, the output level a
+    // position on the operator's 60 dB Level scale
+    auto envLvl = [] (int l) { l = std::clamp (l, 0, 99); return l == 0 ? 0.0f : std::pow (10.0f, (float) (l - 99) * 0.75f / 20.0f); };
+    auto outLvl = [] (int l) { return std::clamp (1.0f - (float) (99 - std::clamp (l, 0, 99)) * 0.75f / 60.0f, 0.0f, 1.0f); };
     static constexpr float coarse[32] = { 0.5f, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
                                           21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
     for (int vi = 0; vi < 32 && off + (size_t) (vi + 1) * 128 <= size; ++vi)
@@ -318,11 +324,11 @@ std::vector<FmDevice::ImportedVoice> FmDevice::parseBank (const juce::MemoryBloc
             const int op = 6 - k;
             const juce::String p = "op" + juce::String (op);
             for (int r = 0; r < 4; ++r) add (p + "R" + juce::String (r + 1), rate (o[r]));
-            for (int l = 0; l < 4; ++l) add (p + "L" + juce::String (l + 1), lvl (o[4 + l]));
-            add (p + "KeyScale", std::clamp ((int) o[9], 0, 99) / 99.0f * 0.8f);
+            for (int l = 0; l < 4; ++l) add (p + "L" + juce::String (l + 1), envLvl (o[4 + l]));
+            add (p + "KeyScale", std::clamp ((int) o[10], 0, 99) / 99.0f * 0.8f);   // the right depth: Minibox scales above the break point
             add (p + "RateScale", (o[12] & 7) / 7.0f);
             add (p + "Vel", ((o[13] >> 2) & 7) / 7.0f);
-            add (p + "Level", lvl (o[14]));
+            add (p + "Level", outLvl (o[14]));
             const bool fixed = (o[15] & 1) != 0;
             const int fc = (o[15] >> 1) & 31;
             const int ff = o[16];

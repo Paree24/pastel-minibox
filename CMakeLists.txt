@@ -5,11 +5,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
-# Reuse a local JUCE checkout when one exists (sibling projects pin the same tag).
-set(_localJuce "${CMAKE_CURRENT_SOURCE_DIR}/../ersa/build/_deps/juce-src")
-if(EXISTS "${_localJuce}/CMakeLists.txt" AND NOT FETCHCONTENT_SOURCE_DIR_JUCE)
-  set(FETCHCONTENT_SOURCE_DIR_JUCE "${_localJuce}" CACHE PATH "" FORCE)
-endif()
+# JUCE 8.0.6 is fetched from git. To build against a local checkout of the same tag instead, configure with
+#   -DFETCHCONTENT_SOURCE_DIR_JUCE=/path/to/JUCE   (or set it in a CMakeUserPresets.json)
 FetchContent_Declare(JUCE
   GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
   GIT_TAG 8.0.6

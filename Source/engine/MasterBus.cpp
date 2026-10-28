@@ -29,8 +29,10 @@ void MasterBus::process (float* L, float* R, int n, const MasterSettings& m, dou
     float pl = 0.0f, pr = 0.0f;
     for (int i = 0; i < n; ++i)
     {
-        float l = L[i], r = R[i];
+        // last line of defence: a NaN or inf from anywhere would live forever in the reverb, delay and limiter
+        float l = std::isfinite (L[i]) ? L[i] : 0.0f, r = std::isfinite (R[i]) ? R[i] : 0.0f;
         float wl = 0.0f, wr = 0.0f;
+        for (int k = 0; k < 4; ++k) if (! std::isfinite (sends[(size_t) k][(size_t) i])) sends[(size_t) k][(size_t) i] = 0.0f;
         delay.process (sends[0][(size_t) i], sends[1][(size_t) i], wl, wr, delaySecs, m.delayFeedback, m.delayReturn);
         l += wl; r += wr;
         float rl = 0.0f, rr = 0.0f;

@@ -25,7 +25,11 @@ void Sequencer::stop()
 
 void Sequencer::push (int64_t time, const SeqEvent& e)
 {
-    if (pending.size() < pending.capacity()) pending.push_back ({ time, e });
+    if (pending.size() < pending.capacity()) { pending.push_back ({ time, e }); return; }
+    // full (a very dense pattern): never drop a note-off (a stuck note); a pending note-on gives way to it
+    if (e.kind == SeqEvent::Note && e.note.type == NoteEvent::NoteOff)
+        for (auto& p : pending)
+            if (p.e.kind == SeqEvent::Note && p.e.note.type == NoteEvent::NoteOn) { p = { time, e }; return; }
 }
 
 void Sequencer::generate (Project& p, DeviceLookup& devs, int n, std::vector<SeqEvent>& out)
@@ -119,10 +123,12 @@ void Sequencer::boundary (Project& p, DeviceLookup& devs, int offset, std::vecto
     int spb = p.stepsPerBar (activePattern);
     if (step % spb == 0 && pendingBeats > 0)
     {
+        // the new signature from this bar on: the same bar, not back to bar 1
+        const int bar = step / spb;
         p.beats = pendingBeats; p.unit = pendingUnit;
         pendingBeats = pendingUnit = 0;
         spb = p.stepsPerBar (activePattern);
-        step = 0;
+        step = std::min (bar, std::max (0, p.patterns[(size_t) activePattern].lengthBars - 1)) * spb;
     }
     if (queuedPattern >= 0)
     {
@@ -167,18 +173,20 @@ void Sequencer::scheduleStep (Project& p, DeviceLookup& devs, int si, int offset
         auto& track = pattern.slots[(size_t) t].track;
 
         // parameter locks: cleared at every step, then this step's values applied
-        if (! track.locks.empty())
+        auto pushLocks = [&] (int lockStep, int64_t at)
         {
+            if (track.locks.empty()) return;
             SeqEvent c; c.kind = SeqEvent::ClearLocks; c.pattern = pat; c.track = t;
-            push (t0, c);
+            push (at, c);
             for (auto& lane : track.locks)
             {
-                const float v = lane.values[(size_t) si];
+                const float v = lane.values[(size_t) lockStep];
                 if (std::isnan (v)) continue;
                 SeqEvent l; l.kind = SeqEvent::Lock; l.pattern = pat; l.track = t; l.param = lane.param; l.value = v;
-                push (t0, l);
+                push (at, l);
             }
-        }
+        };
+        pushLocks (si, t0);
 
         auto note = [&] (int nn, float vel, int flags, double delay, double len)
         {
@@ -231,6 +239,9 @@ void Sequencer::scheduleStep (Project& p, DeviceLookup& devs, int si, int offset
             for (const auto& cn : track.clip)
             {
                 if (cn.muted || cn.start < a || cn.start >= b) continue;
+                // a converted step's chance and condition (pass of the pattern; the note's id keeps its own roll)
+                if (cn.cond != 0 && ! trigConditionPasses (cn.cond, pass)) continue;
+                if (cn.probability < 100 && chance (pat, t, (int) (cn.id & 0x7fffffff), pass) >= cn.probability) continue;
                 const double delay = (cn.start - a) / (double) stT * stepLen + (cn.start == a ? swingDelay : 0.0);
                 note (cn.note, cn.vel / 127.0f, cn.flags, delay, std::max (1.0, cn.length / (double) stT * stepLen));
             }
@@ -262,7 +273,16 @@ void Sequencer::scheduleStep (Project& p, DeviceLookup& devs, int si, int offset
         const int ni = nextStep (p, si);
         const int np = ni <= si ? pass + 1 : pass;
         const auto& ns = track.steps[(size_t) ni];
-        if (plays (ns, ni, np)) emit (ns, stepLen + ((ni & 1) ? (p.swing - 0.5) * 2.0 * stepLen : 0.0), true);
+        if (plays (ns, ni, np))
+        {
+            const double base = stepLen + ((ni & 1) ? (p.swing - 0.5) * 2.0 * stepLen : 0.0);
+            // the next step's early notes play with its own locks: they take effect at the earliest of them
+            double earliest = base;
+            for (int i = 0; i < ns.noteCount; ++i)
+                if (const int d = ns.microTiming + ns.off[i]; d < 0 && ! ns.isMuted (i)) earliest = std::min (earliest, base + d / (double) kTicksPerStep * stepLen);
+            if (earliest < base) pushLocks (ni, t0 + (int64_t) std::llround (std::max (0.0, earliest)));
+            emit (ns, base, true);
+        }
     }
 }
 } // namespace mb

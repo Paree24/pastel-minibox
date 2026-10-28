@@ -384,7 +384,7 @@ void MainComponent::showDevicePicker (int track, juce::Component* anchor)
 void MainComponent::showMenu()
 {
     auto& p = engine.project();
-    juce::PopupMenu m, sw, rec, q, click;
+    juce::PopupMenu m, sw, rec, click;
     m.addItem (3, "Settings (keyboard, MIDI controller, devices)...\tCtrl+,");
     m.addItem (1, "Audio and MIDI devices...");
     m.addItem (2, "MIDI learn (Ctrl+M)", true, learnOpen());
@@ -403,9 +403,6 @@ void MainComponent::showMenu()
     m.addSubMenu ("Recording", rec);
     for (int i = 0; i < 4; ++i) click.addItem (30 + i, juce::String (25 * (i + 1)) + "%", true, std::abs (p.clickLevel - 0.25f * (i + 1)) < 0.01f);
     m.addSubMenu ("Click level", click);
-    const int os = qualityOversampling().load();
-    q.addItem (40, "Off", true, os == 1); q.addItem (41, "2x", true, os == 2); q.addItem (43, "4x", true, os == 4);
-    m.addSubMenu ("Quality", q);
     m.addItem (50, "Limiter look-ahead", true, p.master.lookAhead);
     m.addItem (51, "MIDI channels 1-8 play tracks 1-8 (otherwise every channel plays the selected track)", true, p.channelPerTrack);
     m.addSeparator();
@@ -430,7 +427,6 @@ void MainComponent::showMenu()
         if (id == 26 || id == 27) pr.recordMode = id - 26;
         if (id == 51) pr.channelPerTrack = ! pr.channelPerTrack;
         if (id >= 30 && id <= 33) pr.clickLevel = 0.25f * (id - 29);
-        if (id >= 40 && id <= 43) qualityOversampling() = id - 39;
         if (id == 50) { pr.master.lookAhead = ! pr.master.lookAhead; engine.prepare (engine.getSampleRate(), engine.getMaxBlock()); }
         if (id == 60 || id == 61)
         {

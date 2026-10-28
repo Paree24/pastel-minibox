@@ -1,4 +1,5 @@
 #pragma once
+#include <atomic>
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -60,6 +61,8 @@ struct Rng
 {
     uint32_t s = 0x9E3779B9u;
     explicit Rng (uint32_t seed = 0x9E3779B9u) : s (seed ? seed : 1u) {}
+    /** A different seed for each call (so every LFO's S&H / noise runs its own sequence). */
+    static uint32_t uniqueSeed() { static std::atomic<uint32_t> n { 12345u }; return n.fetch_add (0x9E3779B9u) | 1u; }
     void seed (uint32_t v) { s = v ? v : 1u; }
     uint32_t next() { s ^= s << 13; s ^= s >> 17; s ^= s << 5; return s; }
     float bipolar() { return (float) (int32_t) next() * (1.0f / 2147483648.0f); }

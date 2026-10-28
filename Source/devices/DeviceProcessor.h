@@ -94,8 +94,6 @@ struct TransportInfo
     bool playing = false;
 };
 
-/** Global DSP quality: oversampling factor for non-linear filters (1, 2 or 4). */
-std::atomic<int>& qualityOversampling();
 
 class DeviceProcessor
 {
@@ -130,7 +128,9 @@ public:
     void resetToDefaults();
 
     /** Per-step parameter lock (sequencer, audio thread). Cleared with clearLocks() on the next step. */
-    void setLock (int param, float value) { if (param >= 0 && param < layout.size()) locks[(size_t) param] = value; }
+    /** The groovebox's own arp is on for this track (Play drawer): a device arp steps aside (no arp of an arp). */
+    bool outerArp = false;
+    void setLock (int param, float value) { if (param >= 0 && param < layout.size()) locks[(size_t) param] = layout[param].snap (value); }   // in range, on the steps
     void clearLocks() { std::fill (locks.begin(), locks.end(), std::numeric_limits<float>::quiet_NaN()); }
     /** Value the DSP uses: a lock overrides the stored value for one step. */
     float pv (int i) const { const float l = locks[(size_t) i]; return std::isnan (l) ? get (i) : l; }

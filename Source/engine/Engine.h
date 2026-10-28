@@ -27,7 +27,8 @@ public:
     double getSampleRate() const { return sampleRate; }
     int getMaxBlock() const { return maxBlock; }
 
-    /** Audio callback. `midi` may be null. Output is overwritten. */
+    /** Audio callback (any block length: longer than prepared is rendered in pieces). `midi` may be null.
+        Output is overwritten. */
     void process (float* L, float* R, int n, const juce::MidiBuffer* midi);
 
     struct ScopedEdit
@@ -137,6 +138,8 @@ private:
     Sequencer seq;
     MasterBus masterBus;
     MasterInsert* masterInsert = nullptr;
+    void processBlock (float* L, float* R, int n, const juce::MidiBuffer* midi);   // n <= maxBlock
+    juce::MidiBuffer chunkMidi;   // a longer block's MIDI, one piece at a time
     int projectGen = 0;
     double beatClock = 0.0;      // beats since Play (free-running while stopped): the master effects' tempo grid
     bool clockWasPlaying = false;
@@ -144,8 +147,10 @@ private:
     int maxBlock = 512;
     std::vector<float> slotL, slotR, auxAL, auxAR, auxBL, auxBR;
     std::vector<SeqEvent> events;
-    int tailPattern = -1;
-    int64_t tailSamples = 0;
+    // patterns switched away from, ringing out (until silent or 4 s): any number of them, each its own clock
+    std::array<int64_t, kPatterns> tailSamples {};
+    std::array<bool, kPatterns> tailing {};
+    void clearTails() { tailing.fill (false); }
     bool stopPressedOnce = false;
 
     // transport commands from the message thread
@@ -190,7 +195,6 @@ private:
     std::array<std::array<uint32_t, 128>, kTracks> recOpen {};   // message thread: the clip note a held key is writing
     std::vector<uint32_t> takeIds;                                // notes written in this take (Replace keeps them)
     int takeIdsFor = -1;
-    // live recording in Replace: a take running past the pattern's end grows it a bar at a time
     // live recording in Replace: the pattern grows instead of looping; when the take stops it is trimmed to the
     // bars its notes reach (never below the length it had)
     bool growAtEnd (int pattern) override;
@@ -207,13 +211,16 @@ private:
     std::atomic<bool> takeOpen { false };
     void beginTake();   // message thread: record armed and playing (Play with record on, or record on while playing)
     void endTake();     // message thread: Stop or record off; trims what the take grew
-    std::atomic<int> recordTake { 0 };   // counts record-on presses (a new take replaces again)   // samples in the block being processed (the sequencer has already run to its end)
+    std::atomic<int> recordTake { 0 };   // counts record-on presses (a new take replaces again)
     double clickPhase = 0.0;
     double hostBpm = 120.0, hostBeat = 0.0;
     bool hostPlaying = false;
     // sustain pedal: note-offs held while the pedal is down, per track
-    std::array<bool, kTracks> sustainDown {};
+    // the sustain pedal is one pedal for every track: the keys it holds remember their track and pattern, so
+    // changing the selected instrument with the pedal down neither strands nor swallows them
+    bool sustainDown = false;
     std::array<std::array<bool, 128>, kTracks> sustained {};
+    std::array<std::array<int8_t, 128>, kTracks> sustainedPattern {};
     float clickEnv = 0.0f, clickFreq = 1000.0f;
 };
 } // namespace mb

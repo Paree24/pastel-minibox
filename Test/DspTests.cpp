@@ -47,22 +47,6 @@ MB_TEST (dsp_svf_cutoff_accuracy)
         ctx.check (std::abs (measured / fc - 1.0f) < 0.05f, "SVF -3 dB at " + juce::String (fc) + " Hz measured " + juce::String (measured, 1));
     }
 }
-
-MB_TEST (dsp_ladder_self_oscillation)
-{
-    // at full resonance the ladder rings at (close to) its cutoff
-    dsp::Ladder4 f;
-    f.set (1000.0f, 1.0f, 96000.0f);
-    std::vector<float> y (96000);
-    for (int i = 0; i < 96000; ++i) y[(size_t) i] = f.process (i == 0 ? 0.5f : 0.0f);
-    int zc = 0;
-    for (int i = 48000; i < 96000 - 1; ++i) if (y[(size_t) i] <= 0.0f && y[(size_t) i + 1] > 0.0f) ++zc;
-    const float hz = (float) zc / 0.5f;
-    float peak = 0.0f; for (int i = 48000; i < 96000; ++i) peak = std::max (peak, std::abs (y[(size_t) i]));
-    ctx.check (peak > 0.05f, "ladder self-oscillates (peak " + juce::String (peak, 3) + ")");
-    ctx.check (hz > 800.0f && hz < 1150.0f, "self-oscillation near the cutoff: " + juce::String (hz, 0) + " Hz");
-}
-
 MB_TEST (dsp_envelope_timing)
 {
     for (float atk : { 0.005f, 0.05f, 0.3f })

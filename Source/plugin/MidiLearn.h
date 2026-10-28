@@ -25,6 +25,13 @@ public:
 
     // audio thread: apply mapped CCs, feed learning, queue preset steps
     void process(const juce::MidiBuffer& midi);
+    // audio thread: a CC the learn uses (mapped, the preset knob, or any while learning) must not also play the
+    // instrument (a CC1 learned to a macro would still drive the vibrato)
+    bool consumes(int cc) const
+    {
+        if (cc < 0 || cc > 127) return false;
+        return ccIndex[(size_t)cc].load() >= 0 || cc == presetCC.load() || (learning.load() && armed.load() != -1);
+    }
 
     // message thread: +1 next preset, -1 previous (called from a timer)
     std::function<void(int delta)> onPresetStep;

@@ -28,6 +28,16 @@ struct Drive
     }
 };
 
+/** Drive on a stereo signal: each channel its own tone filter and DC blocker (one shared Drive would run them on
+    an interleaved L, R, L, R stream). */
+struct StereoDrive
+{
+    Drive l, r;
+    void prepare (float rate) { l.prepare (rate); r.prepare (rate); }
+    void setTone (float t) { l.setTone (t); r.setTone (t); }
+    void process (float& L, float& R, int type, float amount, float mix) { L = l.process (L, type, amount, mix); R = r.process (R, type, amount, mix); }
+};
+
 /** Fractional delay line with integer index wrapping (a float index can round onto `size`). */
 struct DelayLine
 {
@@ -111,6 +121,8 @@ struct TapeDelay
     void process (float inL, float inR, float& outL, float& outR, float seconds, float feedback, float mix,
                   float duck = 0.0f, bool pingPong = true)
     {
+        // a synced time beyond the line (2 bars at a slow tempo) halves until it fits: still on the beat grid
+        while (seconds > 2.4f) seconds *= 0.5f;
         const float t = timeSm.tick (clamp (seconds, 0.005f, 2.4f) * sr);
         wow += 0.35f / sr; if (wow >= 1.0f) wow -= 1.0f;
         const float mod = std::sin (kTwoPi * wow) * 0.0006f * sr;
@@ -165,7 +177,8 @@ struct PlateReverb
     {
         size = 0.6f + 0.4f * clamp (sizeAmt, 0.0f, 1.0f);
         const float rt60 = 0.4f + clamp (decay, 0.0f, 1.0f) * 7.0f;
-        fbGain = std::pow (10.0f, -3.0f * 0.0533f * size / rt60);   // 53 ms: the lines' mean length
+        // per pass the signal travels a line's mean length (50.7 ms) as the lines are read: scaled by 0.6 + 0.4·size
+        fbGain = std::pow (10.0f, -3.0f * 0.0507f * (0.6f + 0.4f * size) / rt60);
         for (auto& d : damp) d.setCutoff (12000.0f - 9000.0f * clamp (dampAmt, 0.0f, 1.0f), sr);
         preSamps = std::max (1.0f, clamp (preSec, 0.0f, 0.1f) * sr);
     }
@@ -303,7 +316,9 @@ struct Limiter
     int latency() const { return la; }
     static float softCeil (float x, float c)
     {
-        const float knee = 0.9f * c, a = std::abs (x);
+        // a safety net for what the gain stage missed: only the top 2 % below the ceiling bends (from 90 % it
+        // coloured every loud mix, limiting or not)
+        const float knee = 0.98f * c, a = std::abs (x);
         if (a <= knee) return x;
         return std::copysign (knee + (c - knee) * fastTanh ((a - knee) / (c - knee)), x);
     }

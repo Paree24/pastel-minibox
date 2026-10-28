@@ -122,7 +122,9 @@ struct ClipNote
 {
     int start = 0, length = kPPQ / 4;
     uint8_t note = 60, vel = 100;
-    uint8_t flags = 0;               // kAccent | kSlide (kept from a converted step sequence)
+    uint8_t flags = 0;               // kAccent | kSlide | kTie (kept from a converted step sequence)
+    uint8_t probability = 100;       // 0–100 %, and a trig condition: a converted step keeps its own
+    uint8_t cond = 0;
     bool muted = false, locked = false;   // locked: kept from edits
     uint32_t id = 0;                 // stable while editing (the selection refers to it)
     int end() const { return start + length; }
@@ -170,7 +172,8 @@ struct Track
                 n.start = std::max (0, si * stepTicks + (st.microTiming + st.off[i]) * stepTicks / kTicksPerStep);
                 n.length = (st.flags & (kSlideFlag | kTieFlag)) ? stepTicks + stepTicks / 16 : std::max (1, (int) std::lround (st.len[i] * stepTicks / 128.0));
                 n.note = st.notes[i]; n.vel = st.vel[i]; n.muted = st.isMuted (i); n.locked = st.isLocked (i);
-                n.flags = (uint8_t) (st.flags & (kAccentFlag | kSlideFlag));
+                n.flags = (uint8_t) (st.flags & (kAccentFlag | kSlideFlag | kTieFlag));
+                n.probability = st.probability; n.cond = st.cond;   // the step's chance and condition stay with its notes
                 for (int r = 1; r < std::clamp ((int) st.ratchet, 1, 4); ++r) { auto x = n; x.start += r * stepTicks / st.ratchet; x.length = std::min (x.length, stepTicks / st.ratchet); addClipNote (x); }
                 if (st.ratchet > 1) n.length = std::min (n.length, stepTicks / st.ratchet);
                 addClipNote (n);

@@ -261,14 +261,9 @@ void showDeviceMenu (AppContext& ctx, DeviceProcessor& d, juce::Component* ancho
         m.addItem (5, "Slice a loop across the pads...");
     }
     if (d.type() == DeviceType::FM) m.addItem (6, "Import 32-voice bank...");
-    juce::PopupMenu q;
-    const int os = qualityOversampling().load();
-    q.addItem (11, "Off", true, os == 1); q.addItem (12, "2x", true, os == 2); q.addItem (14, "4x", true, os == 4);
-    m.addSubMenu ("Quality", q);
     juce::ignoreUnused (pattern, track);
     m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (anchor), [&ctx, &d, sel] (int id)
     {
-        if (id >= 11 && id <= 14) { qualityOversampling() = id - 10; return; }
         auto pick = [] (const juce::String& title, const juce::String& pattern, bool multi, std::function<void (juce::Array<juce::File>)> done)
         {
             chooser() = std::make_unique<juce::FileChooser> (title, juce::File(), pattern);
@@ -281,7 +276,7 @@ void showDeviceMenu (AppContext& ctx, DeviceProcessor& d, juce::Component* ancho
         if (id == 2) pick ("Load samples as zones", audio, true, [&ctx, &d] (auto f) { static_cast<SamplerDevice&> (d).loadZonesFromFiles (f); ctx.markDirty(); });
         if (id == 3) { static_cast<SamplerDevice&> (d).loadZone (sel, {}); ctx.markDirty(); }
         if (id == 4) pick ("Load sample", audio, false, [&ctx, &d, sel] (auto f) { static_cast<DrumSamplerDevice&> (d).loadPad (sel, refForFile (f[0])); ctx.markDirty(); });
-        if (id == 5) pick ("Slice a loop", audio, false, [&ctx, &d] (auto f) { static_cast<DrumSamplerDevice&> (d).sliceLoop (refForFile (f[0])); ctx.markDirty(); });
+        if (id == 5) pick ("Slice a loop", audio, false, [&ctx, &d] (auto f) { static_cast<DrumSamplerDevice&> (d).sliceLoop (refForFile (f[0]), false, [&ctx] (auto) { ctx.markDirty(); }); });
         if (id == 6) pick ("Import bank", "*.syx", false, [] (auto f)
         {
             juce::MemoryBlock data;

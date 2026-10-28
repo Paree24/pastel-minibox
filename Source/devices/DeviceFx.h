@@ -13,18 +13,24 @@ struct DeviceFx
     float sr = 48000.0f;
 
     void prepare (float rate) { sr = rate; chorus.prepare (rate); delay.prepare (rate); delay.setTone (0.55f); }
+    bool chorusWasOn = false, delayWasOn = false;   // switched off, the lines stop: they are cleared when back on
     void reset() { chorus.reset(); delay.reset(); }
 
     void process (float* L, float* R, int n, int chorusMode, float chorusMix, float delayMix, double delayBeats,
                   float feedback, const TransportInfo& t, float chorusRate = 1.0f, float chorusDepth = 1.0f)
     {
         const float secs = (float) (delayBeats * 60.0 / std::max (20.0, t.bpm));
+        // off, an effect stops writing its lines; back on, it starts from silence (not from what was frozen there)
+        const bool chorusOn = chorusMix > 0.001f && chorusMode > 0, delayOn = delayMix > 0.001f;
+        if (chorusOn && ! chorusWasOn) chorus.reset();
+        if (delayOn && ! delayWasOn) delay.reset();
+        chorusWasOn = chorusOn; delayWasOn = delayOn;
         for (int i = 0; i < n; ++i)
         {
             float l = L[i], r = R[i];
-            if (chorusMix > 0.001f && chorusMode > 0) chorus.process (l, r, chorusMode, chorusMix, chorusRate, chorusDepth);
+            if (chorusOn) chorus.process (l, r, chorusMode, chorusMix, chorusRate, chorusDepth);
             float ol = l, orr = r;
-            if (delayMix > 0.001f) delay.process (l, r, ol, orr, secs, feedback, delayMix);
+            if (delayOn) delay.process (l, r, ol, orr, secs, feedback, delayMix);
             L[i] = ol; R[i] = orr;
         }
     }
@@ -44,12 +50,15 @@ struct DeviceReverb
     void process (const float* inL, const float* inR, float* L, float* R, int n, float mix, float size, float tone, float preSec)
     {
         if (mix <= 0.0005f && tail <= 0) { mixSm.reset (0.0f); return; }
+        if (mix > 0.0005f && tail <= 0) plate.reset();   // waking up: from silence, not what was frozen in the lines
         tail = mix > 0.0005f ? tailLen : tail - n;
         plate.set (size, 1.0f - tone, size, preSec);
         for (int i = 0; i < n; ++i)
         {
+            // Mix is the send into the plate (the return stays at unity), so the tail rings on after Mix goes to 0
             float l = 0.0f, r = 0.0f;
-            plate.process (inL[i], inR[i], l, r, mixSm.tick (mix));
+            const float send = mixSm.tick (mix);
+            plate.process (inL[i] * send, inR[i] * send, l, r, 1.0f);
             L[i] += l; R[i] += r;
         }
     }

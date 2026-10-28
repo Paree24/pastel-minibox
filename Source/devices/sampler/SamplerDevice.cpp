@@ -102,17 +102,17 @@ SamplerDevice::Region SamplerDevice::region (int len) const
 {
     juce::ignoreUnused (len);
     Region r;
-    r.s = get (start);
-    r.e = r.s + get (length) * (1.0 - r.s);
-    r.ls = r.s + get (loopStart) * (r.e - r.s);
-    r.le = std::min (r.e, r.ls + std::max (0.002, (double) get (loopLen) * (r.e - r.ls)));
+    r.s = pv (start);   // step locks count
+    r.e = r.s + pv (length) * (1.0 - r.s);
+    r.ls = r.s + pv (loopStart) * (r.e - r.s);
+    r.le = std::min (r.e, r.ls + std::max (0.002, (double) pv (loopLen) * (r.e - r.ls)));
     return r;
 }
 
 int SamplerDevice::zoneFor (int note) const
 {
     for (int z = 0; z < kZones; ++z)
-        if (refs[(size_t) z].isNotEmpty() && note >= (int) get (zoneLo (z)) && note <= (int) get (zoneHi (z))) return z;
+        if (zone[z].audio() != nullptr && note >= (int) get (zoneLo (z)) && note <= (int) get (zoneHi (z))) return z;   // not refs[]: a String the message thread writes
     return refs[0].isNotEmpty() ? 0 : -1;
 }
 
@@ -123,13 +123,13 @@ void SamplerDevice::prepare (double sr, int maxBlock)
     lfo.prepare ((float) sr);
     driveFx.prepare ((float) sr);
     verb.prepare ((float) sr);
-    bufL.assign ((size_t) maxBlock, 0.0f); bufR.assign ((size_t) maxBlock, 0.0f);
+    bufL.assign ((size_t) maxBlock, 0.0f); bufR.assign ((size_t) maxBlock, 0.0f); lfoBuf.assign ((size_t) maxBlock, 0.0f);
     levelSm.setTime (15.0f, (float) sr); levelSm.reset (get (level));
 }
 
 void SamplerDevice::reset()
 {
-    for (auto& v : voicesArr) { v.env.kill(); v.slot = {}; v.sample = nullptr; v.filter.reset(); }
+    for (auto& v : voicesArr) { v.env.kill(); v.slot = {}; v.sample = nullptr; v.filter.reset(); v.filterR.reset(); }
     held.clear();
     verb.reset();
 }
@@ -165,7 +165,7 @@ void SamplerDevice::noteOn (int note, float vel)
     if (! glideOn) v->pitch = (float) note;
     v->vel = vel;
     const auto r = region (data->length());
-    const bool rev = get (reverse) > 0.5f;
+    const bool rev = pv (reverse) > 0.5f;
     v->forward = ! rev;
     v->pos = (rev ? r.e : r.s) * (data->length() - 1);
     if (! v->env.active()) v->fadeIn = 0.0f;
@@ -223,8 +223,7 @@ void SamplerDevice::render (float* outL, float* outR, int n)
     const float pegUp = pAtk <= 0.001f ? 1.0f : 1.0f / (pAtk * sr);
     const float pegDn = std::exp (-1.0f / (pDec * sr));
     const float fadeStep = 1.0f / (0.002f * sr);
-    float lfoBuf[4096];
-    for (int i = 0; i < n; ++i) lfoBuf[i] = lfo.process (lShape);
+    for (int i = 0; i < n; ++i) lfoBuf[(size_t) i] = lfo.process (lShape);   // sized in prepare: any block length
 
     for (auto& v : voicesArr)
     {
@@ -239,6 +238,11 @@ void SamplerDevice::render (float* outL, float* outR, int n)
         const float* chL = data->buffer.getReadPointer (0);
         const float* chR = data->buffer.getReadPointer (std::min (1, data->buffer.getNumChannels() - 1));
         const double srRatio = data->sampleRate / sampleRate;
+        // Loop: the last stretch before the loop end fades into the audio just before the loop start (≤ 10 ms, a
+        // quarter of the loop), so the wrap is seamless; a one-shot fades over its last 2 ms
+        const double loopLen = std::max (1.0, lePos - lsPos);
+        const double xf = mode == 2 ? std::max (0.0, std::min ({ loopLen * 0.25, data->sampleRate * 0.01, v.forward ? lsPos : (len - 1) - lePos })) : 0.0;
+        const float endFade = 0.002f * sr;
         for (int i = 0; i < n; ++i)
         {
             v.pitch += (v.target - v.pitch) * glideCoef;
@@ -247,22 +251,39 @@ void SamplerDevice::render (float* outL, float* outR, int n)
             const float semis = v.pitch - v.rootNote + tuneSt + pInt * v.pegValue + lfoBuf[i] * lPitch + xs;
             const double inc = semisToRatio (semis) * srRatio;
             float l = Resampler::hermite (chL, len, v.pos), rr = Resampler::hermite (chR, len, v.pos);
+            if (xf > 1.0)
+            {
+                const double into = v.forward ? v.pos - (lePos - xf) : (lsPos + xf) - v.pos;
+                if (into > 0.0)
+                {
+                    const float t = (float) std::min (1.0, into / xf);
+                    const double other = v.forward ? v.pos - loopLen : v.pos + loopLen;
+                    l += (Resampler::hermite (chL, len, other) - l) * t;
+                    rr += (Resampler::hermite (chR, len, other) - rr) * t;
+                }
+            }
             if (vintage)
             {
                 l = v.vintage.vintage (l, rateHz, bitsV, sr);
-                rr = l * 0.5f + rr * 0.5f;
                 rr = l;   // vintage path is mono, like the hardware it imitates
             }
             const float env = v.env.process();
             if (filterOn)
             {
                 const float c = std::log (cut) + envA * env * 4.6f + (v.pitch - 60.0f) * keyT * 0.0578f + lCut * lfoBuf[i] * 2.0f;
-                v.filter.set (clamp (std::exp (c), 25.0f, 18500.0f), res, sr);
-                const float mid = v.filter.process (0.5f * (l + rr), fType);
-                l = rr = mid;
+                const float fc = clamp (std::exp (c), 25.0f, 18500.0f);
+                v.filter.set (fc, res, sr); v.filterR.set (fc, res, sr);
+                l = v.filter.process (l, fType);
+                rr = v.filterR.process (rr, fType);
             }
             if (v.fadeIn < 1.0f) v.fadeIn = std::min (1.0f, v.fadeIn + fadeStep);
-            const float g = env * v.fadeIn * (1.0f - velSens + velSens * v.vel);
+            float endGain = 1.0f;
+            if (mode != 2)
+            {
+                const double remain = (v.forward ? ePos - v.pos : v.pos - sPos) / std::max (1.0e-6, inc);
+                endGain = (float) std::min (1.0, remain / endFade);
+            }
+            const float g = env * v.fadeIn * endGain * (1.0f - velSens + velSens * v.vel);
             bufL[(size_t) i] += l * g; bufR[(size_t) i] += rr * g;
             // advance and handle the region ends
             if (v.forward)
@@ -286,7 +307,7 @@ void SamplerDevice::render (float* outL, float* outR, int n)
     for (int i = 0; i < n; ++i)
     {
         float l = bufL[(size_t) i], rr = bufR[(size_t) i];
-        if (dAmt > 0.001f) { l = driveFx.process (l, 0, dAmt, 1.0f); rr = driveFx.process (rr, 0, dAmt, 1.0f); }
+        if (dAmt > 0.001f) driveFx.process (l, rr, 0, dAmt, 1.0f);
         const float g = levelSm.tick (lvl);
         bufL[(size_t) i] = l * g; bufR[(size_t) i] = rr * g;
     }

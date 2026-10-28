@@ -40,7 +40,7 @@ There are seven devices. Each one is a hybrid of several classic small-format in
  │  Slot 1..4:  DeviceProcessor ─► Level/Pan ─► Mute/Solo ─┬─► Main bus ─► Glue comp ─► Limiter ─► Out      │
  │                                                         ├─► Send A ─► Delay  ──┘                          │
  │                                                         └─► Send B ─► Reverb ──┘                          │
- │  (plugin: optional per-slot stereo outs 3-4 / 5-6 / 7-8 / 9-10)                                          │
+ │  (plugin: one instrument, one stereo out)                                                                  │
  └───────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -130,7 +130,7 @@ step one step ahead, so early notes sound exactly where they are drawn.
 ### 4.2 Clock
 - A sample-accurate PPQN clock runs internally at 96 PPQN. Swing delays the off-beat 1/16 steps (or 1/8, depending on the resolution).
 - `Clock::advance(numSamples)` yields events at their exact sample offsets, and the rack renders in **sub-blocks** split at those offsets, so notes and locks land sample-accurately.
-- Optional MIDI clock out and in, plus network tempo sync, are future work. The scheduler takes its tempo from an abstract `TempoSource`.
+- Optional MIDI clock out and in, plus network tempo sync, are future work. (The scheduler reads the project tempo, or the host's in the plugin.)
 
 ### 4.3 Pattern switcher (A–H)
 - **Click** a pattern to queue it. The queued pattern gets a dashed outline, then switches at the chosen quantize point: `Bar` (default), `Pattern end` or `Immediate`, set in `⋯`.
@@ -215,10 +215,10 @@ public:
 };
 ```
 
-- **Voices.** `VoiceManager<VoiceT, N>` provides allocation modes `Poly`, `Mono`, `Legato`, `Unison` (stacking N voices) and `Paraphonic` (shared filter and amp). Stealing picks the oldest released voice first, then the quietest.
+- **Voices.** Each device allocates its own voices (`VoiceSlot` + `allocateVoice`): a free voice first, then the oldest released one, then the oldest. A stolen voice changes pitch at once (its level glides via the velocity gain); there is no separate steal fade. Mono modes use last-note priority on a `HeldStack` (Bassline, Acid; VA Unison and the Sampler / FM mono modes release with the newest key).
 - **Parameters.** Every parameter has an id, a normalized range, a skew and a display function. Locks override the smoothed value for one step.
 - **Macros.** Each macro maps to up to 4 parameters, each with its own range and curve. The defaults are listed per device below.
-- **Oversampling.** 2× is used on non-linear filters and drive (Acid, Bassline, VA) and is selectable as Off/2×/4× in `⋯ > Quality`. FM uses no oversampling; its operators are band-limited by design.
+- **Oversampling.** Fixed per device: Acid runs its voice at 4×, the Bassline and VA filters and the Acid pedal board at 2×. FM uses no oversampling; its operators are band-limited by design. (A selectable quality setting is not implemented.)
 - **Denormals** are flushed to zero on the audio thread. Parameters are smoothed with 10–20 ms one-pole smoothers.
 
 ---
@@ -232,12 +232,11 @@ public:
 | `Noise` | white and pink, plus sample-and-hold random | all |
 | `SineOp` | phase-modulation operator: 4096-entry sine table with linear interpolation, ratio/fixed frequency, self-feedback | FM |
 | `SvfTpt` | zero-delay-feedback state-variable filter, 12 dB LP/BP/HP | Sampler |
-| `Ladder4` | 4-pole ZDF transistor ladder with per-stage tanh, resonance compensation and self-oscillation | Bassline, VA |
+| `analog::OtaCascade` | 4-pole OTA cascade (per-stage tanh, resonance loop), run at 2× | Bassline, VA (DCO engine) |
 | `bass::DiodeLadder` | the bass-line diode ladder solved from its circuit: input pair into 4 coupled nodes (bottom C half), tanh current per branch, resonance loop through the coupling high-pass; plus the accent sweep circuit | Acid |
-| `Ota2Pole` | 2-pole OTA-style low-pass (12 dB) with a soft-clipping resonance loop | VA (VCO engine) |
-| `HpfStepped` | 4-position non-resonant high-pass (position 0 is a low-shelf boost) | VA (DCO engine) |
+| `analog::Peak12` | 12 dB low-pass with a peaking resonance and drive, run at 2× | VA (VCO engine) |
+| `analog::Hpf4` | 4-position high-pass (position 0 a low boost) | VA (DCO engine) |
 | `Adsr` | analog-style RC curves with exponential segments; retrigger and legato modes | most |
-| `DecayEnv` | attack-free decay with an accent "sweep" capacitor model (see Acid) | Acid, Drums |
 | `RateLevelEnv` | 4 rates and 4 levels with key-rate scaling | FM |
 | `Lfo` | tri/saw/square/S&H/noise, free or synced, delay/fade, key-trigger | all |
 | `Drive` | soft (tanh), tube (asymmetric with bias), wavefold | Drums, VA |
@@ -259,7 +258,7 @@ Each device below gives its concept, signal flow, parameters, its 8 default macr
 
 **Concept:** one polysynth with two **engines**. The engine chooses the oscillator and filter blocks. Voices, envelopes, modulation, the arpeggiator and the effects are shared. The engine switch sits in the editor header.
 
-Both engines are subtractive polysynths built from the same blocks (`PolyBlepOsc`, `SubOsc`, `Noise`, `Adsr`, `Lfo`, `VoiceManager` and the effects). They differ only in oscillator flavour and filter model, so one device, one editor renderer and one preset bank cover both.
+Both engines are subtractive polysynths built from the same blocks (`PolyBlepOsc`, `SubOsc`, `Noise`, `Adsr`, `Lfo`, the same voice allocation and the effects). They differ only in oscillator flavour and filter model, so one device, one editor renderer and one preset bank cover both.
 
 ```
  Voice ×6 ─┬─ Osc block (engine) ─┐
@@ -271,21 +270,21 @@ Both engines are subtractive polysynths built from the same blocks (`PolyBlepOsc
 
 | Block | DCO engine | VCO engine |
 |---|---|---|
-| Oscillator | one DCO per voice: Pulse, Saw or Both; PW manual, LFO or Env | saw, pulse with PWM, or triangle; octave 16' to 2'; fine tune |
-| High-pass | `HpfStepped`, 4 positions (0 is a low boost) | none |
-| Low-pass | `Ladder4` 24 dB | `Ota2Pole` 12 dB with filter drive; *Shared* (paraphonic: one filter and envelope for all voices) or *Per voice* |
+| Oscillator | one DCO per voice: Pulse, Saw or Both; PW manual or LFO | saw, pulse with PWM, or triangle; octave 16' (an octave down) to 2'; fine tune |
+| High-pass | `Hpf4`, 4 positions (0 is a low boost) | none |
+| Low-pass | `OtaCascade` 24 dB | `Peak12` 12 dB with filter drive; *Shared* (paraphonic: one filter and envelope for all voices) or *Per voice* |
 | Default macros | Cutoff, Reso, Env, PWM, Sub, Attack, Release, Chorus | Cutoff, Peak, Env, Detune, PW, Decay, LFO Rate, Delay |
 
-- **Voice (shared):** 6 voices with drift, which adds slight random tuning and cutoff offsets per voice, plus detune and glide. The modes are:
+- **Voice (shared):** 6 voices with drift, plus detune and glide. *Drift* on the VCO engine wanders each voice's pitch; the DCO engine's oscillators are crystal-locked, so there it spreads and slowly moves each voice's filter cutoff. The modes are:
   - *Poly:* one oscillator per voice.
   - *Unison:* all voices stacked with detune and spread.
   - *Chord:* chord memory; each note triggers the stored shape.
   - *Octave:* oscillators at +0, +12 and −12.
   - *Fifth:* oscillators at +0, +7 and +12.
-  - *Ring:* oscillator 2 ring-modulates oscillator 1, with oscillator 3 as a sub.
+  - *Ring:* oscillator 1 multiplied by oscillator 2 a fifth above (sum and difference tones, DC removed), with oscillator 3 an octave down mixed in.
 - **Envelopes (shared):** a filter ADSR and an amp ADSR. The amp can use its own ADSR, follow the filter envelope (the classic single-envelope DCO behaviour) or act as a plain gate.
-- **LFO (shared):** tri, saw, square or S&H, synced or free, with delay (fade-in) and auto or key trigger. It targets pitch, PWM and cutoff.
-- **Arpeggiator (shared):** Off, Up, Down, Up-Dn or Rand, over 1–3 octaves, with a synced rate and a gate. It follows the sequencer clock in the standalone build and the host tempo in the plugin.
+- **LFO (shared):** tri, saw, square or S&H, synced or free, with delay (fade-in; with a delay it restarts with the first key). It targets pitch, PWM and cutoff.
+- **Arpeggiator (shared):** Off, Up, Down, Up-Dn or Rand, over 1–3 octaves, with a synced rate and a gate. It follows the sequencer clock in the standalone build and the host tempo in the plugin. When the groovebox's own arp (Play drawer) is on for the track, this one steps aside (no arpeggio of an arpeggio).
 - **FX (shared):** Drive (Soft, Tube or Fold), then Chorus (Off, I, II or I+II), then Delay (synced or free, feedback, tone, mix), then the Reverb card.
 - **Engine switch:** both engines' settings stay in the device state, so switching back restores them. A switch releases the sounding voices, as a preset change does.
 - **Presets:** 128, each tagged with its engine. The browser can filter by engine.
@@ -330,7 +329,7 @@ Both engines are subtractive polysynths built from the same blocks (`PolyBlepOsc
  Mono voice; sequencer slide / tie steps slide the pitch CV, any other new note re-triggers
 ```
 
-- **Filter:** cutoff (200 Hz to 4 kHz, the frequency the resonance sings at), resonance (up to self-oscillation), Env Mod (up to 4.5 octaves of envelope sweep), Decay (0.2 to 2 s), key tracking and **Bass Comp**, which sets the high-pass inside the resonance loop (8–150 Hz; the circuit sits near 10 Hz, so rising resonance thins the bass as it should, and higher settings keep more low end). The passband loss is made up after the core, so the input stays at circuit level and resonance keeps its bite. *Diode* is the circuit's ladder; *Ladder* drives the same core harder at its input pair for a rounder character.
+- **Filter:** cutoff (200 Hz to 4 kHz, the frequency the resonance sings at), resonance (up to self-oscillation), Env Mod (up to 4.5 octaves of envelope sweep), Decay (0.2 to 2 s), key tracking and **Bass Comp**, which sets the high-pass inside the resonance loop (8–150 Hz; the circuit sits near 10 Hz, so rising resonance thins the bass as it should, and higher settings keep more low end). The passband loss is made up after the core, so the input stays at circuit level and resonance keeps its bite. *Diode* is the circuit's ladder; *Ladder* is the same diode core driven harder at its input pair for a rounder character (not a separate transistor-ladder model).
 - **Accent:** amount, plus **Sweep** (the circuit's sweep pot): the accented main envelope charges a capacitor through a diode (≈ 3 ms anticlockwise to ≈ 147 ms clockwise) that drains in ≈ 100 ms, so consecutive accents sweep higher; the accented envelope also reaches the VCA through a 1.55 ms RC. **Acc Decay** is the main envelope's decay on accented notes.
 - **Drive:** a pedal after the VCA, as acid lines are classically played: *Overdrive*, *Distortion* or *Fuzz* circuit models (`Source/dsp/Pedals.h`) with Amount, Tone and Mix.
 - **Slide:** time, in *Fixed* (constant time) or *Legato* (proportional to the interval) mode. A slide step ties the gate into the next step.
@@ -393,7 +392,7 @@ Both engines are subtractive polysynths built from the same blocks (`PolyBlepOsc
 ```
  Range (16'–2') ─► Osc core ─┬─ Pulse (PW, PWM src: LFO | Env | Manual) ─┐
                              ├─ Saw ───────────────────────────────────┤
-                             ├─ Sub (−1 sq | −2 sq | −2 25% pulse) ────┼─► Mixer ─► Ladder4 24 dB ─► VCA ─► FX ─► Out
+                             ├─ Sub (−1 sq | −2 sq | −2 25% pulse) ────┼─► Mixer ─► OtaCascade 24 dB ─► VCA ─► FX ─► Out
                              └─ Noise ─────────────────────────────────┘     ▲ Env ±, LFO, Key, Bend    ▲ Env | Gate
  LFO: tri | square | random (S&H) | noise, free or tempo-synced (Sync), fade-in, key-trig  ─► pitch, PWM, cutoff
  Glide: Off | On | Auto (only when legato)
@@ -557,7 +556,7 @@ The end goal is an Android build of the groovebox. Every engine decision above, 
 | Topic | Rule |
 |---|---|
 | Buffer | Start at the device burst size × 2 and adapt on xruns (watching the underrun counter). The target round-trip is under 20 ms on Pixel-class devices. |
-| CPU tiers | At first launch, a quick benchmark sets a *Quality* tier. *Low* means no oversampling, Poly at 4 voices, FM at 6 voices and chorus in mono. *Normal* means 2× oversampling on the Acid and Mono filters only. |
+| CPU tiers | Not implemented: every device runs at its fixed rate (§6 Oversampling). |
 | Threads | Request a real-time audio thread and pin it to a big core where possible. The UI repaints at 60 Hz or less, and the visuals at 30 Hz. |
 | Thermal | Listen to `PowerManager` thermal status. Above *moderate*, drop the quality tier and show a small badge. |
 | Background | A foreground service with a media-style notification (play/stop) keeps the music running when the app is backgrounded. Audio focus is requested and the app ducks or pauses when it loses focus. |

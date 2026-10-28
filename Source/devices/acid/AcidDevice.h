@@ -56,7 +56,10 @@ private:
     dsp::analog::Oversampler2x dec1, dec2;   // 4× → 2× → 1×
     dsp::Lfo lfo;
     dsp::pedal::Board drive;   // Overdrive / Distortion / Fuzz pedal circuits (docs/research/pedals.md)
+    std::array<float, dsp::pedal::Board::kLatency + 1> vcaRing {};   // the VCA envelope, delayed as the board delays the audio
+    int vcaPos = 0;
     dsp::TapeDelay delay;
+    bool delayWasOn = false;   // the delay stops while off; it is cleared when it comes back
     DeviceReverb verb;
     HeldStack held;
 

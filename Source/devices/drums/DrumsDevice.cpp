@@ -149,7 +149,7 @@ void DrumsDevice::prepare (double sr, int maxBlock)
             v.k808.prepare (r); v.k909.prepare (r); v.kres.prepare (r); v.s808.prepare (r); v.s909.prepare (r);
             v.clap.prepare (r); v.t909.prepare (r); v.ping.prepare (r); v.bell.prepare (r); v.metal.prepare (r, rng);
             v.metal.cymbal = p == 6;
-            v.nhat.prepare (r); v.fm.prepare (r); v.lay.prepare (r);
+            v.lay.prepare (r);
             v.bkick.prepare (r); v.bsnare.prepare (r); v.btom.prepare (r); v.bhat.prepare (r, rng); v.pcm.prepare (r);
             v.drive.prepare (r);
             v.hpOut.setCutoff (18.0f, r);
@@ -202,7 +202,7 @@ void DrumsDevice::reset()
         {
             v.active = false;
             v.k808.reset(); v.k909.reset(); v.kres.reset(); v.s808.reset(); v.s909.reset(); v.clap.reset();
-            v.t909.reset(); v.ping.reset(); v.bell.reset(); v.metal.reset(); v.nhat.reset(); v.fm.reset(); v.lay.reset();
+            v.t909.reset(); v.ping.reset(); v.bell.reset(); v.metal.reset(); v.lay.reset();
             v.bkick.reset(); v.bsnare.reset(); v.btom.reset(); v.bhat.reset(); v.pcm.reset();
         }
     resonator.reset();
@@ -228,10 +228,10 @@ dsp::drum::Ctl DrumsDevice::ctlFor (int part, const Voice& v) const
 
 void DrumsDevice::trigger (int part, float vel, bool accent)
 {
-    const int group = (int) get (partParam (part, Choke));
+    const int group = (int) pv (partParam (part, Choke));   // a step lock counts from the trigger on
     if (group > 0)
         for (int p = 0; p < kParts; ++p)
-            if (p != part && (int) get (partParam (p, Choke)) == group)
+            if (p != part && (int) pv (partParam (p, Choke)) == group)
                 for (auto* v : { &voices[(size_t) p], &tails[(size_t) p] })
                     if (v->active) v->fadeStep = 1.0f / (0.006f * (float) sampleRate);   // choked: 6 ms fade
     auto& v = voices[(size_t) part];
@@ -243,9 +243,9 @@ void DrumsDevice::trigger (int part, float vel, bool accent)
         tails[(size_t) part].fadeStep = 1.0f / (0.004f * (float) sampleRate);
     }
     v.active = true; v.eng = eng; v.model = model; v.vel = vel; v.gain = 1.0f; v.fadeStep = 0.0f;
-    for (int f = 0; f < kFields; ++f) snap[part].p[f] = get (partParam (part, (Field) f));
+    for (int f = 0; f < kFields; ++f) snap[part].p[f] = pv (partParam (part, (Field) f));
     auto c = ctlFor (part, v);
-    c.accent = accent ? get (partParam (part, Accent)) : 0.0f;
+    c.accent = accent ? pv (partParam (part, Accent)) : 0.0f;
     switch (model)
     {
         case K808: v.k808.trigger (c); break;
@@ -338,6 +338,9 @@ void DrumsDevice::render (float* outL, float* outR, int n)
     const float width = pv (pWidth);
     const int resType = (int) pv (pResType);
     const float resHz = pv (pResTune), resDecay = pv (pResDecay), resDamp = pv (pResDamp), resMix = pv (pResMix);
+    const bool resOn = resMix > 0.001f;
+    if (resOn && ! resWasOn) resonator.reset();   // back on: from silence, not what rang when it stopped
+    resWasOn = resOn;
     const float compAmt = pv (pComp), kDrive = pv (pKitDrive), lvl = pv (pKitLevel);
     std::fill (bufL.begin(), bufL.begin() + n, 0.0f);
     std::fill (bufR.begin(), bufR.begin() + n, 0.0f);
@@ -362,12 +365,12 @@ void DrumsDevice::render (float* outL, float* outR, int n)
             dl += s * gl * P[SendDelay]; dr += s * gr * P[SendDelay];
             rl += s * gl * P[SendReverb]; rr += s * gr * P[SendReverb];
         }
-        if (resMix > 0.001f)
+        if (resOn)
         {
             const float res = resonator.process (resIn * 0.5f, resHz, resDecay, resDamp, resType) * resMix * 1.5f;
             l += res; r += res;
         }
-        if (kDrive > 0.001f) { l = kitDrive.process (l, 1, kDrive, 1.0f); r = kitDrive.process (r, 1, kDrive, 1.0f); }
+        if (kDrive > 0.001f) kitDrive.process (l, r, 1, kDrive, 1.0f);
         comp.process (l, r, compAmt);
         const float g = levelSm.tick (lvl);
         bufL[(size_t) i] = l * g; bufR[(size_t) i] = r * g;

@@ -93,6 +93,7 @@ void PolyDevice::prepare (double sr, int maxBlock)
         for (auto& d : v.dco) { d.prepare (2.0f * r); d.randomise (rng); }
         v.noiseGen.rng.seed (rng.next());
         v.noiseLp.setCutoff (8000.0f, 2.0f * r);   // the oscillator mixer runs at 2×
+        v.ringDc.prepare (2.0f * r);
         v.subOsc.prepare (2.0f * r);
         v.tol.roll (rng, true);   // each voice card has its own tolerances
     }
@@ -184,7 +185,7 @@ void PolyDevice::keyOn (int note, float vel)
 {
     markNote (note, true);
     held.push (note, vel);
-    if ((int) get (arpMode) != Arpeggiator::Off) { arp.addKey (note); return; }
+    if (arpModeNow() != Arpeggiator::Off) { arp.addKey (note); return; }
     voiceOn (note, vel, note);
 }
 
@@ -193,7 +194,7 @@ void PolyDevice::keyOff (int note)
     markNote (note, false);
     held.remove (note);
     arp.removeKey (note);
-    if ((int) get (arpMode) == Arpeggiator::Off) voiceOff (note);
+    if (arpModeNow() == Arpeggiator::Off) voiceOff (note);
 }
 
 void PolyDevice::handleEvent (const NoteEvent& e)
@@ -234,7 +235,7 @@ void PolyDevice::render (float* outL, float* outR, int n)
     for (int i = 0; i < n; ++i) lfoBuf[(size_t) i] = lfo.process (shape);
 
     // Arpeggiator events split the block so notes land sample-accurately
-    const int amode = (int) pv (arpMode);
+    const int amode = outerArp ? (int) Arpeggiator::Off : (int) pv (arpMode);
     if (amode == Arpeggiator::Off && arp.sounding >= 0) { voiceOff (arp.sounding + 1000); arp.sounding = -1; }
     if (amode != Arpeggiator::Off && arp.numKeys > 0)
     {
@@ -317,16 +318,19 @@ void PolyDevice::render (float* outL, float* outR, int n)
     const int cMode = (int) pv (chorusMode);
     const float cMix = pv (chorusMix);
     const float dMix = pv (delayMix), fb = pv (delayFb);
+    const bool delayOn = dMix > 0.001f;
+    if (delayOn && ! delayWasOn) delay.reset();   // back on: from silence, not the echoes frozen when it stopped
+    delayWasOn = delayOn;
     delay.setTone (pv (delayTone));
     const float dSecs = pv (delaySync) < 0.5f ? (float) (divisionBeats (pv (delayDiv)) * 60.0 / bpm) : pv (delayFree);
     const float lvl = pv (level) * kLevelScale;   // headroom for six voices: an 8-note full-velocity chord peaks below 0 dBFS
     for (int i = 0; i < n; ++i)
     {
         float l = bufL[(size_t) i], r = bufR[(size_t) i];
-        if (dAmt > 0.001f) { l = drive.process (l, dType, dAmt, 1.0f); r = drive.process (r, dType, dAmt, 1.0f); }
+        if (dAmt > 0.001f) drive.process (l, r, dType, dAmt, 1.0f);
         chorus.process (l, r, cMode, std::min (1.0f, cMix * 2.0f));   // runs every sample: the BBD line stays filled
         float ol = l, orr = r;
-        if (dMix > 0.001f) delay.process (l, r, ol, orr, dSecs, fb, dMix);
+        if (delayOn) delay.process (l, r, ol, orr, dSecs, fb, dMix);
         const float g = levelSm.tick (lvl);
         bufL[(size_t) i] = ol * g; bufR[(size_t) i] = orr * g;
     }
@@ -345,7 +349,7 @@ void PolyDevice::renderChunk (float* L, float* R, int start, int len)
     const float pwBase = va ? pv (vaPw) : pv (dcoPw);
     const float pwmAmt = va ? pv (vaPwm) : pv (dcoPwm);
     const float lPwm = pv (lfoPwm), lPitch = pv (lfoPitch), lCut = pv (lfoCut);
-    const float octave = va ? (float) ((int) pv (vaOctave) - 1) * -12.0f : 0.0f;
+    const float octave = va ? (float) ((int) pv (vaOctave) - 1) * 12.0f : 0.0f;   // 16' an octave down … 2' two up
     const float fine = va ? pv (vaFine) / 100.0f : 0.0f;
     const float subLvl = pv (sub), noiseLvl = pv (noise), driftAmt = pv (drift);
     const int hpPos = (int) pv (hpf);
@@ -353,6 +357,7 @@ void PolyDevice::renderChunk (float* L, float* R, int start, int len)
     const bool sharedFilt = va && pv (filterMode) < 0.5f;
     const float fDrv = pv (filterDrive);
     const int aSrc = (int) pv (ampSrc);
+    const float gateCoef = 1.0f - std::exp (-1.0f / (0.0015f * (float) sampleRate));
     const float velSens = pv (velocity);
     const float det = pv (detune) * 0.3f;
     const float glideSecs = pv (glide) * 1.5f;
@@ -360,7 +365,9 @@ void PolyDevice::renderChunk (float* L, float* R, int start, int len)
     const float fadeStep = 1.0f / (0.002f * sr);
     const float velGlide = 1.0f - std::exp (-1.0f / (0.003f * sr));
     const int nOsc = (mode == 3 || mode == 4 || mode == 5) ? 3 : 1;
-    static constexpr float stackOff[3][3] = { { 0, 12, -12 }, { 0, 7, 12 }, { 0, 0, -12 } };
+    // Octave, Fifth, Ring: osc 2 and 3 against osc 1 (Ring multiplies osc 1 by osc 2 a fifth up: sum and
+    // difference tones, the bell of a ring modulator; osc 3 an octave down mixes in as it is)
+    static constexpr float stackOff[3][3] = { { 0, 12, -12 }, { 0, 7, 12 }, { 0, 7, -12 } };
     const float sr2 = 2.0f * sr;
 
     const float fa = pv (fAttack), fd = pv (fDecay), fs = pv (fSustain), fr = pv (fRelease);
@@ -384,24 +391,33 @@ void PolyDevice::renderChunk (float* L, float* R, int start, int len)
                 const int i = start + off + k;
                 const float lv = lfoBuf[(size_t) i];
                 v.pitch += (v.target - v.pitch) * glideCoef;
-                // DCO pitch is crystal-locked; VCOs wander a little (more with Drift)
-                const float wander = va ? v.tol.vcoSemis (sr) * (1.0f + 4.0f * driftAmt) : 0.0f;
+                // DCO pitch is crystal-locked: its Drift spreads and slowly moves each voice's filter instead;
+                // VCOs wander a little in pitch (more with Drift)
+                const float drift = v.tol.vcoSemis (sr);
+                const float wander = va ? drift * (1.0f + 4.0f * driftAmt) : 0.0f;
+                const float filterDrift = va ? 0.0f : driftAmt * (40.0f * drift + 6.0f * (v.tol.cutoff - 1.0f)) * 0.0578f;
                 const float baseNote = v.pitch + octave + fine + v.stack * det + lv * lPitch + wander + exprNow;
                 const float fenv = v.fenv.process();
                 float aenv = v.aenv.process();
                 if (aSrc == 1) aenv = fenv;
-                else if (aSrc == 2) aenv = v.fenv.stage == Adsr::Release || v.fenv.stage == Adsr::Idle ? fenv : 1.0f;
+                else if (aSrc == 2)
+                {
+                    // Gate: on while the key is down, off at its release (slewed, so neither edge clicks)
+                    const float gateTarget = v.fenv.stage == Adsr::Release || v.fenv.stage == Adsr::Idle ? 0.0f : 1.0f;
+                    v.gateAmp += (gateTarget - v.gateAmp) * gateCoef;
+                    aenv = v.gateAmp;
+                }
                 const float pw = clamp (pwBase + 0.4f * (pwmAmt + lPwm) * lv, 0.05f, 0.95f);
 
                 const float c = std::log (cut * v.tol.cutoff) + (baseNote - 60.0f) * keyT * 0.0578f + envA * fenv * 4.6f
-                                + lCut * lv * 2.2f + fVel * (v.vel - 0.5f) * 1.6f;
+                                + lCut * lv * 2.2f + fVel * (v.vel - 0.5f) * 1.6f + filterDrift;
                 const float fc = clamp (std::exp (c), 15.0f, 20000.0f);
                 double hz[3];
                 for (int o = 0; o < nOsc; ++o) hz[o] = midiToHz (baseNote + (nOsc == 3 ? stackOff[mode - 3][o] : 0.0f));
                 // one oscillator-mixer sample at the 2× rate
                 auto gen = [&]
                 {
-                    float sig = 0.0f;
+                    float sig = 0.0f, ring0 = 0.0f;
                     for (int o = 0; o < nOsc; ++o)
                     {
                         float s;
@@ -419,7 +435,8 @@ void PolyDevice::renderChunk (float* L, float* R, int start, int len)
                             s = vWave == 0 ? osc.saw() : (vWave == 1 ? osc.pulse (pw) : osc.tri());
                             if (o == 0) sig += subLvl * 0.6f * v.subOsc.process (osc.wrapped, 0);
                         }
-                        if (mode == 5 && o == 1) { sig *= s * 1.4f; continue; }   // ring: osc 2 × osc 1
+                        if (mode == 5 && o == 0) { ring0 = s; continue; }                         // ring: osc 1 waits for osc 2
+                        if (mode == 5 && o == 1) { sig += v.ringDc.process (ring0 * s) * 1.1f; continue; }   // osc 1 × osc 2, DC removed
                         sig += nOsc == 3 ? s * 0.55f : s;
                     }
                     sig += noiseLvl * 0.5f * v.noiseLp.lp (v.noiseGen.white());

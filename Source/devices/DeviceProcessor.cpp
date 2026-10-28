@@ -36,12 +36,6 @@ DeviceType deviceTypeFromId (const juce::String& id)
 
 bool isDrumDevice (DeviceType t) { return t == DeviceType::Drums || t == DeviceType::DrumSampler; }
 
-std::atomic<int>& qualityOversampling()
-{
-    static std::atomic<int> q { 2 };
-    return q;
-}
-
 // ---------------------------------------------------------------------------------------------
 float ParamInfo::toNorm (float v) const
 {

@@ -34,9 +34,10 @@ public:
     SampleSlot pad[kPads];
     juce::String padRef (int p) const { return refs[(size_t) p]; }
     void loadPad (int p, const juce::String& ref, bool sync = false);
-    /** Slice a loop across all 8 pads (transients or equal parts). Returns the slice start positions
-        as fractions of the loop, so the caller can fill the lanes to recreate it at the project tempo. */
-    std::vector<double> sliceLoop (const juce::String& ref, bool sync = false);
+    /** Slice a loop across all 8 pads (transients or equal parts). `done` gets the slice start positions (fractions
+        of the loop) on the message thread, so the caller can fill the lanes at the project tempo. The file is
+        decoded on the loader thread (`sync`, or no message loop: at once, and the starts are also returned). */
+    std::vector<double> sliceLoop (const juce::String& ref, bool sync = false, std::function<void (std::vector<double>)> done = {});
     static std::vector<double> findSlices (const SampleData&, bool transients, float sensitivity, int count);
 
     std::array<std::atomic<int>, kPads> hits {};
@@ -49,15 +50,19 @@ private:
         double pos = 0.0, end = 0.0;
         int t = 0;
         float vel = 1.0f, amp = 0.0f, rel = 1.0f, choke = 1.0f;
+        float fadeOut = 1.0f, fadeStep = 0.0f;   // a retriggered pad's old playback fades out as a tail
         bool choking = false, releasing = false;
         dsp::OnePole lp1L, lp2L, lp1R, lp2R;
-        dsp::Drive drive;
-        dsp::Resampler crush;
+        dsp::StereoDrive drive;
+        dsp::Resampler crush, crushR;
     };
+    void renderVoice (Voice&, int pad, int n);
     void trigger (int p, float vel);
+    std::vector<double> applySlices (const juce::String& ref, SamplePtr data);
     int padForNote (int note) const;
 
     std::array<Voice, kPads> voices;
+    std::array<Voice, kPads> tails;   // per pad: the playback a retrigger cut off, fading out (no click)
     std::array<juce::String, kPads> refs;
     std::shared_ptr<int> lifetime = std::make_shared<int> (0);   // async loads check it before touching the device
     std::vector<float> bufL, bufR, sendL, sendR;

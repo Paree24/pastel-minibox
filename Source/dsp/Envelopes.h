@@ -56,23 +56,6 @@ struct Adsr
     }
 };
 
-/** Attack-free decay with an optional accent "sweep capacitor": consecutive accents charge it
-    further, and it drains at its own rate. */
-struct DecayEnv
-{
-    float value = 0.0f, coef = 0.999f, sr = 48000.0f;
-    float sweep = 0.0f, sweepCoef = 0.9995f;
-    void prepare (float rate) { sr = rate; }
-    void setDecay (float seconds) { coef = std::exp (-1.0f / (std::max (seconds, 0.002f) * sr)); }
-    void setSweepDecay (float seconds) { sweepCoef = std::exp (-1.0f / (std::max (seconds, 0.01f) * sr)); }
-    void trigger (bool accent, float sweepAmount)
-    {
-        value = 1.0f;
-        if (accent) sweep = std::min (1.6f, sweep + sweepAmount);
-    }
-    float process() { value *= coef; sweep *= sweepCoef; return value; }
-};
-
 /** Four rates and four levels (6-operator style). Level 4 is the release target. */
 struct RateLevelEnv
 {
@@ -80,6 +63,7 @@ struct RateLevelEnv
     float levels[4] { 1.0f, 0.8f, 0.7f, 0.0f };  // 0..1
     int stage = -1;  // -1 idle, 0..2 attack-to-sustain, 3 release
     float value = 0.0f, sr = 48000.0f, rateScale = 1.0f;
+    float decaySecs = -1.0f, decayMul = 1.0f;   // the decay's per-sample factor, cached
 
     void prepare (float rate) { sr = rate; }
     static float rateToSeconds (float r) { return 0.0015f * std::pow (2.0f, (1.0f - clamp (r, 0.0f, 1.0f)) * 14.5f); }
@@ -101,17 +85,16 @@ struct RateLevelEnv
         }
         else
         {
-            // decays are linear in dB
-            const float dbPerSample = 96.0f / (secs * sr);
-            float db = gainToDb (std::max (value, 1.0e-5f)) - dbPerSample;
-            const float tdb = gainToDb (std::max (target, 1.0e-5f));
-            if (db <= tdb || value - target < 1.0e-5f)
+            // decays are linear in dB: a constant factor per sample (recomputed only when the rate changes)
+            if (secs != decaySecs) { decaySecs = secs; decayMul = dbToGain (-96.0f / (secs * sr)); }
+            const float next = std::max (value, 1.0e-5f) * decayMul;
+            if (next <= std::max (target, 1.0e-5f) || value - target < 1.0e-5f)
             {
                 value = target;
                 if (stage < 2) ++stage;
                 else if (stage == 3 && target <= 1.0e-4f) { stage = -1; value = 0.0f; }
             }
-            else value = dbToGain (db);
+            else value = next;
         }
         return value;
     }
@@ -124,7 +107,7 @@ struct Lfo
     enum Shape { Tri, SawDown, SawUp, Square, SampleHold, SmoothNoise, Sine };
     float phase = 0.0f, inc = 0.0f, held = 0.0f, prevHeld = 0.0f, out = 0.0f;
     float fade = 1.0f, fadeInc = 1.0f, sr = 48000.0f;
-    Rng rng { 12345u };
+    Rng rng { Rng::uniqueSeed() };   // each LFO its own random sequence (S&H, noise)
     OnePole slew;
 
     void prepare (float rate) { sr = rate; slew.setCutoff (180.0f, rate); }

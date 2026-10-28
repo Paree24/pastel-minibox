@@ -39,11 +39,12 @@ public:
     // ---- control (audio thread, via Engine)
     void start (Project& p, bool fromTop);
     void stop();
-    void resetPosition() { step = 0; stepPhase = 0.0; seekTarget = 0; }
+    void resetPosition() { step = 0; stepPhase = 0.0; seekTarget = 0; beatPos = 0.0; }
     /** Where playback is, in steps (before a block is generated: the step it starts from). */
     double position() const { return needBoundary ? (double) seekTarget : step + stepPhase; }
     /** Jump to a step (playing or not): it plays from there on the next boundary. */
-    void seek (int s) { step = s; stepPhase = 0.0; seekTarget = s; needBoundary = true; pending.clear(); }
+    /** `beats`: where step s sits in the song's beats (synced LFOs, delays and the arp follow the jump). */
+    void seek (int s, double beats) { step = s; stepPhase = 0.0; seekTarget = s; needBoundary = true; pending.clear(); beatPos = beats; }
     /** The step after `si` in the active pattern (its loop range, the pattern's end). */
     int nextStep (const Project&, int si) const;
     bool isPlaying() const { return playing; }

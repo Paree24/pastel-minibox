@@ -124,10 +124,11 @@ std::vector<double> DrumSamplerDevice::findSlices (const SampleData& d, bool tra
     }
     std::vector<std::pair<float, int>> onsets;
     const float thresh = 0.02f + (1.0f - sens) * 0.2f;
+    const float peak = energy.empty() ? 0.0f : *std::max_element (energy.begin(), energy.end());   // once, not per frame
     for (size_t i = 1; i + 1 < energy.size(); ++i)
     {
         const float flux = energy[i] - energy[i - 1];
-        if (flux > thresh * (*std::max_element (energy.begin(), energy.end())) && flux >= energy[i + 1] - energy[i])
+        if (flux > thresh * peak && flux >= energy[i + 1] - energy[i])
             onsets.push_back ({ flux, (int) i });
     }
     std::sort (onsets.begin(), onsets.end(), [] (auto& a, auto& b) { return a.first > b.first; });
@@ -141,15 +142,43 @@ std::vector<double> DrumSamplerDevice::findSlices (const SampleData& d, bool tra
         if (ok) picks.push_back (idx);
     }
     std::sort (picks.begin(), picks.end());
-    for (int p : picks) starts.push_back ((double) p * hop / n);
-    while ((int) starts.size() < count) starts.push_back ((double) starts.size() / count);   // fill with equal parts
-    std::sort (starts.begin(), starts.end());
+    for (int p : picks) starts.push_back (std::min (1.0, (double) p * hop / n));
+    // fewer onsets than pads: split the widest gaps (an equal-parts fill could repeat a start: a zero-length slice)
+    while ((int) starts.size() < count)
+    {
+        double widest = 0.0, at = 0.0;
+        for (size_t i = 0; i < starts.size(); ++i)
+        {
+            const double next = i + 1 < starts.size() ? starts[i + 1] : 1.0;
+            if (next - starts[i] > widest) { widest = next - starts[i]; at = starts[i]; }
+        }
+        starts.push_back (at + widest * 0.5);
+        std::sort (starts.begin(), starts.end());
+    }
     return starts;
 }
 
-std::vector<double> DrumSamplerDevice::sliceLoop (const juce::String& ref, bool sync)
+std::vector<double> DrumSamplerDevice::sliceLoop (const juce::String& ref, bool sync, std::function<void (std::vector<double>)> done)
 {
-    auto data = loadSample (ref);
+    if (sync || forceSyncSampleLoads().load() || juce::MessageManager::getInstanceWithoutCreating() == nullptr)
+    {
+        auto starts = applySlices (ref, loadSample (ref));
+        if (done) done (starts);
+        return starts;
+    }
+    // a long loop decodes on the loader thread (the UI keeps running); the pads change when it is ready
+    std::weak_ptr<int> alive = lifetime;
+    loadSampleAsync (ref, [this, alive, ref, done] (SamplePtr data)
+    {
+        if (alive.expired()) return;
+        auto starts = applySlices (ref, data);
+        if (done) done (starts);
+    });
+    return {};
+}
+
+std::vector<double> DrumSamplerDevice::applySlices (const juce::String& ref, SamplePtr data)
+{
     if (! data) return {};
     auto starts = findSlices (*data, get (pSliceMode) < 0.5f, get (pSliceSens), kPads);
     for (int p = 0; p < kPads; ++p)
@@ -163,7 +192,6 @@ std::vector<double> DrumSamplerDevice::sliceLoop (const juce::String& ref, bool 
         set (padParam (p, Decay), 4.0f);
         set (padParam (p, Choke), 1.0f);   // slices of one loop cut each other off
     }
-    juce::ignoreUnused (sync);
     return starts;
 }
 
@@ -177,11 +205,12 @@ void DrumSamplerDevice::prepare (double sr, int maxBlock)
     verb.prepare ((float) sr);
 }
 
-void DrumSamplerDevice::reset() { for (auto& v : voices) v.active = false; verb.reset(); }
+void DrumSamplerDevice::reset() { for (auto& v : voices) v.active = false; for (auto& v : tails) v.active = false; verb.reset(); }
 
 bool DrumSamplerDevice::anyVoiceActive() const
 {
     for (auto& v : voices) if (v.active) return true;
+    for (auto& v : tails) if (v.active) return true;
     return false;
 }
 
@@ -189,18 +218,21 @@ void DrumSamplerDevice::trigger (int p, float vel)
 {
     const auto* data = pad[p].audio();
     if (data == nullptr || data->length() < 4) return;
-    const int group = (int) get (padParam (p, Choke));
+    const int group = (int) pv (padParam (p, Choke));   // a step lock (Start, Length, Reverse, Choke) counts from the trigger on
     if (group > 0)
         for (int q = 0; q < kPads; ++q)
-            if (q != p && voices[(size_t) q].active && (int) get (padParam (q, Choke)) == group) voices[(size_t) q].choking = true;
+            if (q != p && voices[(size_t) q].active && (int) pv (padParam (q, Choke)) == group) voices[(size_t) q].choking = true;
     auto& v = voices[(size_t) p];
+    // a retrigger: the sounding playback becomes the pad's tail and fades out over 4 ms (cutting it would click)
+    if (v.active) { tails[(size_t) p] = v; tails[(size_t) p].fadeStep = 1.0f / (0.004f * (float) sampleRate); }
     v.sample = data;
-    const double s = get (padParam (p, Start)) * (data->length() - 1);
-    const double e = s + get (padParam (p, Length)) * (data->length() - 1 - s);
-    v.forward = get (padParam (p, Reverse)) < 0.5f;
+    const double s = pv (padParam (p, Start)) * (data->length() - 1);
+    const double e = s + pv (padParam (p, Length)) * (data->length() - 1 - s);
+    v.forward = pv (padParam (p, Reverse)) < 0.5f;
     v.pos = v.forward ? s : e;
     v.end = v.forward ? e : s;
     v.t = 0; v.vel = vel; v.amp = 1.0f; v.rel = 1.0f; v.choke = 1.0f; v.choking = false; v.releasing = false;
+    v.fadeOut = 1.0f; v.fadeStep = 0.0f;
     v.active = true; v.held = true;
     hits[(size_t) p].fetch_add (1);
 }
@@ -215,22 +247,22 @@ void DrumSamplerDevice::handleEvent (const NoteEvent& e)
         if (p >= 0) { voices[(size_t) p].held = false; if (get (padParam (p, Mode)) > 0.5f) voices[(size_t) p].releasing = true; }
     }
     else if (e.type == NoteEvent::Panic) reset();
-    else if (e.type == NoteEvent::AllNotesOff) for (auto& w : heldNotes) w.store (0);
+    else if (e.type == NoteEvent::AllNotesOff)
+    {
+        for (auto& w : heldNotes) w.store (0);
+        // Stop: Gate pads let go (held, they would never decay)
+        for (int p = 0; p < kPads; ++p)
+            if (voices[(size_t) p].held) { voices[(size_t) p].held = false; if (get (padParam (p, Mode)) > 0.5f) voices[(size_t) p].releasing = true; }
+    }
 }
 
-void DrumSamplerDevice::render (float* outL, float* outR, int n)
+void DrumSamplerDevice::renderVoice (Voice& v, int p, int n)
 {
+    if (! v.active) return;
     const float sr = (float) sampleRate;
-    std::fill (bufL.begin(), bufL.begin() + n, 0.0f);
-    std::fill (bufR.begin(), bufR.begin() + n, 0.0f);
-    std::fill (sendL.begin(), sendL.begin() + n, 0.0f);
-    std::fill (sendR.begin(), sendR.begin() + n, 0.0f);
-    for (int p = 0; p < kPads; ++p)
     {
-        auto& v = voices[(size_t) p];
-        if (! v.active) continue;
         const auto* data = pad[p].audio();
-        if (data != v.sample || data == nullptr) { v.active = false; continue; }
+        if (data != v.sample || data == nullptr) { v.active = false; return; }
         const float pitch = pv (padParam (p, Pitch)), atk = pv (padParam (p, Attack)), dec = pv (padParam (p, Decay));
         const float pegI = pv (padParam (p, PegInt)) * 24.0f, pegD = pv (padParam (p, PegDecay));
         const float hiCut = pv (padParam (p, HiCut)), lvl = pv (padParam (p, Level)), pan = pv (padParam (p, Pan));
@@ -239,6 +271,8 @@ void DrumSamplerDevice::render (float* outL, float* outR, int n)
         v.lp1L.setCutoff (hiCut, sr); v.lp2L.setCutoff (hiCut, sr); v.lp1R.setCutoff (hiCut, sr); v.lp2R.setCutoff (hiCut, sr);
         const float decCoef = std::exp (-1.0f / (dec * sr));
         const float relCoef = std::exp (-1.0f / (0.03f * sr));
+        const float chokeCoef = std::exp (-1.0f / (0.0042f * sr));   // a choked pad fades in ~4 ms at any rate
+        const float endFade = 0.002f * sr;                            // the last 2 ms before the end (or a Length cut) fade
         const float gl = std::sqrt (0.5f * (1.0f - pan)), gr = std::sqrt (0.5f * (1.0f + pan));
         const int len = data->length();
         const float* cl = data->buffer.getReadPointer (0);
@@ -251,23 +285,40 @@ void DrumSamplerDevice::render (float* outL, float* outR, int n)
             const float semis = pitch + pegI * std::exp (-t / pegD);
             const double inc = semisToRatio (semis) * srRatio;
             float l = Resampler::hermite (cl, len, v.pos), r = Resampler::hermite (cr, len, v.pos);
-            if (bits < 15.5f) { l = v.crush.vintage (l, sr, bits, sr); r = l * 0.5f + r * 0.5f; }
+            if (bits < 15.5f) { l = v.crush.vintage (l, sr, bits, sr); r = v.crushR.vintage (r, sr, bits, sr); }
             if (hiCut < 19900.0f) { l = v.lp2L.lp (v.lp1L.lp (l)); r = v.lp2R.lp (v.lp1R.lp (r)); }
-            const float attackGain = atk > 0.0005f ? std::min (1.0f, t / atk) : std::min (1.0f, t / 0.0005f + 0.25f);
+            // the attack rises from silence (0.3 ms at least: a start inside the waveform would click)
+            const float attackGain = std::min (1.0f, t / std::max (0.0003f, atk));
             if (! gateMode || v.held) v.amp *= gateMode ? 1.0f : decCoef;
             if (v.releasing) v.rel *= relCoef;
-            if (v.choking) v.choke *= 0.995f;
-            float g = attackGain * v.amp * v.rel * v.choke * v.vel * lvl;
-            if (drv > 0.001f) { l = v.drive.process (l, 0, drv, 1.0f); r = v.drive.process (r, 0, drv, 1.0f); }
+            if (v.choking) v.choke *= chokeCoef;
+            if (v.fadeStep > 0.0f) v.fadeOut = std::max (0.0f, v.fadeOut - v.fadeStep);
+            const float remain = (float) (std::abs (v.end - v.pos) / std::max (1.0e-6, inc));
+            const float endGain = std::min (1.0f, remain / endFade);
+            float g = attackGain * v.amp * v.rel * v.choke * v.vel * lvl * v.fadeOut * endGain;
+            if (drv > 0.001f) v.drive.process (l, r, 0, drv, 1.0f);
             l *= g; r *= g;
             bufL[(size_t) i] += l * gl * 1.41f; bufR[(size_t) i] += r * gr * 1.41f;
             sendTo (0, i, l * sD, r * sD);
             sendL[(size_t) i] += l * gl * 1.41f * sR; sendR[(size_t) i] += r * gr * 1.41f * sR;
             ++v.t;
             v.pos += v.forward ? inc : -inc;
-            if ((v.forward && v.pos >= v.end) || (! v.forward && v.pos <= v.end) || v.amp * v.rel * v.choke < 1.0e-4f)
+            if ((v.forward && v.pos >= v.end) || (! v.forward && v.pos <= v.end) || v.amp * v.rel * v.choke * v.fadeOut < 1.0e-4f)
             { v.active = false; break; }
         }
+    }
+}
+
+void DrumSamplerDevice::render (float* outL, float* outR, int n)
+{
+    std::fill (bufL.begin(), bufL.begin() + n, 0.0f);
+    std::fill (bufR.begin(), bufR.begin() + n, 0.0f);
+    std::fill (sendL.begin(), sendL.begin() + n, 0.0f);
+    std::fill (sendR.begin(), sendR.begin() + n, 0.0f);
+    for (int p = 0; p < kPads; ++p)
+    {
+        renderVoice (tails[(size_t) p], p, n);
+        renderVoice (voices[(size_t) p], p, n);
     }
     const float kl = pv (pKitLevel);
     for (int i = 0; i < n; ++i)
@@ -294,17 +345,20 @@ void DrumSamplerDevice::load (const juce::ValueTree& tree)
     DeviceProcessor::load (tree);
     auto z = tree.getChildWithName ("Pads");
     // pads sharing one ref (a sliced loop) decode it once
-    std::map<juce::String, SamplePtr> cache;
     for (int i = 0; i < kPads; ++i)
     {
-        const auto ref = z.getProperty ("pad" + juce::String (i + 1)).toString();
-        refs[(size_t) i] = ref;
-        if (ref.isEmpty()) { pad[i].set ({}); continue; }
-        int first = -1;
-        for (int k = 0; k < i; ++k) if (refs[(size_t) k] == ref) { first = k; break; }
-        if (first >= 0) { auto s = pad[first].get(); if (s) { pad[i].set (s); continue; } }
-        loadPad (i, ref);
+        refs[(size_t) i] = z.getProperty ("pad" + juce::String (i + 1)).toString();
+        if (refs[(size_t) i].isEmpty()) pad[i].set ({});
     }
-    juce::ignoreUnused (cache);
+    // each file decodes once, for every pad that plays it (a sliced loop: one decode for its 8 pads)
+    juce::StringArray files;
+    for (auto& r : refs) if (r.isNotEmpty()) files.addIfNotAlreadyThere (r);
+    for (auto& ref : files)
+    {
+        auto apply = [this, ref] (SamplePtr data) { for (int p = 0; p < kPads; ++p) if (refs[(size_t) p] == ref) pad[p].set (data); };
+        if (forceSyncSampleLoads().load() || juce::MessageManager::getInstanceWithoutCreating() == nullptr) { apply (loadSample (ref)); continue; }
+        std::weak_ptr<int> alive = lifetime;
+        loadSampleAsync (ref, [alive, apply] (SamplePtr data) { if (! alive.expired()) apply (data); });
+    }
 }
 } // namespace mb

@@ -22,10 +22,17 @@ juce::var mixerToJson (const Mixer& m)
     return juce::var (o);
 }
 
+/** A number from a file, inside its range (a damaged or hand-edited file can hold anything: NaN, inf, 1e9). */
+float num (const juce::var& v, const char* key, float def, float lo, float hi)
+{
+    const float x = (float) v.getProperty (key, def);
+    return std::isfinite (x) ? std::clamp (x, lo, hi) : def;
+}
+
 void mixerFromJson (Mixer& m, const juce::var& v)
 {
-    m.level = (float) v.getProperty ("level", 0.8); m.pan = (float) v.getProperty ("pan", 0.0);
-    m.sendA = (float) v.getProperty ("sendA", 0.0); m.sendB = (float) v.getProperty ("sendB", 0.0);
+    m.level = num (v, "level", 0.8f, 0.0f, 1.0f); m.pan = num (v, "pan", 0.0f, -1.0f, 1.0f);
+    m.sendA = num (v, "sendA", 0.0f, 0.0f, 1.0f); m.sendB = num (v, "sendB", 0.0f, 0.0f, 1.0f);
     m.mute = (bool) v.getProperty ("mute", false); m.solo = (bool) v.getProperty ("solo", false);
 }
 
@@ -82,7 +89,8 @@ juce::var trackToJson (const Track& tr, const DeviceProcessor* dev)
         // a piano-roll clip: [start, length, note, velocity, flags, muted] in kPPQ ticks
         juce::Array<juce::var> clip;
         for (auto& n : tr.clip)
-            clip.add (juce::Array<juce::var> { n.start, n.length, (int) n.note, (int) n.vel, (int) n.flags, n.muted ? 1 : 0, n.locked ? 1 : 0 });
+            clip.add (juce::Array<juce::var> { n.start, n.length, (int) n.note, (int) n.vel, (int) n.flags, n.muted ? 1 : 0, n.locked ? 1 : 0,
+                                               (int) n.probability, (int) n.cond });
         o->setProperty ("pianoRoll", true);
         o->setProperty ("ppq", kPPQ);
         o->setProperty ("clip", clip);
@@ -109,9 +117,11 @@ void trackFromJson (Track& tr, const juce::var& v, const DeviceProcessor* dev)
                 n.length = std::max (1, (int) std::lround ((int) e[1] * scale));
                 n.note = (uint8_t) std::clamp ((int) e[2], 0, 127);
                 n.vel = (uint8_t) std::clamp ((int) e[3], 1, 127);
-                n.flags = e.size() > 4 ? (uint8_t) ((int) e[4] & 3) : 0;
+                n.flags = e.size() > 4 ? (uint8_t) ((int) e[4] & 7) : 0;
                 n.muted = e.size() > 5 && (int) e[5] != 0;
                 n.locked = e.size() > 6 && (int) e[6] != 0;
+                n.probability = (uint8_t) (e.size() > 7 ? std::clamp ((int) e[7], 0, 100) : 100);
+                n.cond = (uint8_t) (e.size() > 8 ? std::clamp ((int) e[8], 0, kNumTrigConditions - 1) : 0);
                 tr.addClipNote (n);
             }
         if (auto* arr = v.getProperty ("cc", {}).getArray())
@@ -166,7 +176,8 @@ void trackFromJson (Track& tr, const juce::var& v, const DeviceProcessor* dev)
                 for (auto& p : vals->getProperties())
                 {
                     const int i = p.name.toString().getIntValue();
-                    if (i >= 0 && i < kMaxSteps) lane->values[(size_t) i] = (float) p.value;
+                    const float x = (float) p.value;
+                    if (i >= 0 && i < kMaxSteps && std::isfinite (x)) lane->values[(size_t) i] = dev->params()[param].snap (x);
                 }
         }
 }
@@ -283,14 +294,14 @@ void playFromJson (PlaySettings& ps, const juce::var& v)
     ps.inversion = std::clamp ((int) v.getProperty ("inversion", 0), 0, 2);
     ps.invLower = (bool) v.getProperty ("invLower", false);
     ps.bassBelow = (bool) v.getProperty ("bassBelow", false);
-    ps.strumMs = std::clamp ((float) v.getProperty ("strumMs", 0.0), 0.0f, 40.0f);
+    ps.strumMs = num (v, "strumMs", 0.0f, 0.0f, 40.0f);
     ps.arpOn = (bool) v.getProperty ("arpOn", false);
     ps.arpLatch = (bool) v.getProperty ("arpLatch", false);
     ps.arpMode = std::clamp ((int) v.getProperty ("arpMode", 0), 0, 5);
     ps.arpRate = std::clamp ((int) v.getProperty ("arpRate", 6), 0, 14);
     ps.arpOct = std::clamp ((int) v.getProperty ("arpOct", 0), 0, 3);
-    ps.arpSwing = std::clamp ((float) v.getProperty ("arpSwing", 0.0), 0.0f, 60.0f);
-    ps.arpGate = std::clamp ((float) v.getProperty ("arpGate", 90.0), 10.0f, 100.0f);
+    ps.arpSwing = num (v, "arpSwing", 0.0, 0.0f, 60.0f);
+    ps.arpGate = num (v, "arpGate", 90.0, 10.0f, 100.0f);
 }
 
 juce::var projectToJson (const Project& p)
@@ -371,12 +382,12 @@ void projectFromJson (Project& p, const juce::var& v)
     p.beats = std::clamp ((int) v.getProperty ("beats", 4), 1, 16);
     p.unit = (int) v.getProperty ("unit", 4);
     if (p.unit != 4 && p.unit != 8 && p.unit != 16) p.unit = 4;
-    p.swing = std::clamp ((float) v.getProperty ("swing", 0.5), 0.5f, 0.75f);
+    p.swing = num (v, "swing", 0.5f, 0.5f, 0.75f);
     p.countIn = (bool) v.getProperty ("countIn", true);
     p.metronome = (bool) v.getProperty ("metronome", false);
-    p.clickLevel = (float) v.getProperty ("clickLevel", 0.5);
+    p.clickLevel = num (v, "clickLevel", 0.5f, 0.0f, 1.0f);
     p.switchQuantize = std::clamp ((int) v.getProperty ("switchQuantize", 0), 0, 2);
-    p.recordQuantize = (float) v.getProperty ("recordQuantize", 1.0);
+    p.recordQuantize = num (v, "recordQuantize", 1.0f, 0.0f, 1.0f);
     p.overdub = (bool) v.getProperty ("overdub", false);
     p.perform = (bool) v.getProperty ("perform", false);
     p.recordMode = std::clamp ((int) v.getProperty ("recordMode", 0), 0, 1);
@@ -390,16 +401,16 @@ void projectFromJson (Project& p, const juce::var& v)
     p.scale.whiteKeys = (bool) sc.getProperty ("whiteKeys", false);
     auto m = v.getProperty ("master", {});
     auto& ms = p.master;
-    ms.delayReturn = (float) m.getProperty ("delayReturn", ms.delayReturn);
-    ms.delayFeedback = (float) m.getProperty ("delayFeedback", ms.delayFeedback);
-    ms.delayTone = (float) m.getProperty ("delayTone", ms.delayTone);
-    ms.delayDiv = (int) m.getProperty ("delayDiv", ms.delayDiv);
-    ms.reverbReturn = (float) m.getProperty ("reverbReturn", ms.reverbReturn);
-    ms.reverbDecay = (float) m.getProperty ("reverbDecay", ms.reverbDecay);
-    ms.reverbDamp = (float) m.getProperty ("reverbDamp", ms.reverbDamp);
-    ms.glue = (float) m.getProperty ("glue", ms.glue);
-    ms.limitDb = (float) m.getProperty ("limitDb", ms.limitDb);
-    ms.volume = (float) m.getProperty ("volume", ms.volume);
+    ms.delayReturn = num (m, "delayReturn", ms.delayReturn, 0.0f, 1.0f);
+    ms.delayFeedback = num (m, "delayFeedback", ms.delayFeedback, 0.0f, 0.92f);
+    ms.delayTone = num (m, "delayTone", ms.delayTone, 0.0f, 1.0f);
+    ms.delayDiv = std::clamp ((int) m.getProperty ("delayDiv", ms.delayDiv), 0, dsp::kNumDivisions - 1);
+    ms.reverbReturn = num (m, "reverbReturn", ms.reverbReturn, 0.0f, 1.0f);
+    ms.reverbDecay = num (m, "reverbDecay", ms.reverbDecay, 0.0f, 1.0f);
+    ms.reverbDamp = num (m, "reverbDamp", ms.reverbDamp, 0.0f, 1.0f);
+    ms.glue = num (m, "glue", ms.glue, 0.0f, 1.0f);
+    ms.limitDb = num (m, "limitDb", ms.limitDb, -12.0f, 0.0f);
+    ms.volume = num (m, "volume", ms.volume, 0.0f, 1.2f);
     ms.lookAhead = (bool) m.getProperty ("lookAhead", true);
     auto readSlots = [&v] (const char* key, auto& arr)
     {

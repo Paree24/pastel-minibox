@@ -40,6 +40,7 @@ private:
         dsp::Adsr env;
         float pitch = 60.0f, targetPitch = 60.0f, vel = 0.8f, detuneSemis = 0.0f, pan = 0.0f;
         float fadeIn = 1.0f, velGain = 0.0f;   // velGain glides: a retrigger at a new velocity never steps
+        float gateAmp = 0.0f;                  // Amp: Gate: opens and closes with the key in 1.5 ms (no click)
     };
     void startVoice (Voice&, int note, float vel, bool legato, bool glide);
     void noteOn (int note, float vel);
@@ -53,7 +54,7 @@ private:
     HeldStack held;
     uint32_t clock = 0;
     dsp::Rng rng { 4242u };
-    std::vector<float> bufL, bufR, lfoBuf;
+    std::vector<float> bufL, bufR, lfoBuf, cutBuf;
     dsp::Smoother cutSm, levelSm;
 };
 } // namespace mb

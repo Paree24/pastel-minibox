@@ -72,7 +72,7 @@ void MonoDevice::prepare (double sr, int maxBlock)
     }
     lfo.prepare (r);
     fx.prepare (r); verb.prepare (r);
-    bufL.assign ((size_t) maxBlock, 0.0f); bufR.assign ((size_t) maxBlock, 0.0f); lfoBuf.assign ((size_t) maxBlock, 0.0f);
+    bufL.assign ((size_t) maxBlock, 0.0f); bufR.assign ((size_t) maxBlock, 0.0f); lfoBuf.assign ((size_t) maxBlock, 0.0f); cutBuf.assign ((size_t) maxBlock, 0.0f);
     cutSm.setTime (8.0f, r); cutSm.reset (std::log (get (cutoff)));
     levelSm.setTime (15.0f, r); levelSm.reset (get (level));
 }
@@ -103,7 +103,10 @@ void MonoDevice::startVoice (Voice& v, int note, float vel, bool legato, bool gl
     v.vel = vel;
     if (! v.env.active()) { v.fadeIn = 0.0f; v.velGain = 0.55f + 0.45f * vel; }
     v.env.gateOn (legato);   // legato = returning to a still-held key on release: no re-attack
-    if (! legato && v.slot.note < 0) lfo.retrigger();
+    // the shared LFO restarts with the first key, not with every voice of a chord
+    bool othersHeld = false;
+    for (auto& o : voices) othersHeld = othersHeld || (&o != &v && o.slot.held);
+    if (! legato && v.slot.note < 0 && ! othersHeld) lfo.retrigger();
     v.slot.note = note; v.slot.held = true; v.slot.active = true; v.slot.age = ++clock;
 }
 
@@ -193,12 +196,13 @@ void MonoDevice::render (float* outL, float* outR, int n)
     const float xs = expressionSemis (n);   // pitch bend and mod-wheel vibrato
     const float sr = (float) sampleRate;
     // snapshot every parameter once per block (locks included)
-    const float rangeOct = (float) ((int) pv (range) - 1) * -12.0f;
+    const float rangeOct = (float) ((int) pv (range) - 1) * 12.0f;   // 16' an octave down … 2' two up
     const float tuneSt = pv (tune), pwv = pv (pw), pwmAmt = pv (pwm);
     const int pwmSource = (int) pv (pwmSrc), sType = (int) pv (subType);
     const float mP = pv (mixPulse), mS = pv (mixSaw), mSub = pv (mixSub), mN = pv (mixNoise);
     const float cut = pv (cutoff), res = pv (reso), envA = pv (envAmt), lfoC = pv (lfoCut), keyT = pv (key), drv = pv (drive);
     const int amode = (int) pv (ampMode);
+    const float gateCoef = 1.0f - std::exp (-1.0f / (0.0015f * (float) sampleRate));
     const float lRate = pv (lfoRate), lPitch = pv (lfoPitch), lPwm = pv (lfoPwm);
     const int lShape = (int) pv (lfoShape);
     static constexpr int shapeMap[4] = { Lfo::Tri, Lfo::Square, Lfo::SampleHold, Lfo::SmoothNoise };
@@ -223,6 +227,8 @@ void MonoDevice::render (float* outL, float* outR, int n)
     const int vmode = (int) pv (voiceMode);
     const float voiceScale = vmode >= 2 ? 0.5f : (vmode == 1 ? 0.6f : 1.0f);   // several voices sum: keep the headroom
     for (int i = 0; i < n; ++i) lfoBuf[(size_t) i] = lfo.process (shapeMap[lShape]);
+    // the cutoff knob glides (8 ms) instead of stepping at block edges
+    for (int i = 0; i < n; ++i) cutBuf[(size_t) i] = cutSm.tick (std::log (cut));
 
     for (auto& v : voices)
     {
@@ -239,7 +245,7 @@ void MonoDevice::render (float* outL, float* outR, int n)
             float pwNow = pwv;
             const float pwmSig = pwmSource == 0 ? lv : (pwmSource == 1 ? env * 2.0f - 1.0f : 0.0f);
             pwNow += 0.42f * (pwmAmt * pwmSig + lPwm * lv);
-            const float cutNote = std::log (cut * v.tol.cutoff) + (note - 60.0f) * (keyT * 0.0578f)
+            const float cutNote = cutBuf[(size_t) i] + std::log (v.tol.cutoff) + (note - 60.0f) * (keyT * 0.0578f)
                                   + envA * env * 4.6f + lfoC * lv * 2.2f;
             const float fc = clamp (std::exp (cutNote), 15.0f, 20000.0f);
             v.filter.set (fc, res, 2.0f * sr);
@@ -256,7 +262,14 @@ void MonoDevice::render (float* outL, float* outR, int n)
             const float t0 = tick(), t1 = tick();
             float y = v.os.downsample (t0, t1) * 1.25f;
             if (drv > 0.0f) y /= (1.0f + drv * 1.2f);
-            const float amp = amode == 1 ? (v.env.stage == Adsr::Release || v.env.stage == Adsr::Idle ? env : 1.0f) : env;
+            float amp = env;
+            if (amode == 1)
+            {
+                // Gate: on while the key is down, off at its release (slewed, so neither edge clicks)
+                const float gateTarget = v.env.stage == Adsr::Release || v.env.stage == Adsr::Idle ? 0.0f : 1.0f;
+                v.gateAmp += (gateTarget - v.gateAmp) * gateCoef;
+                amp = v.gateAmp;
+            }
             if (v.fadeIn < 1.0f) v.fadeIn = std::min (1.0f, v.fadeIn + fadeStep);
             v.velGain += ((0.55f + 0.45f * v.vel) - v.velGain) * velGlide;
             const float out = y * amp * v.fadeIn * v.velGain * v.tol.gain * voiceScale;

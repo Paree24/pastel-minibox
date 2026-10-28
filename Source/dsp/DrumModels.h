@@ -451,48 +451,6 @@ struct Metal808
     void reset() { bp1.reset(); bp2.reset(); hp1.reset(); hp2.reset(); hp3.reset(); e1 = e2 = e3 = 0.0f; }
 };
 
-/** Analog noise hat: transistor noise through a resonant band-pass and a high-pass. */
-struct NoiseHat
-{
-    Svf bp, hp;
-    Rng rng { 5150u };
-    float sr = 48000.0f, env = 0.0f;
-    void prepare (float rate) { sr = rate; }
-    void trigger (const Ctl& c) { env = 0.75f + 0.25f * c.accent; }
-    float process (const Ctl& c)
-    {
-        env *= std::exp (-6.9f / (std::max (0.01f, c.decay) * sr));
-        const float n = analogNoise (rng);
-        bp.tick (n, clamp (c.pitch * 20.0f, 3000.0f, 15000.0f), 0.35f + 0.5f * (1.0f - c.tone), sr);
-        hp.tick (0.6f * bp.bp + 0.4f * n, 6000.0f, 1.4f, sr);
-        return hp.hp * env * 1.4f;
-    }
-    bool done() const { return env < 1.0e-4f; }
-    void reset() { bp.reset(); hp.reset(); env = 0.0f; }
-};
-
-/** Digital FM metal: two inharmonic FM pairs, high-passed. */
-struct FmMetal
-{
-    double ph[4] {};
-    Svf hp;
-    float sr = 48000.0f, env = 0.0f;
-    void prepare (float rate) { sr = rate; }
-    void trigger (const Ctl& c) { env = 0.75f + 0.25f * c.accent; for (auto& p : ph) p = 0.0; }
-    float process (const Ctl& c, float hpHz)
-    {
-        static constexpr double ratio[4] = { 1.0, 3.71, 1.53, 5.17 };
-        for (int i = 0; i < 4; ++i) { ph[i] += c.pitch * ratio[i] / sr; ph[i] -= std::floor (ph[i]); }
-        const float idx = 1.0f + 5.0f * c.tone;
-        const float c1 = std::sin (kTwoPi * (float) ph[0] + idx * std::sin (kTwoPi * (float) ph[1]));
-        const float c2 = std::sin (kTwoPi * (float) ph[2] + idx * std::sin (kTwoPi * (float) ph[3]));
-        env *= std::exp (-6.9f / (std::max (0.01f, c.decay) * sr));
-        hp.tick (0.6f * c1 * c2 + 0.2f * (c1 + c2), hpHz, 1.2f, sr);
-        return hp.hp * env;
-    }
-    bool done() const { return env < 1.0e-4f; }
-    void reset() { hp.reset(); env = 0.0f; }
-};
 
 // ------------------------------------------------------------------------------------------ layered
 /** Two-layer DSP voice: each layer is a source (sine, saw, HP / LP / BP noise whose filter follows the

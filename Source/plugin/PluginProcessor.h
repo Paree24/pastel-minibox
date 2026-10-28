@@ -60,5 +60,6 @@ private:
     std::array<float, 8> lastMacro {};
     double sampleRate = 48000.0;
     juce::MidiBuffer chunk;
+    juce::MidiBuffer kept;   // the block's MIDI minus the CCs the MIDI learn takes
 };
 } // namespace mb

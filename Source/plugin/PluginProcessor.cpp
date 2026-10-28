@@ -37,6 +37,7 @@ void MiniboxProcessor::prepareToPlay (double sr, int block)
 {
     sampleRate = sr;
     eng.prepare (sr, std::max (512, block));
+    kept.ensureSize (8192);
     setLatencySamples (eng.master().latency());
 }
 
@@ -108,7 +109,13 @@ void MiniboxProcessor::syncHostParameters()
 void MiniboxProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi)
 {
     juce::ScopedNoDenormals noDenormals;
-    learn->process (midi);   // learned CCs move the host parameters before they reach the engine
+    learn->process (midi);   // learned CCs move the host parameters …
+    // … and stop there: the instrument gets everything else
+    kept.clear();
+    for (const auto meta : midi)
+        if (const auto m = meta.getMessage(); ! (m.isController() && learn->consumes (m.getControllerNumber())))
+            kept.addEvent (m, meta.samplePosition);
+    midi.swapWith (kept);
     syncHostParameters();
     if (auto* ph = getPlayHead())
         if (auto pos = ph->getPosition())

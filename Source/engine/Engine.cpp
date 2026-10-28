@@ -19,6 +19,7 @@ void Engine::prepare (double sr, int block)
     seq.prepare (sr);
     masterBus.prepare (sr, maxBlock, proj.master.lookAhead);
     if (masterInsert != nullptr) masterInsert->prepare (sr, maxBlock);
+    chunkMidi.ensureSize (4096);
     for (auto& in : inputs) in.prepare (sr);
 }
 
@@ -57,7 +58,7 @@ void Engine::replaceProject (std::unique_ptr<Project> p, std::array<std::array<s
         std::swap (proj, *p);
         std::swap (devices, devs);
         ++projectGen;
-        tailPattern = -1;
+        clearTails();
         masterBus.reset();
         recording = false;
         playingFlag = false;
@@ -273,21 +274,24 @@ void Engine::copyPattern (int from, int to)
             fresh[(size_t) t]->load (s);
             fresh[(size_t) t]->prepare (sampleRate, maxBlock);
         }
+    // the copy is made (and the replaced pattern freed) outside the lock: under it, only swaps
+    auto copy = std::make_unique<Pattern> (proj.patterns[(size_t) from]);
     std::array<std::unique_ptr<DeviceProcessor>, kTracks> old;
     {
         const ScopedEdit edit (*this);
-        proj.patterns[(size_t) to] = proj.patterns[(size_t) from];
+        std::swap (proj.patterns[(size_t) to], *copy);
         for (int t = 0; t < kTracks; ++t) { old[(size_t) t] = std::move (devices[(size_t) to][(size_t) t]); devices[(size_t) to][(size_t) t] = std::move (fresh[(size_t) t]); }
     }
 }
 
 void Engine::clearPattern (int p)
 {
+    auto blank = std::make_unique<Pattern>();   // built and the old one freed outside the lock
     std::array<std::unique_ptr<DeviceProcessor>, kTracks> old;
     const ScopedEdit edit (*this);
-    proj.patterns[(size_t) p] = Pattern();
+    std::swap (proj.patterns[(size_t) p], *blank);
     for (int t = 0; t < kTracks; ++t) old[(size_t) t] = std::move (devices[(size_t) p][(size_t) t]);
-    if (tailPattern == p) tailPattern = -1;
+    tailing[(size_t) p] = false;
 }
 
 void Engine::injectNote (int track, int note, float velocity, bool on, int pattern, bool audition)
@@ -367,7 +371,7 @@ void Engine::stopAllDevices (bool kill)
                 d->clearLocks();
                 d->resetExpression();   // controllers back to rest (bend centred, no vibrato, full expression)
             }
-    if (kill) { masterBus.reset(); tailPattern = -1; }
+    if (kill) { masterBus.reset(); clearTails(); }
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -378,20 +382,27 @@ void Engine::routeMidi (const juce::MidiMessage& m, int offset, std::vector<SeqE
     // every channel plays the selected track (or, as an option, channels 1–8 play tracks 1–8)
     const int track = plugin ? 0 : ((proj.channelPerTrack && ch >= 1 && ch <= kTracks) ? ch - 1 : focusTrack.load());
     const int pattern = plugin ? 0 : focusPattern.load();
-    if (m.isSustainPedalOn()) { sustainDown[(size_t) track] = true; return; }
+    if (m.isSustainPedalOn()) { sustainDown = true; return; }
     if (m.isSustainPedalOff())
     {
-        sustainDown[(size_t) track] = false;
-        for (int n = 0; n < 128; ++n)
-            if (sustained[(size_t) track][(size_t) n])
-            {
-                sustained[(size_t) track][(size_t) n] = false;
-                // the key's release, held back by the pedal: through the input (chord / arp notes end, recording gets its length)
-                inputKey (pattern, track, n, 0.0f, false, offset, out);
-            }
+        sustainDown = false;
+        for (int t = 0; t < kTracks; ++t)
+            for (int n = 0; n < 128; ++n)
+                if (sustained[(size_t) t][(size_t) n])
+                {
+                    sustained[(size_t) t][(size_t) n] = false;
+                    // the key's release, held back by the pedal: through the input (chord / arp notes end, recording
+                    // gets its length), on the track and pattern it was played on
+                    inputKey (sustainedPattern[(size_t) t][(size_t) n], t, n, 0.0f, false, offset, out);
+                }
         return;
     }
-    if (m.isNoteOff() && sustainDown[(size_t) track]) { sustained[(size_t) track][(size_t) m.getNoteNumber()] = true; return; }
+    if (m.isNoteOff() && sustainDown)
+    {
+        sustained[(size_t) track][(size_t) m.getNoteNumber()] = true;
+        sustainedPattern[(size_t) track][(size_t) m.getNoteNumber()] = (int8_t) pattern;
+        return;
+    }
     if (m.isNoteOn()) sustained[(size_t) track][(size_t) m.getNoteNumber()] = false;
     if (m.isNoteOn() || m.isNoteOff())
         inputKey (pattern, track, m.getNoteNumber(), m.isNoteOn() ? m.getFloatVelocity() : 0.0f, m.isNoteOn(), offset, out);
@@ -711,14 +722,16 @@ void Engine::renderSub (float* L, float* R, int start, int len)
     if (plugin) { ti.bpm = hostBpm; ti.playing = hostPlaying; ti.beatPos = hostBeat + start / (sampleRate * 60.0 / std::max (20.0, hostBpm)); }
     const int active = plugin ? 0 : seq.activePattern;
     const int focus = focusPattern.load();
-    int pats[3] = { active, plugin ? -1 : tailPattern, plugin ? -1 : focus };
-    if (pats[1] == active) pats[1] = -1;
-    if (pats[2] == active || pats[2] == pats[1]) pats[2] = -1;
+    // the playing pattern, the patterns still ringing out, the focused one (auditioned notes): each once
+    std::array<int, kPatterns + 1> pats;
+    int nPats = 0;
+    auto addPat = [&] (int p) { if (p >= 0 && std::find (pats.begin(), pats.begin() + nPats, p) == pats.begin() + nPats) pats[(size_t) nPats++] = p; };
+    addPat (active);
+    if (! plugin) { for (int p = 0; p < kPatterns; ++p) if (tailing[(size_t) p]) addPat (p); addPat (focus); }
 
-    for (int pi = 0; pi < 3; ++pi)
+    for (int pi = 0; pi < nPats; ++pi)
     {
-        const int p = pats[pi];
-        if (p < 0) continue;
+        const int p = pats[(size_t) pi];
         auto& pattern = proj.patterns[(size_t) p];
         bool anySolo = false;
         for (auto& s : pattern.slots) anySolo |= s.mixer.solo;
@@ -726,6 +739,7 @@ void Engine::renderSub (float* L, float* R, int start, int len)
         {
             auto* d = devices[(size_t) p][(size_t) t].get();
             if (d == nullptr) continue;
+            d->outerArp = ! plugin && pattern.slots[(size_t) t].play.arpOn;   // before a sleeping device wakes on a key
             if (d->isSilent()) continue;   // sleeping: keeps state, costs no CPU
             std::fill (slotL.begin() + start, slotL.begin() + start + len, 0.0f);
             std::fill (slotR.begin() + start, slotR.begin() + start + len, 0.0f);
@@ -770,11 +784,23 @@ void Engine::renderSub (float* L, float* R, int start, int len)
 
 void Engine::process (float* L, float* R, int n, const juce::MidiBuffer* midi)
 {
+    if (n <= maxBlock) { processBlock (L, R, n, midi); return; }
+    // a block longer than prepared for (offline bounces, large device buffers): in maxBlock pieces, MIDI with them
+    for (int pos = 0; pos < n; pos += maxBlock)
+    {
+        const int len = std::min (maxBlock, n - pos);
+        chunkMidi.clear();
+        if (midi != nullptr) chunkMidi.addEvents (*midi, pos, len, -pos);
+        processBlock (L + pos, R + pos, len, &chunkMidi);
+    }
+}
+
+void Engine::processBlock (float* L, float* R, int n, const juce::MidiBuffer* midi)
+{
     std::fill (L, L + n, 0.0f);
     std::fill (R, R + n, 0.0f);
     const auto t0 = juce::Time::getHighResolutionTicks();
     const juce::ScopedLock sl (audioLock);
-    if (n > maxBlock) { n = maxBlock; }
     const bool plugin = engineMode == Mode::Plugin;
 
     // transport commands
@@ -794,7 +820,8 @@ void Engine::process (float* L, float* R, int n, const juce::MidiBuffer* midi)
     if (const int s = cmdSeek.exchange (-1); s >= 0 && ! plugin)
     {
         if (seq.isPlaying()) stopAllDevices (false);
-        seq.seek (std::clamp (s, 0, std::max (0, proj.patternSteps (seq.activePattern) - 1)));
+        const int to = std::clamp (s, 0, std::max (0, proj.patternSteps (seq.activePattern) - 1));
+        seq.seek (to, to * proj.stepQuarters (seq.activePattern));
         curStep = seq.currentStep();
     stepPhaseNow = (float) seq.currentStepPhase();
     }
@@ -855,8 +882,9 @@ void Engine::process (float* L, float* R, int n, const juce::MidiBuffer* midi)
         {
             const int from = seq.lastSwitchedFrom;
             for (auto& d : devices[(size_t) from]) if (d) { d->allNotesOff(); d->clearLocks(); }
-            tailPattern = from;
-            tailSamples = 0;
+            tailing[(size_t) from] = true;
+            tailSamples[(size_t) from] = 0;
+            tailing[(size_t) seq.activePattern] = false;   // playing again: no longer a tail
             if (focusPattern.load() == from) focusPattern = seq.activePattern;
         }
     }
@@ -923,15 +951,16 @@ void Engine::process (float* L, float* R, int n, const juce::MidiBuffer* midi)
     renderSub (L, R, pos, n - pos);
 
     // tail handoff: outgoing devices ring until silent or 4 s, then sleep
-    if (tailPattern >= 0)
+    for (int tp = 0; tp < kPatterns; ++tp)
     {
-        tailSamples += n;
+        if (! tailing[(size_t) tp]) continue;
+        tailSamples[(size_t) tp] += n;
         bool silent = true;
-        for (auto& d : devices[(size_t) tailPattern]) if (d && ! d->isSilent()) silent = false;
-        if (silent || tailSamples > (int64_t) (4.0 * sampleRate))
+        for (auto& d : devices[(size_t) tp]) if (d && ! d->isSilent()) silent = false;
+        if (silent || tailSamples[(size_t) tp] > (int64_t) (4.0 * sampleRate))
         {
-            for (auto& d : devices[(size_t) tailPattern]) if (d) { NoteEvent e; e.type = NoteEvent::Panic; d->handleEvent (e); }
-            tailPattern = -1;
+            for (auto& d : devices[(size_t) tp]) if (d) { NoteEvent e; e.type = NoteEvent::Panic; d->handleEvent (e); }
+            tailing[(size_t) tp] = false;
         }
     }
 

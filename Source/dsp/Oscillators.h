@@ -113,7 +113,13 @@ struct SineTable
 struct SineOp
 {
     float phase = 0.0f, inc = 0.0f, prev1 = 0.0f, prev2 = 0.0f;
-    void setFreq (float hz, float sr) { inc = clamp (hz / sr, 0.0f, 0.49f); }
+    float audible = 1.0f, audibleTarget = 1.0f;   // an operator above Nyquist fades out (it would alias to a wrong pitch)
+    void setFreq (float hz, float sr)
+    {
+        const float r = hz / sr;
+        audibleTarget = r < 0.45f ? 1.0f : 0.0f;
+        inc = clamp (r, 0.0f, 0.49f);
+    }
 
     /** wave: 0 sine, 1 half-sine, 2 square-ish, 3 saw-ish. `pm` is phase modulation in cycles. */
     float process (float pm, int wave)
@@ -129,6 +135,8 @@ struct SineOp
             default: break;
         }
         phase += inc; if (phase >= 1.0f) phase -= 1.0f;
+        audible += (audibleTarget - audible) * 0.01f;
+        s *= audible;
         prev2 = prev1; prev1 = s;
         return s;
     }

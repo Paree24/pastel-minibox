@@ -1263,26 +1263,32 @@ void VisualView::sliceDropped (const juce::File& f)
 {
     auto* ds = dynamic_cast<DrumSamplerDevice*> (&dev);
     if (ds == nullptr) return;
-    const auto starts = ds->sliceLoop (refForFile (f));
-    if (starts.empty() || pattern < 0 || track < 0) return;
-    // fill the lanes so the loop plays back at the project tempo
-    auto data = ds->pad[0].get();
-    if (! data) return;
-    const double seconds = data->length() / data->sampleRate;
-    auto& proj = ctx.engine.project();
-    const double stepSecs = proj.stepQuarters (pattern) * 60.0 / proj.bpm;
-    const int loopSteps = std::max (1, (int) std::round (seconds / stepSecs));
-    const Engine::ScopedEdit edit (ctx.engine);
-    auto& tr = proj.patterns[(size_t) pattern].slots[(size_t) track].track;
-    for (auto& lane : tr.lanes) for (auto& d : lane) d.clear();
-    const int total = proj.patternSteps (pattern);
-    for (int k = 0; k < (int) starts.size() && k < 8; ++k)
-        for (int rep = 0; rep * loopSteps < total; ++rep)
-        {
-            const int s = rep * loopSteps + (int) std::round (starts[(size_t) k] * loopSteps);
-            if (s < total) { auto& d = tr.lanes[(size_t) k][(size_t) s]; d.on = true; d.velocity = 110; }
-        }
-    ctx.markDirty();
+    // the loop decodes on the loader thread; the lanes are filled when the slices are ready
+    juce::Component::SafePointer<VisualView> safe (this);
+    ds->sliceLoop (refForFile (f), false, [safe, ds] (std::vector<double> starts)
+    {
+        if (safe == nullptr || starts.empty() || safe->pattern < 0 || safe->track < 0) return;
+        auto& ctx = safe->ctx;
+        const int pattern = safe->pattern, track = safe->track;
+        // fill the lanes so the loop plays back at the project tempo
+        auto data = ds->pad[0].get();
+        if (! data) return;
+        const double seconds = data->length() / data->sampleRate;
+        auto& proj = ctx.engine.project();
+        const double stepSecs = proj.stepQuarters (pattern) * 60.0 / proj.bpm;
+        const int loopSteps = std::max (1, (int) std::round (seconds / stepSecs));
+        const Engine::ScopedEdit edit (ctx.engine);
+        auto& tr = proj.patterns[(size_t) pattern].slots[(size_t) track].track;
+        for (auto& lane : tr.lanes) for (auto& d : lane) d.clear();
+        const int total = proj.patternSteps (pattern);
+        for (int k = 0; k < (int) starts.size() && k < 8; ++k)
+            for (int rep = 0; rep * loopSteps < total; ++rep)
+            {
+                const int s = rep * loopSteps + (int) std::round (starts[(size_t) k] * loopSteps);
+                if (s < total) { auto& d = tr.lanes[(size_t) k][(size_t) s]; d.on = true; d.velocity = 110; }
+            }
+        ctx.markDirty();
+    });
 }
 
 void VisualView::browseFactory()

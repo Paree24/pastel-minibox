@@ -63,8 +63,6 @@ private:
         dsp::drum::Ping808 ping;
         dsp::drum::Cowbell bell;
         dsp::drum::Metal808 metal;
-        dsp::drum::NoiseHat nhat;
-        dsp::drum::FmMetal fm;
         dsp::drum::Layered lay;
         dsp::drum::BoxKick bkick;
         dsp::drum::BoxSnare bsnare;
@@ -87,7 +85,8 @@ private:
     int pComp = 0, pKitDrive = 0, pWidth = 0, pKitLevel = 0, pRevMix = 0, pRevSize = 0;
     dsp::Waveguide resonator;
     dsp::GlueComp comp;
-    dsp::Drive kitDrive;
+    dsp::StereoDrive kitDrive;
+    bool resWasOn = false;     // the resonator stops while off; it is cleared when it comes back
     std::vector<float> bufL, bufR, sendL, sendR;
     DeviceReverb verb;
     dsp::Smoother levelSm;

@@ -99,19 +99,27 @@ struct Board
     Overdrive od; Distortion ds; Fuzz fz;
     analog::Oversampler2x os;
     void prepare (float sr) { od.prepare (2.0f * sr); ds.prepare (2.0f * sr); fz.prepare (2.0f * sr); }
-    void reset() { od.reset(); ds.reset(); fz.reset(); os.reset(); }
+    /** The 2× path's delay at 1× (up and down half-bands, 7.5 samples each): the dry signal waits as long. */
+    static constexpr int kLatency = analog::Oversampler2x::C;
+    std::array<float, kLatency + 1> dry {};
+    int dp = 0;
+    float delayedDry = 0.0f;   // the input kLatency samples ago (aligned with the last output)
+    void reset() { od.reset(); ds.reset(); fz.reset(); os.reset(); dry.fill (0.0f); delayedDry = 0.0f; }
+    /** Always runs (a constant latency: switching the board in and out would jump by kLatency samples). */
     float process (float x, int type, float amount, float tone, float mix)
     {
-        if (amount <= 0.0005f || mix <= 0.0005f) return x;
+        dry[(size_t) dp] = x;
+        dp = (dp + 1) % (kLatency + 1);
+        delayedDry = dry[(size_t) dp];
         auto tick = [&] (float v)
         {
             switch (type) { case 1: return ds.process (v, amount, tone); case 2: return fz.process (v, amount, tone); default: return od.process (v, amount, tone); }
         };
         float a, b;
         os.upsample (x, a, b);
-        a = tick (a); b = tick (b);
+        if (amount > 0.0005f) { a = tick (a); b = tick (b); }
         const float y = os.downsample (a, b);
-        return x + (y - x) * mix;
+        return delayedDry + (y - delayedDry) * mix;   // dry and wet in step: no comb filter at mixes between
     }
 };
 } // namespace mb::dsp::pedal

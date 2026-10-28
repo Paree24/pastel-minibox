@@ -3,5 +3,6 @@ build/
 .cache/
 .claude/
 compile_commands.json
+__pycache__/
 # design mockups live outside the repository
 mockups/

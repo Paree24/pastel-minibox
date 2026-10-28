@@ -58,7 +58,7 @@ private:
         dsp::Adsr env;
         float pegValue = 0.0f;
         int pegStage = 0;
-        dsp::SvfTpt filter;
+        dsp::SvfTpt filter, filterR;   // one per channel: a stereo sample stays stereo through the filter
         dsp::Resampler vintage;
     };
     void noteOn (int note, float vel);
@@ -69,10 +69,10 @@ private:
     std::array<juce::String, kZones> refs;
     std::shared_ptr<int> lifetime = std::make_shared<int> (0);   // async loads check it before touching the device
     dsp::Lfo lfo;
-    dsp::Drive driveFx;
+    dsp::StereoDrive driveFx;
     HeldStack held;
     uint32_t clock = 0;
-    std::vector<float> bufL, bufR;
+    std::vector<float> bufL, bufR, lfoBuf;
     DeviceReverb verb;
     dsp::Smoother levelSm;
 };

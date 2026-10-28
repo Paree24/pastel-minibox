@@ -51,6 +51,7 @@ private:
         dsp::SubOsc subOsc;                           // VA engine sub
         dsp::Noise noiseGen;
         dsp::OnePole noiseLp;
+        dsp::DcBlock ringDc;                          // Ring: the product's DC (two saws multiplied)
         dsp::analog::Hpf4 hp;
         dsp::analog::OtaCascade cascade;
         dsp::analog::Peak12 peak;
@@ -59,6 +60,7 @@ private:
         dsp::Adsr fenv, aenv;
         float pitch = 60.0f, target = 60.0f, vel = 0.8f, stack = 0.0f, pan = 0.0f;
         float fadeIn = 1.0f, velGain = 0.0f;   // glides: a stolen voice at a new velocity never steps
+        float gateAmp = 0.0f;                  // Amp: Gate: opens and closes with the key in 1.5 ms (no click)
         dsp::Rng rng;
     };
     void voiceOn (int note, float vel, int sourceKey);
@@ -73,7 +75,9 @@ private:
     dsp::analog::Peak12 sharedFilter;
     dsp::analog::Oversampler2x sharedOs;
     dsp::Adsr sharedEnv;
-    dsp::Drive drive;
+    dsp::StereoDrive drive;
+    int arpModeNow() const { return outerArp ? 0 : (int) get (arpMode); }   // Off while the groovebox's arp plays this track
+    bool delayWasOn = false;   // the delay stops while off; it is cleared when it comes back
     dsp::analog::BbdChorus60 chorus;
     dsp::TapeDelay delay;
     DeviceReverb verb;

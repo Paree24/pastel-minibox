@@ -95,13 +95,13 @@ void AcidDevice::reset()
     amp = ampTarget = meg = accVca = 0.0;
     filter.reset(); couplingHp.reset(); outHp.reset(); dec1.reset(); dec2.reset();
     sweepCircuit.cap = 0.0;
-    drive.reset(); delay.reset(); verb.reset();
+    drive.reset(); vcaRing.fill (0.0f); delay.reset(); verb.reset();
 }
 
 void AcidDevice::trigger (int note, bool accent, float velocity_)
 {
     accentNow = accent;
-    accentGain = accent ? get (accAmt) : 0.0;
+    accentGain = accent ? pv (accAmt) : 0.0;
     vel = velocity_;
     oscFreq = dsp::midiToHz ((float) note);
     slewedFreq = oscFreq;
@@ -116,7 +116,7 @@ void AcidDevice::trigger (int note, bool accent, float velocity_)
 void AcidDevice::slideTo (int note, bool accent)
 {
     accentNow = accent;
-    accentGain = accent ? get (accAmt) : 0.0;
+    accentGain = accent ? pv (accAmt) : 0.0;
     oscFreq = dsp::midiToHz ((float) note);
     targetSemis = (double) note;
     currentNote = note;
@@ -156,7 +156,23 @@ void AcidDevice::handleEvent (const NoteEvent& e)
             if (e.note >= kKeyswitchLow && e.note <= kKeyswitchHigh) { keyswitch (e.note, false); break; }
             markNote (e.note, false);
             held.remove (e.note);
-            if (held.count > 0) { if (heldSlides || ((int) get (artic) & 2) != 0) slideTo (held.top(), accentNow); }
+            if (held.count > 0)
+            {
+                // last-note priority: releasing the sounding key returns to the newest key still held (slid under
+                // Slide, otherwise straight to its pitch with the gate still open: no new attack)
+                if (e.note == currentNote)
+                {
+                    const int back = held.top();
+                    if (heldSlides || ((int) get (artic) & 2) != 0) slideTo (back, accentNow);
+                    else
+                    {
+                        oscFreq = dsp::midiToHz ((float) back);
+                        slewedFreq = oscFreq;
+                        pitchSemis = targetSemis = (double) back;
+                        currentNote = back;
+                    }
+                }
+            }
             else { noteOn = false; heldSlides = false; }
             break;
         case NoteEvent::AllNotesOff:
@@ -220,6 +236,9 @@ void AcidDevice::render (float* outL, float* outR, int n)
     static constexpr float kRestore[3] = { 0.35f, 0.6f, 0.9f };   // overdrive, distortion, fuzz
     const float restoreAmt = kRestore[std::clamp (dType, 0, 2)] * std::min (1.0f, dAmt * 1.6f);
     const float dlMix = pv (delayMix), dlFb = pv (delayFb), duck = pv (delayDuck);
+    const bool delayOn = dlMix > 0.001f;
+    if (delayOn && ! delayWasOn) delay.reset();   // back on: from silence, not the echoes frozen when it stopped
+    delayWasOn = delayOn;
     delay.setTone (pv (delayTone));
     const float dlSecs = pv (delaySync) < 0.5f ? (float) (divisionBeats (pv (delayDiv)) * 60.0 / bpm) : pv (delayFree);
     static constexpr double stackSemis[3][3] = { { 0, 0, 0 }, { 0, 7, 12 }, { 0, 12, -12 } };
@@ -295,15 +314,18 @@ void AcidDevice::render (float* outL, float* outR, int n)
         s = outHp.hp ((float) s);
         velGain += (velTarget - velGain) * velGlide;
         float out = (float) (s * ampOut * velGain);
-        if (dAmt > 0.0005f && dMix > 0.0005f)
         {
             // a pedal after the VCA compresses: the fuzz holds every note at full level until it dies. The voice
             // knows its own VCA envelope, so it puts that shape back (most for the fuzz, a little for the
-            // overdrive) and the line keeps its decay and accents.
-            const float vca = (float) (ampOut * velGain);
+            // overdrive) and the line keeps its decay and accents. The board always runs (a constant latency);
+            // the dry signal and the envelope are delayed to match it, so a part mix doesn't comb-filter.
+            vcaRing[(size_t) vcaPos] = (float) (ampOut * velGain);
+            vcaPos = (vcaPos + 1) % (int) vcaRing.size();
+            const float vca = vcaRing[(size_t) vcaPos];
             const float wet = drive.process (out, dType, dAmt, dTone, 1.0f);
             const float restore = std::pow (juce::jlimit (1.0e-4f, 1.5f, vca), restoreAmt);
-            out = out + (wet * restore - out) * dMix;
+            const float blend = dMix * std::min (1.0f, dAmt / 0.02f);   // fades in from Drive 0: no step there
+            out = drive.delayedDry + (wet * restore - drive.delayedDry) * blend;
         }
         const float width = stacked ? 0.25f * sSpread : 0.0f;
         bufL[(size_t) i] = out * (1.0f + width * 0.3f);
@@ -312,7 +334,7 @@ void AcidDevice::render (float* outL, float* outR, int n)
     for (int i = 0; i < n; ++i)
     {
         float l = bufL[(size_t) i], r = bufR[(size_t) i];
-        if (dlMix > 0.001f) delay.process (l, r, l, r, dlSecs, dlFb, dlMix, duck);
+        if (delayOn) delay.process (l, r, l, r, dlSecs, dlFb, dlMix, duck);
         const float g = levelSm.tick (lvl);
         bufL[(size_t) i] = l * g; bufR[(size_t) i] = r * g;
     }
