@@ -820,7 +820,13 @@ void Engine::renderSub (float* L, float* R, int start, int len)
             auto* d = devices[(size_t) p][(size_t) t].get();
             if (d == nullptr) continue;
             d->outerArp = ! plugin && pattern.slots[(size_t) t].play.arpOn;   // before a sleeping device wakes on a key
-            if (d->isSilent()) continue;   // sleeping: keeps state, costs no CPU
+            // sleeping: keeps state, costs no CPU; unless its track's effects still ring (a delay, a reverb)
+            const bool fx = masterInsert != nullptr && masterInsert->trackActive (p, t);
+            const bool asleep = d->isSilent();
+            auto& fxTail = trackFxTail[(size_t) p][(size_t) t];
+            if (! asleep) fxTail = fx ? (int) (4.0 * sampleRate) : 0;
+            else if (fx && fxTail > 0) fxTail -= len;
+            else continue;
             std::fill (slotL.begin() + start, slotL.begin() + start + len, 0.0f);
             std::fill (slotR.begin() + start, slotR.begin() + start + len, 0.0f);
             for (auto* v : { &auxAL, &auxAR, &auxBL, &auxBR }) std::fill (v->begin() + start, v->begin() + start + len, 0.0f);
@@ -828,7 +834,8 @@ void Engine::renderSub (float* L, float* R, int start, int len)
             d->setTransport (ti);
             // the plugin has no rack strip sends: its host Reverb Return scales the instrument's own Reverb card
             d->reverbScale = plugin ? proj.master.reverbReturn / 0.8f : 1.0f;
-            d->render (slotL.data() + start, slotR.data() + start, len);
+            if (! asleep) d->render (slotL.data() + start, slotR.data() + start, len);
+            if (fx) masterInsert->processTrack (p, t, slotL.data() + start, slotR.data() + start, len, ti.bpm, ti.beatPos, ti.playing);
             const auto& m = pattern.slots[(size_t) t].mixer;
             const bool audible = ! m.mute && (! anySolo || m.solo);
             const float g = audible ? m.level * d->expressionGain : 0.0f;

@@ -304,6 +304,43 @@ void playFromJson (PlaySettings& ps, const juce::var& v)
     ps.arpGate = num (v, "arpGate", 90.0, 10.0f, 100.0f);
 }
 
+/** Effect slots (track inserts, master chain, performance pads): effect name, knob positions, mode, mix, bypass. */
+template <size_t N>
+juce::var fxSlotsToJson (const std::array<FxSlot, N>& arr)
+{
+    juce::Array<juce::var> out;
+    for (const auto& fx : arr)
+    {
+        auto* so = new juce::DynamicObject();
+        so->setProperty ("effect", fx.effect);
+        juce::Array<juce::var> norm;
+        for (float v : fx.norm) norm.add (v);
+        so->setProperty ("norm", norm);
+        so->setProperty ("mode", fx.mode); so->setProperty ("mix", fx.mix); so->setProperty ("bypass", fx.bypass);
+        out.add (juce::var (so));
+    }
+    return out;
+}
+
+template <size_t N>
+void fxSlotsFromJson (std::array<FxSlot, N>& arr, const juce::var& v)
+{
+    auto* a = v.getArray();
+    for (size_t i = 0; i < arr.size(); ++i)
+    {
+        auto& fx = arr[i];
+        fx = FxSlot();
+        if (a == nullptr || (int) i >= a->size()) continue;
+        const auto& so = (*a)[(int) i];
+        fx.effect = so.getProperty ("effect", "").toString();
+        if (auto* norm = so.getProperty ("norm", {}).getArray())
+            for (int k = 0; k < std::min (FxSlot::kParams, norm->size()); ++k) fx.norm[(size_t) k] = std::clamp ((float) (*norm)[k], 0.0f, 1.0f);
+        fx.mode = (int) so.getProperty ("mode", 0);
+        fx.mix = std::clamp ((float) so.getProperty ("mix", 1.0f), 0.0f, 1.0f);
+        fx.bypass = (bool) so.getProperty ("bypass", false);
+    }
+}
+
 juce::var projectToJson (const Project& p)
 {
     auto* o = new juce::DynamicObject();
@@ -366,6 +403,7 @@ juce::var projectToJson (const Project& p)
             auto* so = new juce::DynamicObject();
             so->setProperty ("mixer", mixerToJson (s.mixer));
             so->setProperty ("play", playToJson (s.play));
+            so->setProperty ("fx", fxSlotsToJson (s.fx));
             slots.add (juce::var (so));
         }
         po->setProperty ("slots", slots);
@@ -445,6 +483,7 @@ void projectFromJson (Project& p, const juce::var& v)
                 {
                     mixerFromJson (pat.slots[(size_t) t].mixer, (*slots)[t].getProperty ("mixer", {}));
                     playFromJson (pat.slots[(size_t) t].play, (*slots)[t].getProperty ("play", {}));
+                    fxSlotsFromJson (pat.slots[(size_t) t].fx, (*slots)[t].getProperty ("fx", {}));
                 }
         }
 }

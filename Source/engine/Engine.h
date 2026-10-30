@@ -196,6 +196,7 @@ private:
     // an outgoing pattern rings at most this long (faded over the last 50 ms); shorter in Eco
     static double tailSecs() { return eco() ? 1.5 : 4.0; }
     std::array<bool, kPatterns> tailing {};
+    std::array<std::array<int, kTracks>, kPatterns> trackFxTail {};   // samples a sleeping device's effects still ring
     void clearTails() { tailing.fill (false); }
     bool stopPressedOnce = false;
 

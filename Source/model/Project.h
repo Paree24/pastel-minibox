@@ -232,11 +232,25 @@ struct PlaySettings
     float arpSwing = 0.0f, arpGate = 90.0f;   // %
 };
 
+/** An effect slot (a track insert, a master or performance effect) of the groovebox (efx/MasterFx, docs/master-fx.md): one of Pastel EFX Grid's
+    effects by name ("" = empty), its controls (0–1 knob positions, in the effect's own order), mode, mix, bypass. */
+struct FxSlot
+{
+    static constexpr int kParams = 16;
+    juce::String effect;
+    std::array<float, kParams> norm {};
+    int mode = 0;
+    float mix = 1.0f;
+    bool bypass = false;
+};
+constexpr int kTrackFx = 3;   // effect slots on each track's device, before its level, pan and sends
+
 struct SlotModel
 {
     Mixer mixer;
     Track track;
     PlaySettings play;
+    std::array<FxSlot, kTrackFx> fx;   // in series after the device
 };
 
 struct Pattern
@@ -257,17 +271,6 @@ struct MasterSettings
     bool lookAhead = true;   // 1.5 ms: the limiter ramps down before a peak instead of clamping it
 };
 
-/** A master or performance effect of the groovebox (efx/MasterFx, docs/master-fx.md): one of Pastel EFX Grid's
-    effects by name ("" = empty), its controls (0–1 knob positions, in the effect's own order), mode, mix, bypass. */
-struct FxSlot
-{
-    static constexpr int kParams = 16;
-    juce::String effect;
-    std::array<float, kParams> norm {};
-    int mode = 0;
-    float mix = 1.0f;
-    bool bypass = false;
-};
 constexpr int kMasterFxSlots = 8, kPerformFx = 8;
 
 struct Project

@@ -17,6 +17,11 @@ public:
     ~MasterFx() override;
     void prepare (double sampleRate, int maxBlock) override;
     void process (float* L, float* R, int n, double bpm, double ppq, bool playing) override;
+    bool trackActive (int pattern, int track) const override;
+    void processTrack (int pattern, int track, float* L, float* R, int n, double bpm, double ppq, bool playing) override;
+
+    /** A track's effect slot (0–2): the effect at its defaults ("" empties it), built here, swapped in under the lock. */
+    void setTrackEffect (int pattern, int track, int slot, const juce::String& effect);
 
     /** Builds or drops instances to match the project's slots; gives empty pads their effects. */
     void sync();
@@ -48,6 +53,7 @@ private:
     Engine& engine;
     std::array<Inst, kMasterFxSlots> slots;
     std::array<Inst, kPerformFx> pads;
+    std::array<std::array<std::array<Inst, kTrackFx>, kTracks>, kPatterns> tracks;   // mostly empty
     std::array<std::atomic<bool>, kPerformFx> held {};
     std::array<bool, kPerformFx> wasHeld {};
     int syncedGen = -1;   // a newly loaded project waits (dry) until sync() built its effects

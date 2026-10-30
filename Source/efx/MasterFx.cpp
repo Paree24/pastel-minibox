@@ -79,6 +79,41 @@ void MasterFx::prepare (double sr, int block)
     maxBlock = block;
     for (auto* arr : { &slots, &pads })
         for (auto& in : *arr) if (in.fx) in.fx->prepare (sr, block);
+    for (auto& pt : tracks) for (auto& tr : pt) for (auto& in : tr) if (in.fx) in.fx->prepare (sr, block);
+}
+
+void MasterFx::setTrackEffect (int pattern, int track, int slot, const juce::String& effect)
+{
+    if (pattern < 0 || pattern >= kPatterns || track < 0 || track >= kTracks || slot < 0 || slot >= kTrackFx) return;
+    FxSlot fx;
+    setEffect (fx, effect);
+    auto fresh = build (fx.effect);
+    auto& in = tracks[(size_t) pattern][(size_t) track][(size_t) slot];
+    {
+        const Engine::ScopedEdit edit (engine);
+        engine.project().patterns[(size_t) pattern].slots[(size_t) track].fx[(size_t) slot] = fx;
+        std::swap (in.fx, fresh);
+        in.name = fx.effect;
+    }
+    // the replaced instance is freed here, outside the lock
+}
+
+bool MasterFx::trackActive (int pattern, int track) const
+{
+    const auto& fx = engine.project().patterns[(size_t) pattern].slots[(size_t) track].fx;
+    const auto& in = tracks[(size_t) pattern][(size_t) track];
+    for (int i = 0; i < kTrackFx; ++i)
+        if (in[(size_t) i].fx && ! fx[(size_t) i].bypass && in[(size_t) i].name == fx[(size_t) i].effect) return true;
+    return false;
+}
+
+void MasterFx::processTrack (int pattern, int track, float* L, float* R, int n, double bpm, double ppq, bool playing)
+{
+    const auto& fx = engine.project().patterns[(size_t) pattern].slots[(size_t) track].fx;
+    auto& in = tracks[(size_t) pattern][(size_t) track];
+    for (int i = 0; i < kTrackFx; ++i)
+        if (in[(size_t) i].name == fx[(size_t) i].effect)   // until sync() builds a changed slot, it stays dry
+            run (in[(size_t) i], fx[(size_t) i], L, R, n, bpm, ppq, playing, fx[(size_t) i].bypass);
 }
 
 std::unique_ptr<efx::GridEffect> MasterFx::build (const juce::String& effect) const
@@ -153,6 +188,10 @@ void MasterFx::sync()
         if (p.performFx[(size_t) i].effect.isEmpty()) defaultPad (p.performFx[(size_t) i], i);
     for (int i = 0; i < kMasterFxSlots; ++i) syncOne (slots[(size_t) i], p.masterFx[(size_t) i].effect);
     for (int i = 0; i < kPerformFx; ++i) syncOne (pads[(size_t) i], p.performFx[(size_t) i].effect);
+    for (int pt = 0; pt < kPatterns; ++pt)
+        for (int t = 0; t < kTracks; ++t)
+            for (int i = 0; i < kTrackFx; ++i)
+                syncOne (tracks[(size_t) pt][(size_t) t][(size_t) i], p.patterns[(size_t) pt].slots[(size_t) t].fx[(size_t) i].effect);
     if (syncedGen != engine.projectGeneration())
     {
         const Engine::ScopedEdit edit (engine);

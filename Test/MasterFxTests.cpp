@@ -174,3 +174,32 @@ MB_TEST (master_fx_keys)
     MidiMap::currentFileOverride() = juce::File();
     old.deleteFile();
 }
+
+/** Track effects (3 slots per device, the phone's Sound → FX): they change that track's sound and nothing else,
+    survive a project save and load, and an empty or bypassed slot leaves the track as it was. */
+MB_TEST (track_fx_slots)
+{
+    FxRig rig;
+    std::vector<float> dry, wet, bypassed;
+    rig.rms (8, &dry);
+    rig.fx.setTrackEffect (0, 0, 1, "Bitcrusher");
+    auto& slot = rig.e.project().patterns[0].slots[0].fx[1];
+    ctx.check (slot.effect == "Bitcrusher", "slot 2 holds the effect at its defaults");
+    slot.mix = 1.0f;
+    ctx.check (rig.fx.trackActive (0, 0) && ! rig.fx.trackActive (0, 1), "only that track runs effects");
+    rig.rms (8, &wet);
+    double diff = 0.0;
+    for (size_t i = 0; i < std::min (dry.size(), wet.size()); ++i) diff += std::abs (dry[i] - wet[i]);
+    ctx.check (diff > 1.0, "the crushed chord differs from the dry one (" + juce::String (diff, 2) + ")");
+    slot.bypass = true;
+    ctx.check (! rig.fx.trackActive (0, 0), "bypassed: nothing to run");
+
+    // the slots travel with the project
+    const auto json = serializer::projectToJson (rig.e.project());
+    Project back;
+    serializer::projectFromJson (back, json);
+    ctx.check (back.patterns[0].slots[0].fx[1].effect == "Bitcrusher" && back.patterns[0].slots[0].fx[1].bypass
+               && back.patterns[0].slots[0].fx[0].effect.isEmpty(), "saved and loaded with the project");
+    rig.fx.setTrackEffect (0, 0, 1, "");
+    ctx.check (rig.e.project().patterns[0].slots[0].fx[1].effect.isEmpty() && ! rig.fx.trackActive (0, 0), "emptied");
+}
