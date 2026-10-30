@@ -254,9 +254,11 @@ namespace
     };
 }
 
+#if JUCE_MODULE_AVAILABLE_juce_graphics
 juce::Colour catAccent (int cat) { return juce::Colour (kPalette[juce::jlimit (0, (int) NumCats - 1, cat)].accent); }
 juce::Colour catDim    (int cat) { return juce::Colour (kPalette[juce::jlimit (0, (int) NumCats - 1, cat)].dim); }
 juce::Colour catInk    (int cat) { return juce::Colour (kPalette[juce::jlimit (0, (int) NumCats - 1, cat)].ink); }
+#endif
 const char*  catName   (int cat) { return kPalette[juce::jlimit (0, (int) NumCats - 1, cat)].name; }
 
 } // namespace efx

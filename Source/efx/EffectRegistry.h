@@ -1,6 +1,8 @@
 #pragma once
 #include <juce_core/juce_core.h>
-#include <juce_graphics/juce_graphics.h>
+#if JUCE_MODULE_AVAILABLE_juce_graphics   // headless builds (the Android core) leave out the category colours
+ #include <juce_graphics/juce_graphics.h>
+#endif
 
 // ============================================================
 // Effect registry: every effect in the grid, its category, visualiser kind,
@@ -120,9 +122,11 @@ bool paramVisible (const EffectDef& d, int k, int mode, const float* norm);
 double divisionBeats (const char* label);
 
 // category colours (dark tile fill + pastel accent + ink)
+#if JUCE_MODULE_AVAILABLE_juce_graphics
 juce::Colour catAccent (int cat);
 juce::Colour catDim (int cat);
 juce::Colour catInk (int cat);
+#endif
 const char* catName (int cat);
 
 } // namespace efx
