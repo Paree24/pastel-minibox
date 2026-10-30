@@ -1,5 +1,6 @@
 #pragma once
 #include "EditorSpecs.h"
+#include "Visuals.h"
 
 namespace mb::ui
 {

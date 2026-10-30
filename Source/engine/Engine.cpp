@@ -332,6 +332,57 @@ void Engine::injectNote (int track, int note, float velocity, bool on, int patte
     uiFifo.finishedWrite (1);
 }
 
+void Engine::setRoll (int track, int note, float velocity, double beats, bool on)
+{
+    if (! on)
+    {
+        for (auto& r : rolls) if (r.active.load() && r.track.load() == track && r.note.load() == note) r.active = false;
+        return;
+    }
+    for (auto& r : rolls)
+        if (! r.active.load())
+        {
+            r.pattern = focusPattern.load(); r.track = track; r.note = note; r.vel = velocity;
+            r.beats = std::clamp (beats, 1.0 / 32.0, 4.0);
+            r.started = false;   // the audio thread has finished with this slot: it is inactive
+            r.active.store (true, std::memory_order_release);
+            return;
+        }
+}
+
+void Engine::runRolls (int n, std::vector<SeqEvent>& out)
+{
+    const bool synced = seq.isPlaying() && seq.countInSamplesLeft <= 0;
+    const double b0 = synced ? seq.beatPosition() : beatClock;
+    const double perSample = std::max (20.0, proj.bpm) / (60.0 * sampleRate);
+    const double b1 = b0 + n * perSample;
+    for (auto& r : rolls)
+    {
+        if (! r.active.load (std::memory_order_acquire)) continue;
+        const double step = r.beats.load();
+        const int pat = r.pattern.load(), tr = r.track.load(), note = r.note.load();
+        const float vel = r.vel.load();
+        auto hit = [&] (int off)
+        {
+            inputKey (pat, tr, note, vel, true, off, out);
+            inputKey (pat, tr, note, vel, false, std::min (off + 1, n - 1), out);
+        };
+        if (! r.started)
+        {
+            r.started = true;
+            hit (0);   // the press itself sounds at once
+            r.nextBeat = (std::floor (b0 / step + 1.0e-9) + 1.0) * step;
+        }
+        if (r.nextBeat < b0 - step || r.nextBeat > b1 + 2.0 * step)   // the grid jumped (Play, a seek): realign
+            r.nextBeat = std::ceil (b0 / step - 1.0e-9) * step;
+        while (r.nextBeat < b1)
+        {
+            hit (std::clamp ((int) ((r.nextBeat - b0) / perSample), 0, n - 1));
+            r.nextBeat += step;
+        }
+    }
+}
+
 int Engine::stepForRecording() const { return curStep.load(); }
 
 void Engine::recordKnob (int pattern, int track, int param, float value)
@@ -952,6 +1003,7 @@ void Engine::processBlock (float* L, float* R, int n, const juce::MidiBuffer* mi
         take (s1, n1); take (s2, n2);
         uiFifo.finishedRead (n1 + n2);
     }
+    if (! plugin) runRolls (n, events);
     // the selected track changed: whatever the old one's input was sounding stops (arp, latched chords)
     if (! plugin && (focusTrack.load() != lastFocusTrack || focusPattern.load() != lastFocusPattern))
     {

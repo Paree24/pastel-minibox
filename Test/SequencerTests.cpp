@@ -915,3 +915,34 @@ MB_TEST (record_automation_does_not_duplicate)
     for (auto& c : tr.cc) if (c.lane == 1) { ++points; if (c.tick >= 3 * st && c.tick < 4 * st) at3 = c.value; }
     ctx.check (points > 0 && points <= 16 && std::abs (at3 - juce::roundToInt (35 / 40.0f * 127.0f) / 127.0f) < 1e-3f, "mod wheel: one pass's points, the latest at step 4 (" + juce::String (points) + ", " + juce::String (at3) + ")");
 }
+
+/** Note repeat (the phone's drum roll): the press sounds at once, then the note repeats on the beat grid; while
+    playing the hits land exactly on the sequencer's steps; releasing stops it. */
+MB_TEST (roll_repeats_on_the_grid)
+{
+    Rig rig (0, 8);   // a drum track: hits go straight to the device
+    rig.runTo (0.3);
+    rig.e.setRoll (0, 38, 0.9f, 0.25, true);   // 1/16 at 120 BPM = one step
+    rig.runTo (8.3);
+    rig.e.setRoll (0, 38, 0.0f, 0.25, false);
+    rig.runTo (12);
+    const auto& ons = rig.probe->ons;
+    ctx.check (ons.size() == 9, "stopped: the press plus a hit per step for 8 steps (" + juce::String ((int) ons.size()) + ")");
+    bool even = true;
+    for (size_t i = 2; i < ons.size(); ++i) even = even && std::abs ((double) (ons[i].first - ons[i - 1].first) - Rig::stepLen) <= 1.0;
+    ctx.check (even, "evenly spaced, a step apart");
+    ctx.check (ons.size() > 1 && ons[1].first - ons[0].first < Rig::stepLen, "the first repeat waits for the grid, not a whole step after the press");
+
+    rig.probe->ons.clear();
+    rig.e.play();
+    rig.runTo (14.5);
+    rig.e.setRoll (0, 36, 0.9f, 0.5, true);  // 1/8
+    rig.runTo (22.5);
+    rig.e.setRoll (0, 36, 0.0f, 0.5, false);
+    std::vector<int64_t> t;
+    for (auto& o : rig.probe->ons) if (o.second == 36) t.push_back (o.first);
+    ctx.check (t.size() >= 4, "playing: the roll repeats (" + juce::String ((int) t.size()) + " hits)");
+    bool spaced = true;
+    for (size_t i = 2; i < t.size(); ++i) spaced = spaced && std::abs ((double) (t[i] - t[i - 1]) - 2 * Rig::stepLen) <= 1.0;
+    ctx.check (spaced, "every other step (1/8)");
+}

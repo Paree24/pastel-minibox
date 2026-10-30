@@ -1,5 +1,6 @@
 #pragma once
-#include "Visuals.h"
+#include "VisualSpec.h"
+#include "devices/DeviceProcessor.h"
 
 namespace mb::ui
 {

@@ -1,21 +1,9 @@
 #pragma once
 #include "Widgets.h"
+#include "VisualSpec.h"
 
 namespace mb::ui
 {
-enum class VisualKind
-{
-    None, Filter, Hpf, Adsr, Decay, Rate4, MacroEnv, PitchEnv, Wave, Lfo, Algo, Ops, Sample, Slices, Pads, Lane,
-    Accent, Ring, Chorus, Delay, Slide, Drive, Voices, Arp, Bits, Reverb
-};
-
-/** A visual reads device parameters by id (resolved for the selected part / operator / zone). */
-struct VisualSpec
-{
-    VisualKind kind = VisualKind::None;
-    std::vector<juce::String> ids;
-    int variant = 0;
-};
 
 class VisualView : public juce::Component, public juce::FileDragAndDropTarget
 {

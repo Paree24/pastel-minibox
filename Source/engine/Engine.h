@@ -141,6 +141,11 @@ public:
     void toStart() { cmdToStart = 1; }
     /** Move the playhead to a step (the ruler; playing or stopped). */
     void seek (int step) { cmdSeek = step; }
+    /** Note repeat (a drum roll) while a pad is held: the note plays at once, then repeats every `beats` (0.25 = 1/16)
+        on the beat grid: the sequencer's while playing, a free-running one when stopped. The hits go through the
+        track's input like played notes (so they are recorded). Message thread; up to kRolls at once. */
+    void setRoll (int track, int note, float velocity, double beats, bool on);
+    static constexpr int kRolls = 8;
     /** The track that live input is playing right now (for the UI). */
     int inputTrack() const { return focusTrack.load(); }
 
@@ -206,6 +211,19 @@ private:
     std::atomic<float> progress { 0.0f };
     std::atomic<int> pendingQueue { -2 };
     int pendingBeats = 0, pendingUnit = 0;
+
+    // note repeat: the message thread fills a slot and sets `active`; the audio thread owns the timing
+    struct Roll
+    {
+        std::atomic<bool> active { false };
+        std::atomic<int> pattern { 0 }, track { 0 }, note { 0 };
+        std::atomic<float> vel { 1.0f };
+        std::atomic<double> beats { 0.25 };
+        bool started = false;      // audio thread
+        double nextBeat = 0.0;     // audio thread
+    };
+    std::array<Roll, kRolls> rolls;
+    void runRolls (int n, std::vector<SeqEvent>& out);
 
     // UI note FIFO
     struct UiNote { int pattern, track, note; float vel; bool on, audition; };
