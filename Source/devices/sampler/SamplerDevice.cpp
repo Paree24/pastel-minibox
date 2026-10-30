@@ -154,7 +154,7 @@ void SamplerDevice::noteOn (int note, float vel)
     {
         std::array<VoiceSlot, kVoices> slots;
         for (size_t i = 0; i < kVoices; ++i) slots[i] = voicesArr[i].slot;
-        v = &voicesArr[(size_t) allocateVoice (slots, note, (int) get (voices), clock)];
+        v = &voicesArr[(size_t) allocateVoice (slots, note, std::min ((int) get (voices), voiceCap (kVoices)), clock)];
     }
     const bool glideOn = get (glide) > 0.001f && v->env.active();
     held.push (note, vel);
@@ -311,7 +311,7 @@ void SamplerDevice::render (float* outL, float* outR, int n)
         const float g = levelSm.tick (lvl);
         bufL[(size_t) i] = l * g; bufR[(size_t) i] = rr * g;
     }
-    verb.process (bufL.data(), bufR.data(), bufL.data(), bufR.data(), n, pv (reverb) * reverbScale, pv (revSize), pv (revSize + 1), pv (revSize + 2));
+    reverbCard (verb, bufL.data(), bufR.data(), bufL.data(), bufR.data(), n, pv (reverb) * reverbScale, pv (revSize), pv (revSize + 1), pv (revSize + 2));
     for (int i = 0; i < n; ++i) { outL[i] += bufL[(size_t) i]; outR[i] += bufR[(size_t) i]; }
     trackSilence (bufL.data(), bufR.data(), n);
 }

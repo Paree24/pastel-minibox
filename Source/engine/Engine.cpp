@@ -839,7 +839,7 @@ void Engine::renderSub (float* L, float* R, int start, int len)
             // a pattern ringing out after a switch fades over its last 50 ms before
             // the 4 s limit panics it (it used to be cut hard)
             const bool tail = ! plugin && tailing[(size_t) p] && p != active;
-            const double tailEnd = kTailSecs * sampleRate, tailFade = 0.05 * sampleRate;
+            const double tailEnd = tailSecs() * sampleRate, tailFade = 0.05 * sampleRate;
             for (int i = 0; i < len; ++i)
             {
                 float tg = 1.0f;
@@ -1049,7 +1049,7 @@ void Engine::processBlock (float* L, float* R, int n, const juce::MidiBuffer* mi
         tailSamples[(size_t) tp] += n;
         bool silent = true;
         for (auto& d : devices[(size_t) tp]) if (d && ! d->isSilent()) silent = false;
-        if (silent || tailSamples[(size_t) tp] > (int64_t) (kTailSecs * sampleRate))
+        if (silent || tailSamples[(size_t) tp] > (int64_t) (tailSecs() * sampleRate))
         {
             for (auto& d : devices[(size_t) tp]) if (d) { NoteEvent e; e.type = NoteEvent::Panic; d->handleEvent (e); }
             tailing[(size_t) tp] = false;

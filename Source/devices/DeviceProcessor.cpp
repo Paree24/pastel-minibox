@@ -152,6 +152,8 @@ void DeviceProcessor::macro (int m, const juce::String& name, std::initializer_l
     defaultMacroMaps[(size_t) m] = mm;
 }
 
+std::atomic<int>& qualitySetting() { static std::atomic<int> q { (int) Quality::Full }; return q; }
+
 float DeviceProcessor::getMacro (int m) const
 {
     const auto& mm = macroMaps[(size_t) m];

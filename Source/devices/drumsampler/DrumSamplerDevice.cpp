@@ -327,7 +327,7 @@ void DrumSamplerDevice::render (float* outL, float* outR, int n)
         bufL[(size_t) i] *= g; bufR[(size_t) i] *= g;
         sendL[(size_t) i] *= g; sendR[(size_t) i] *= g;
     }
-    verb.process (sendL.data(), sendR.data(), bufL.data(), bufR.data(), n, pv (pRevMix) * 1.4f * reverbScale, pv (pRevSize), pv (pRevSize + 1), pv (pRevSize + 2));
+    reverbCard (verb, sendL.data(), sendR.data(), bufL.data(), bufR.data(), n, pv (pRevMix) * 1.4f * reverbScale, pv (pRevSize), pv (pRevSize + 1), pv (pRevSize + 2));
     for (int i = 0; i < n; ++i) { outL[i] += bufL[(size_t) i]; outR[i] += bufR[(size_t) i]; }
     trackSilence (bufL.data(), bufR.data(), n);
 }

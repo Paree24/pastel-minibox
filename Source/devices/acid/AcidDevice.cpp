@@ -338,7 +338,7 @@ void AcidDevice::render (float* outL, float* outR, int n)
         const float g = levelSm.tick (lvl);
         bufL[(size_t) i] = l * g; bufR[(size_t) i] = r * g;
     }
-    verb.process (bufL.data(), bufR.data(), bufL.data(), bufR.data(), n, pv (reverb) * reverbScale, pv (revSize), pv (revSize + 1), pv (revSize + 2));
+    reverbCard (verb, bufL.data(), bufR.data(), bufL.data(), bufR.data(), n, pv (reverb) * reverbScale, pv (revSize), pv (revSize + 1), pv (revSize + 2));
     for (int i = 0; i < n; ++i) { outL[i] += softLimit (bufL[(size_t) i]); outR[i] += softLimit (bufR[(size_t) i]); }   // the output stage rounds overs
     trackSilence (bufL.data(), bufR.data(), n);
 }

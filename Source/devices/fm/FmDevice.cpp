@@ -113,7 +113,7 @@ void FmDevice::noteOn (int note, float vel)
     {
         std::array<VoiceSlot, kVoices> slots;
         for (size_t i = 0; i < kVoices; ++i) slots[i] = voices[i].slot;
-        v = &voices[(size_t) allocateVoice (slots, note, (int) get (pVoices), clock)];
+        v = &voices[(size_t) allocateVoice (slots, note, std::min ((int) get (pVoices), voiceCap (kVoices)), clock)];
     }
     else
     {
@@ -288,7 +288,7 @@ void FmDevice::render (float* outL, float* outR, int n)
     for (int i = 0; i < n; ++i) { const float g = levelSm.tick (lvlT); bufL[(size_t) i] *= g; bufR[(size_t) i] *= g; }
     fx.process (bufL.data(), bufR.data(), n, 1 + (int) pv (pChorusMode), pv (pChorusMix), 0.0f, 0.5, 0.0f,
                 transport, 0.4f + 1.2f * pv (pChorusRate), 0.3f + 1.4f * pv (pChorusDepth));
-    verb.process (bufL.data(), bufR.data(), bufL.data(), bufR.data(), n, pv (pReverb) * reverbScale, pv (pRevSize), pv (pRevSize + 1), pv (pRevSize + 2));
+    reverbCard (verb, bufL.data(), bufR.data(), bufL.data(), bufR.data(), n, pv (pReverb) * reverbScale, pv (pRevSize), pv (pRevSize + 1), pv (pRevSize + 2));
     for (int i = 0; i < n; ++i) { outL[i] += softLimit (bufL[(size_t) i]); outR[i] += softLimit (bufR[(size_t) i]); }
     trackSilence (bufL.data(), bufR.data(), n);
 }

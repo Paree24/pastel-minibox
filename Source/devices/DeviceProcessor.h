@@ -95,6 +95,15 @@ struct TransportInfo
 };
 
 
+/** The processing tier, for low-end phones. Full is the instrument as designed. Eco halves the polyphony (VA 6 → 3,
+    FM and Sampler 8 → 4, Bassline 4 → 2), sends each device's Reverb card into the master reverb instead of running
+    its own plate, and lets a switched-away pattern ring for 1.5 s instead of 4 s. Set from the UI; read anywhere. */
+enum class Quality { Full = 0, Eco = 1 };
+std::atomic<int>& qualitySetting();
+inline bool eco() { return qualitySetting().load (std::memory_order_relaxed) == (int) Quality::Eco; }
+/** A device's polyphony under the current tier. */
+inline int voiceCap (int full) { return eco() ? std::max (1, (full + 1) / 2) : full; }
+
 class DeviceProcessor
 {
 public:
@@ -191,6 +200,18 @@ protected:
     float expressionSemis (int n);
     double vibPhase = 0.0;
     void sendTo (int bus, int i, float l, float r) { if (aux[bus * 2] != nullptr) { aux[bus * 2][i] += l; aux[bus * 2 + 1][i] += r; } }
+    /** The Reverb card: the device's own plate, or in Eco a send into the master reverb (bus 1) at the same amount. */
+    template <typename Verb>
+    void reverbCard (Verb& v, const float* inL, const float* inR, float* L, float* R, int n, float mix, float size, float tone, float pre)
+    {
+        if (eco() && aux[2] != nullptr)
+        {
+            v.reset();   // its tail stops; the master's plays the space
+            for (int i = 0; i < n; ++i) { aux[2][i] += inL[i] * mix; aux[3][i] += inR[i] * mix; }
+            return;
+        }
+        v.process (inL, inR, L, R, n, mix, size, tone, pre);
+    }
 };
 
 std::unique_ptr<DeviceProcessor> createDevice (DeviceType);

@@ -150,7 +150,7 @@ void PolyDevice::voiceOn (int note, float vel, int sourceKey)
         for (size_t i = 0; i < kVoices; ++i) slots[i] = voices[i].slot;
         for (int k = 0; k < cnt; ++k)
         {
-            const int idx = allocateVoice (slots, note + shape[(size_t) k], kVoices, clock);
+            const int idx = allocateVoice (slots, note + shape[(size_t) k], voiceCap (kVoices), clock);
             slots[(size_t) idx].active = true; slots[(size_t) idx].note = note + shape[(size_t) k]; slots[(size_t) idx].held = true;
             slots[(size_t) idx].age = UINT32_MAX;
             start (idx, note + shape[(size_t) k], 0.0f, ((float) k - 1.5f) * 0.25f);
@@ -160,7 +160,7 @@ void PolyDevice::voiceOn (int note, float vel, int sourceKey)
     {
         std::array<VoiceSlot, kVoices> slots;
         for (size_t i = 0; i < kVoices; ++i) slots[i] = voices[i].slot;
-        const int idx = allocateVoice (slots, note, kVoices, clock);
+        const int idx = allocateVoice (slots, note, voiceCap (kVoices), clock);
         start (idx, note, 0.0f, ((float) (idx % 3) - 1.0f) * 0.2f);
     }
     lastPitch = (float) note;
@@ -334,7 +334,7 @@ void PolyDevice::render (float* outL, float* outR, int n)
         const float g = levelSm.tick (lvl);
         bufL[(size_t) i] = ol * g; bufR[(size_t) i] = orr * g;
     }
-    verb.process (bufL.data(), bufR.data(), bufL.data(), bufR.data(), n, pv (reverb) * reverbScale, pv (revSize), pv (revSize + 1), pv (revSize + 2));
+    reverbCard (verb, bufL.data(), bufR.data(), bufL.data(), bufR.data(), n, pv (reverb) * reverbScale, pv (revSize), pv (revSize + 1), pv (revSize + 2));
     for (int i = 0; i < n; ++i) { outL[i] += softLimit (bufL[(size_t) i]); outR[i] += softLimit (bufR[(size_t) i]); }
     trackSilence (bufL.data(), bufR.data(), n);
 }

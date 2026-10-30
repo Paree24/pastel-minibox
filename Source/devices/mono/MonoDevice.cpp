@@ -148,7 +148,7 @@ void MonoDevice::noteOn (int note, float vel)
     // Poly: four voices
     std::array<VoiceSlot, 4> slots;
     for (size_t i = 0; i < 4; ++i) slots[i] = voices[i].slot;
-    const int idx = allocateVoice (slots, note, 4, clock);
+    const int idx = allocateVoice (slots, note, voiceCap (4), clock);
     auto& v = voices[(size_t) idx];
     v.detuneSemis = 0.0f; v.pan = ((float) idx - 1.5f) * 0.15f;
     startVoice (v, note, vel, false, gmode == 1);
@@ -283,7 +283,7 @@ void MonoDevice::render (float* outL, float* outR, int n)
     for (int i = 0; i < n; ++i) { const float g = levelSm.tick (lvlT); bufL[(size_t) i] *= g; bufR[(size_t) i] *= g; }
     fx.process (bufL.data(), bufR.data(), n, 1, pv (fxChorus), pv (fxDelay) * 0.6f, divisionBeats (pv (fxTime)),
                 pv (fxFeedback), transport);
-    verb.process (bufL.data(), bufR.data(), bufL.data(), bufR.data(), n, pv (fxReverb) * reverbScale, pv (revSize), pv (revSize + 1), pv (revSize + 2));
+    reverbCard (verb, bufL.data(), bufR.data(), bufL.data(), bufR.data(), n, pv (fxReverb) * reverbScale, pv (revSize), pv (revSize + 1), pv (revSize + 2));
     for (int i = 0; i < n; ++i) { outL[i] += softLimit (bufL[(size_t) i]); outR[i] += softLimit (bufR[(size_t) i]); }
     trackSilence (bufL.data(), bufR.data(), n);
 }
