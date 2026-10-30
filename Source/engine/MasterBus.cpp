@@ -27,19 +27,38 @@ void MasterBus::process (float* L, float* R, int n, const MasterSettings& m, dou
     delay.setTone (m.delayTone);
     reverb.set (m.reverbDecay, m.reverbDamp);
     float pl = 0.0f, pr = 0.0f;
+    // a return with nothing sent to it and its tail gone (below −120 dB) sleeps until something is sent again
+    float inA = 0.0f, inB = 0.0f;
     for (int i = 0; i < n; ++i)
     {
         // last line of defence: a NaN or inf from anywhere would live forever in the reverb, delay and limiter
-        float l = std::isfinite (L[i]) ? L[i] : 0.0f, r = std::isfinite (R[i]) ? R[i] : 0.0f;
-        float wl = 0.0f, wr = 0.0f;
         for (int k = 0; k < 4; ++k) if (! std::isfinite (sends[(size_t) k][(size_t) i])) sends[(size_t) k][(size_t) i] = 0.0f;
-        delay.process (sends[0][(size_t) i], sends[1][(size_t) i], wl, wr, delaySecs, m.delayFeedback, m.delayReturn);
-        l += wl; r += wr;
-        float rl = 0.0f, rr = 0.0f;
-        reverb.process (sends[2][(size_t) i], sends[3][(size_t) i], rl, rr, m.reverbReturn * 1.4f);
-        l += rl; r += rr;
+        inA = std::max ({ inA, std::abs (sends[0][(size_t) i]), std::abs (sends[1][(size_t) i]) });
+        inB = std::max ({ inB, std::abs (sends[2][(size_t) i]), std::abs (sends[3][(size_t) i]) });
+    }
+    const bool runDelay = inA > 0.0f || ! delayIdle, runReverb = inB > 0.0f || ! reverbIdle;
+    float outA = 0.0f, outB = 0.0f;
+    for (int i = 0; i < n; ++i)
+    {
+        float l = std::isfinite (L[i]) ? L[i] : 0.0f, r = std::isfinite (R[i]) ? R[i] : 0.0f;
+        if (runDelay)
+        {
+            float wl = 0.0f, wr = 0.0f;
+            delay.process (sends[0][(size_t) i], sends[1][(size_t) i], wl, wr, delaySecs, m.delayFeedback, m.delayReturn);
+            l += wl; r += wr;
+            outA = std::max ({ outA, std::abs (wl), std::abs (wr) });
+        }
+        if (runReverb)
+        {
+            float rl = 0.0f, rr = 0.0f;
+            reverb.process (sends[2][(size_t) i], sends[3][(size_t) i], rl, rr, m.reverbReturn * 1.4f);
+            l += rl; r += rr;
+            outB = std::max ({ outB, std::abs (rl), std::abs (rr) });
+        }
         L[i] = hpL.hp (l); R[i] = hpR.hp (r);
     }
+    delayIdle = inA == 0.0f && outA < 1.0e-6f;
+    reverbIdle = inB == 0.0f && outB < 1.0e-6f;
     // the standalone's effects sit between the returns and the bus's glue and limiter
     if (insert != nullptr) insert->process (L, R, n, bpm, ppq, playing);
     for (int i = 0; i < n; ++i)

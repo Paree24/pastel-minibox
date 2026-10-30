@@ -22,6 +22,7 @@ public:
     void swapLimiter (dsp::Limiter& other) { std::swap (limiter, other); }   // caller holds the audio lock
 
     std::atomic<float> peakL { 0.0f }, peakR { 0.0f }, glueReduction { 0.0f };
+    bool delayIdle = false, reverbIdle = false;   // audio thread: a silent return skips its processing
 
 private:
     std::array<std::vector<float>, 4> sends;
