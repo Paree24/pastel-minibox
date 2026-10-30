@@ -50,7 +50,7 @@ void Sequencer::generate (Project& p, DeviceLookup& devs, int n, std::vector<Seq
             if (pos + toBeat >= to) { clickPhase += to - pos; break; }
             pos += toBeat;
             SeqEvent e; e.kind = SeqEvent::Click; e.offset = (int) pos; e.value = (clickBeat % std::max (1, p.beats)) == 0 ? 1.0f : 0.0f;
-            out.push_back (e);
+            pushEvent (out, e);
             ++clickBeat;
             clickPhase = 0.0;
         }
@@ -96,7 +96,7 @@ void Sequencer::generate (Project& p, DeviceLookup& devs, int n, std::vector<Seq
         {
             auto e = pending[i].e;
             e.offset = (int) std::clamp<int64_t> (pending[i].time - now, 0, n - 1);
-            out.push_back (e);
+            pushEvent (out, e);
             pending[i] = pending.back();
             pending.pop_back();
         }

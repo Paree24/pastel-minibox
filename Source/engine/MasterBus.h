@@ -19,6 +19,7 @@ public:
     /** Mixes the returns into L/R and runs the master chain in place. */
     void process (float* L, float* R, int n, const MasterSettings& m, double bpm, MasterInsert* insert = nullptr, double ppq = 0.0, bool playing = false);
     int latency() const { return limiter.latency(); }
+    void swapLimiter (dsp::Limiter& other) { std::swap (limiter, other); }   // caller holds the audio lock
 
     std::atomic<float> peakL { 0.0f }, peakR { 0.0f }, glueReduction { 0.0f };
 

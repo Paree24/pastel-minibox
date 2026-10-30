@@ -24,6 +24,8 @@ public:
 
     Mode mode() const { return engineMode; }
     void prepare (double sampleRate, int maxBlock);
+    /** Message thread: master limiter look-ahead on/off. Only the limiter is rebuilt (outside the lock). */
+    void setLookAhead (bool on);
     double getSampleRate() const { return sampleRate; }
     int getMaxBlock() const { return maxBlock; }
 
@@ -149,6 +151,7 @@ private:
     std::vector<SeqEvent> events;
     // patterns switched away from, ringing out (until silent or 4 s): any number of them, each its own clock
     std::array<int64_t, kPatterns> tailSamples {};
+    static constexpr double kTailSecs = 4.0;   // an outgoing pattern rings at most this long (faded over the last 50 ms)
     std::array<bool, kPatterns> tailing {};
     void clearTails() { tailing.fill (false); }
     bool stopPressedOnce = false;

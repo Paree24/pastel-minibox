@@ -427,7 +427,7 @@ void MainComponent::showMenu()
         if (id == 26 || id == 27) pr.recordMode = id - 26;
         if (id == 51) pr.channelPerTrack = ! pr.channelPerTrack;
         if (id >= 30 && id <= 33) pr.clickLevel = 0.25f * (id - 29);
-        if (id == 50) { pr.master.lookAhead = ! pr.master.lookAhead; engine.prepare (engine.getSampleRate(), engine.getMaxBlock()); }
+        if (id == 50) engine.setLookAhead (! pr.master.lookAhead);   // rebuilds only the master limiter
         if (id == 60 || id == 61)
         {
             chooser = std::make_unique<juce::FileChooser> (id == 60 ? "Save rack preset" : "Load rack preset", juce::File(), "*.mbrack");

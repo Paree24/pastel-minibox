@@ -8,7 +8,7 @@ namespace mb
 /** Live note input for one track: scale lock (snap or white-keys degree mapping), chord mode (diatonic or
     per-degree chords, inversion, bass, strum) and the arpeggiator (synced to the sequencer clock, free-running
     on the project tempo when stopped, latch). Ported from the user's Midi Note Modifier
-    (~/ai_experiments/midifier/midi-note-modifier, PluginProcessor.cpp) and reshaped for the engine: events in,
+    (~/ai_experiments/midi-note-modifier, PluginProcessor.cpp) and reshaped for the engine: events in,
     events out, sustain is handled before this stage. Audio thread only; no allocation after prepare(). */
 class NoteInput
 {

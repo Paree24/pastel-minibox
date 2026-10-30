@@ -5,7 +5,7 @@
 #include <initializer_list>
 
 // Scale library, snapping and chord helpers: ported from the user's Midi Note Modifier
-// (~/ai_experiments/midifier/midi-note-modifier/Source/Scales.h) at the user's request, for the groovebox's
+// (~/ai_experiments/midi-note-modifier/Source/Scales.h) at the user's request, for the groovebox's
 // scale lock / chord mode / arp. The "Custom" placeholder entry is dropped (no user scales here).
 namespace mb::Scales
 {
@@ -197,8 +197,14 @@ namespace mb::Scales
         int pos = whitePosInOctave(w % 12);
         if (pos < 0) pos = 0;
         int len = (int) intervals.size();
-        int base = (w / 12) * 12 + root;
-        int n = base + intervals[(size_t) (pos % len)] + 12 * (pos / len);
+        // count white keys from middle C, so consecutive white keys are
+        // consecutive degrees for ANY scale length: a 5-note scale no longer
+        // repeats on A/B, an 8-note one no longer loses its 8th degree.
+        // (For 7-note scales this is the same octave-anchored map as before.)
+        int d = (w / 12 - 5) * 7 + pos;
+        int oct = d >= 0 ? d / len : -((-d + len - 1) / len);
+        int idx = d - oct * len;
+        int n = 60 + root + intervals[(size_t) idx] + 12 * oct;
         return n < 0 ? 0 : (n > 127 ? 127 : n);
     }
 

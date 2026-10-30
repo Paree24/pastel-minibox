@@ -1,0 +1,153 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            label: Linux
+          - os: macos-14
+            label: macOS
+          - os: windows-2022
+            label: Windows
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build git pkg-config \
+            ccache xvfb libasound2-dev libx11-dev libxcomposite-dev libxcursor-dev \
+            libxinerama-dev libxrandr-dev libfreetype6-dev libfontconfig1-dev \
+            libcurl4-openssl-dev libwebkit2gtk-4.1-dev
+
+      - name: Install macOS dependencies
+        if: runner.os == 'macOS'
+        run: brew install ninja ccache
+
+      - name: Set up MSVC environment (Windows)
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: ccache cache (Linux/macOS)
+        if: runner.os != 'Windows'
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          key: ${{ matrix.os }}
+
+      - name: Configure (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: >
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+      - name: Configure (Windows)
+        if: runner.os == 'Windows'
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      # the suite also loads the built VST3 (HostCheck) and drives the real window, so Linux runs it under Xvfb
+      - name: Self-test (Linux, under Xvfb)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a ./build/MiniboxTests_artefacts/Release/MiniboxTests
+
+      - name: Self-test (macOS)
+        if: runner.os == 'macOS'
+        run: ./build/MiniboxTests_artefacts/Release/MiniboxTests
+
+      - name: Self-test (Windows)
+        if: runner.os == 'Windows'
+        run: build\MiniboxTests_artefacts\Release\MiniboxTests.exe
+
+      # Linux: one tarball with the VST3 (factory content inside), the standalone app, its icon and install.sh.
+      # A tarball keeps the executable bits that a plain artifact zip would drop.
+      - name: Package (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          P=Pastel-Minibox-Linux
+          mkdir -p "dist/$P/Standalone" "dist/$P/Assets/icon"
+          cp -r build/MiniboxPlugin_artefacts/Release/VST3/Minibox.vst3 "dist/$P/"
+          cp "build/MiniboxStandalone_artefacts/Release/Pastel Minibox" "dist/$P/Standalone/"
+          cp Assets/icon/pastel-minibox.svg "dist/$P/Assets/icon/"
+          cp install.sh README.md LICENSE "dist/$P/"
+          chmod +x "dist/$P/install.sh" "dist/$P/Standalone/Pastel Minibox"
+          tar -C dist -czf "dist/$P.tar.gz" "$P"
+
+      # macOS: the app finds Factory in Contents/Resources (the VST3 bundle already has it there)
+      - name: Package (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p dist
+          APP="build/MiniboxStandalone_artefacts/Release/Pastel Minibox.app"
+          cp -R build/MiniboxStandalone_artefacts/Release/Factory "$APP/Contents/Resources/Factory"
+          (cd build/MiniboxPlugin_artefacts/Release/VST3 && ditto -c -k --sequesterRsrc --keepParent Minibox.vst3 "$GITHUB_WORKSPACE/dist/Pastel-Minibox-macOS-VST3.zip")
+          (cd build/MiniboxStandalone_artefacts/Release && ditto -c -k --sequesterRsrc --keepParent "Pastel Minibox.app" "$GITHUB_WORKSPACE/dist/Pastel-Minibox-macOS-Standalone.zip")
+
+      # Windows: the app finds Factory next to the .exe
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist, "pkg/Pastel Minibox" | Out-Null
+          Copy-Item "build/MiniboxStandalone_artefacts/Release/Pastel Minibox.exe" "pkg/Pastel Minibox/"
+          Copy-Item -Recurse build/MiniboxStandalone_artefacts/Release/Factory "pkg/Pastel Minibox/Factory"
+          Compress-Archive -Path "pkg/Pastel Minibox" -DestinationPath dist/Pastel-Minibox-Windows-Standalone.zip
+          Compress-Archive -Path build/MiniboxPlugin_artefacts/Release/VST3/Minibox.vst3 -DestinationPath dist/Pastel-Minibox-Windows-VST3.zip
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pastel-Minibox-${{ matrix.label }}
+          path: dist/*.*
+
+  release:
+    name: Auto-release
+    needs: build
+    # ships whatever built; the Linux package is required
+    if: ${{ !cancelled() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd artifacts
+          ls -la
+          test -f Pastel-Minibox-Linux.tar.gz || { echo "Linux package missing: no release"; exit 1; }
+          files=(Pastel-Minibox-Linux.tar.gz)
+          for z in *.zip; do if [ -e "$z" ]; then files+=("$z"); fi; done
+          cat > notes.md <<EOF
+          Automated CI build from ${{ github.sha }}. Personal project, provided as-is without warranty.
+
+          **Linux:** unpack and run the installer. It puts the VST3 in \`~/.vst3\` and the standalone app in
+          \`~/.local/opt/pastel-minibox\` (with a menu entry and a \`pastel-minibox\` command):
+
+              tar xzf Pastel-Minibox-Linux.tar.gz
+              cd Pastel-Minibox-Linux
+              ./install.sh            # --vst3-only, --standalone-only, --uninstall
+          EOF
+          TAG="auto-build-${{ github.run_number }}"
+          gh release create "$TAG" --repo "${{ github.repository }}" \
+            --title "Auto build $TAG" --notes-file notes.md "${files[@]}"

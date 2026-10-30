@@ -1,4 +1,4 @@
-Embedded typefaces used by the ERSA interface (loaded at runtime from BinaryData):
+Embedded typefaces used by the Pastel Minibox interface (loaded at runtime from BinaryData):
 
 - Lato Regular + Bold + Black — Copyright (c) 2010-2014 by tyPoland Lukasz Dziedzic
   (https://www.latofonts.com / https://github.com/google/fonts/ofl/lato)

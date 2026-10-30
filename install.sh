@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Builds (Release) and installs Pastel Minibox for the current user:
+# Installs Pastel Minibox for the current user. Run from a source checkout it builds (Release) first;
+# run from an unpacked Linux release (Pastel-Minibox-Linux.tar.gz) it installs the prebuilt files as they are:
 #   VST3        ~/.vst3/Minibox.vst3 (factory content inside the bundle)
 #   Standalone  ~/.local/opt/pastel-minibox/ (binary + Factory next to it),
 #               linked as ~/.local/bin/pastel-minibox
@@ -20,6 +21,10 @@ ICONS="$DATA/icons/hicolor"
 DESKTOP="$DATA/applications/pastel-minibox.desktop"
 ICON_SVG="$ROOT/Assets/icon/pastel-minibox.svg"
 
+# a release package carries the built files next to this script, and no sources
+packaged=0
+[ ! -f "$ROOT/CMakeLists.txt" ] && [ -d "$ROOT/Minibox.vst3" ] && packaged=1
+
 build=1; vst3=1; app=1; uninstall=0
 for arg in "$@"; do
     case "$arg" in
@@ -27,7 +32,7 @@ for arg in "$@"; do
         --vst3-only)       app=0 ;;
         --standalone-only) vst3=0 ;;
         --uninstall)       uninstall=1 ;;
-        -h|--help)         sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        -h|--help)         sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
         *) echo "unknown option: $arg (see --help)" >&2; exit 2 ;;
     esac
 done
@@ -50,6 +55,8 @@ if [ "$uninstall" = 1 ]; then
     exit 0
 fi
 
+[ "$packaged" = 1 ] && build=0   # nothing to build: the release ships the binaries
+
 # ---- build
 if [ "$build" = 1 ]; then
     if [ ! -f "$BUILD/CMakeCache.txt" ]; then
@@ -62,8 +69,13 @@ if [ "$build" = 1 ]; then
     cmake --build "$BUILD" --config $CONFIG --target "${targets[@]}" -j"$(nproc 2>/dev/null || echo 4)"
 fi
 
-VST3_SRC="$BUILD/MiniboxPlugin_artefacts/$CONFIG/VST3/Minibox.vst3"
-APP_SRC="$BUILD/MiniboxStandalone_artefacts/$CONFIG"
+if [ "$packaged" = 1 ]; then
+    VST3_SRC="$ROOT/Minibox.vst3"
+    APP_SRC="$ROOT/Standalone"
+else
+    VST3_SRC="$BUILD/MiniboxPlugin_artefacts/$CONFIG/VST3/Minibox.vst3"
+    APP_SRC="$BUILD/MiniboxStandalone_artefacts/$CONFIG"
+fi
 
 # ---- VST3
 if [ "$vst3" = 1 ]; then
@@ -80,7 +92,11 @@ if [ "$app" = 1 ]; then
     rm -rf "$APP_DIR"
     mkdir -p "$APP_DIR" "$(dirname "$BIN_LINK")"
     cp "$APP_SRC/Pastel Minibox" "$APP_DIR/"
-    cp -r "$APP_SRC/Factory" "$APP_DIR/"   # the app looks for Factory next to its binary
+    # the app looks for Factory next to its binary. A release package carries it once, inside the VST3 bundle
+    FACTORY_SRC="$APP_SRC/Factory"
+    [ -d "$FACTORY_SRC" ] || FACTORY_SRC="$VST3_SRC/Contents/Resources/Factory"
+    [ -d "$FACTORY_SRC" ] || { echo "missing the Factory content (samples, presets)" >&2; exit 1; }
+    cp -r "$FACTORY_SRC" "$APP_DIR/Factory"
     ln -sfn "$APP_DIR/Pastel Minibox" "$BIN_LINK"
     echo "Standalone  -> $APP_DIR (run: pastel-minibox)"
 

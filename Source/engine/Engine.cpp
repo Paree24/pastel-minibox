@@ -23,6 +23,18 @@ void Engine::prepare (double sr, int block)
     for (auto& in : inputs) in.prepare (sr);
 }
 
+void Engine::setLookAhead (bool on)
+{
+    proj.master.lookAhead = on;
+    dsp::Limiter fresh;
+    fresh.prepare ((float) sampleRate, on);   // allocation here, outside the lock
+    {
+        const ScopedEdit edit (*this);
+        masterBus.swapLimiter (fresh);
+    }
+    // `fresh` (the old limiter now) is freed here, after the lock
+}
+
 void Engine::setMasterInsert (MasterInsert* m)
 {
     if (m != nullptr) m->prepare (sampleRate, maxBlock);   // before it is reachable from the audio thread
@@ -83,11 +95,28 @@ void Engine::beginTake()
 {
     if (takeOpen.load()) return;
     ++recordTake;   // Replace keeps only this take's notes
-    // the audio thread repeats clips into bars a take adds: room for that without allocating
-    const ScopedEdit edit (*this);
+    // the audio thread repeats clips into bars a take adds: room for that without allocating.
+    // Grown copies are built here, outside the audio lock (only this thread edits clips while no
+    // take is open), and swapped in under it: the audio thread never waits on the allocations.
+    std::vector<std::vector<ClipNote>> grown;
+    grown.reserve ((size_t) (kPatterns * kTracks));
     for (auto& pt : proj.patterns)
         for (auto& sl : pt.slots)
-            if (sl.track.pianoRoll) sl.track.clip.reserve (sl.track.clip.size() * (size_t) (kMaxBars + 1) + 256);   // doubling up to the longest
+            if (sl.track.pianoRoll && sl.track.clip.capacity() < sl.track.clip.size() * (size_t) (kMaxBars + 1) + 256)
+            {
+                std::vector<ClipNote> c;
+                c.reserve (sl.track.clip.size() * (size_t) (kMaxBars + 1) + 256);   // doubling up to the longest
+                c.assign (sl.track.clip.begin(), sl.track.clip.end());
+                grown.push_back (std::move (c));
+            }
+    {
+        const ScopedEdit edit (*this);
+        size_t gi = 0;
+        for (auto& pt : proj.patterns)
+            for (auto& sl : pt.slots)
+                if (sl.track.pianoRoll && gi < grown.size() && sl.track.clip.capacity() < sl.track.clip.size() * (size_t) (kMaxBars + 1) + 256)
+                    sl.track.clip.swap (grown[gi++]);   // the old storage is freed with `grown`, after the lock
+    }
     for (int p = 0; p < kPatterns; ++p) takeStartBars[(size_t) p] = proj.patterns[(size_t) p].lengthBars;
     takePattern = seq.activePattern;
     for (int t = 0; t < kTracks; ++t)
@@ -414,13 +443,13 @@ void Engine::routeMidi (const juce::MidiMessage& m, int offset, std::vector<SeqE
         else if (m.isChannelPressure()) { lane = DeviceProcessor::kPressure; v = m.getChannelPressureValue() / 127.0f; }
         else { lane = m.getControllerNumber(); v = m.getControllerValue() / 127.0f; }
         SeqEvent e; e.offset = offset; e.pattern = pattern; e.track = track; e.note.type = NoteEvent::Control; e.note.note = lane; e.note.velocity = v;
-        out.push_back (e);
+        pushEvent (out, e);
         if (! plugin) recordControl (track, lane, v, offset);
     }
     else if (m.isAllNotesOff() || m.isAllSoundOff())
     {
         SeqEvent e; e.offset = offset; e.pattern = pattern; e.track = track; e.note.type = NoteEvent::AllNotesOff;
-        out.push_back (e);
+        pushEvent (out, e);
         inputs[(size_t) track].reset();
         stepHeld[(size_t) track] = 0;
     }
@@ -434,7 +463,7 @@ void Engine::inputKey (int pattern, int track, int note, float vel, bool on, int
     {
         SeqEvent e; e.offset = off; e.pattern = pattern; e.track = track;
         e.note.type = o ? NoteEvent::NoteOn : NoteEvent::NoteOff; e.note.note = n; e.note.velocity = v;
-        out.push_back (e);
+        pushEvent (out, e);
     };
     const bool stepMode = ! plugin && recording.load() && proj.recordMode == 1;
     if (plugin || dev == nullptr || dev->laneCount() > 0)
@@ -460,7 +489,7 @@ void Engine::flushInput (int track, std::vector<SeqEvent>& out)
     {
         SeqEvent e; e.offset = o.offset; e.pattern = inputPattern[(size_t) track]; e.track = track;
         e.note.type = o.on ? NoteEvent::NoteOn : NoteEvent::NoteOff; e.note.note = o.note; e.note.velocity = o.vel;
-        out.push_back (e);
+        pushEvent (out, e);
         if (liveRec) recordNote (track, o.note, o.vel, o.on, o.offset);   // live: what you hear is what is recorded (chords, arp)
     }
     in.out.clear();
@@ -756,12 +785,23 @@ void Engine::renderSub (float* L, float* R, int start, int len)
             float pk = 0.0f;
             float* aL = masterBus.sendA (0) + start; float* aR = masterBus.sendA (1) + start;
             float* bL = masterBus.sendB (0) + start; float* bR = masterBus.sendB (1) + start;
+            // a pattern ringing out after a switch fades over its last 50 ms before
+            // the 4 s limit panics it (it used to be cut hard)
+            const bool tail = ! plugin && tailing[(size_t) p] && p != active;
+            const double tailEnd = kTailSecs * sampleRate, tailFade = 0.05 * sampleRate;
             for (int i = 0; i < len; ++i)
             {
-                const float l = slotL[(size_t) (start + i)] * gl, r = slotR[(size_t) (start + i)] * gr;
+                float tg = 1.0f;
+                if (tail)
+                {
+                    const double left = tailEnd - (double) (tailSamples[(size_t) p] + start + i);
+                    tg = left >= tailFade ? 1.0f : (float) std::max (0.0, left / tailFade);
+                }
+                const float l = slotL[(size_t) (start + i)] * gl * tg, r = slotR[(size_t) (start + i)] * gr * tg;
+                const float ga = g * tg;
                 L[start + i] += l; R[start + i] += r;
-                aL[i] += l * m.sendA + auxAL[(size_t) (start + i)] * g; aR[i] += r * m.sendA + auxAR[(size_t) (start + i)] * g;
-                bL[i] += l * m.sendB + auxBL[(size_t) (start + i)] * g; bR[i] += r * m.sendB + auxBR[(size_t) (start + i)] * g;
+                aL[i] += l * m.sendA + auxAL[(size_t) (start + i)] * ga; aR[i] += r * m.sendA + auxAR[(size_t) (start + i)] * ga;
+                bL[i] += l * m.sendB + auxBL[(size_t) (start + i)] * ga; bR[i] += r * m.sendB + auxBR[(size_t) (start + i)] * ga;
                 pk = std::max ({ pk, std::abs (l), std::abs (r) });
             }
             slotPeak[p][t].store (std::max (pk, slotPeak[p][t].load() * 0.92f));
@@ -903,7 +943,7 @@ void Engine::processBlock (float* L, float* R, int n, const juce::MidiBuffer* mi
                 {
                     SeqEvent ev; ev.offset = 0; ev.pattern = plugin ? 0 : u.pattern; ev.track = plugin ? 0 : u.track;
                     ev.note.type = u.on ? NoteEvent::NoteOn : NoteEvent::NoteOff; ev.note.note = u.note; ev.note.velocity = u.vel;
-                    events.push_back (ev);
+                    pushEvent (events, ev);
                     continue;
                 }
                 inputKey (plugin ? 0 : u.pattern, plugin ? 0 : u.track, u.note, u.vel, u.on, 0, events);
@@ -957,7 +997,7 @@ void Engine::processBlock (float* L, float* R, int n, const juce::MidiBuffer* mi
         tailSamples[(size_t) tp] += n;
         bool silent = true;
         for (auto& d : devices[(size_t) tp]) if (d && ! d->isSilent()) silent = false;
-        if (silent || tailSamples[(size_t) tp] > (int64_t) (4.0 * sampleRate))
+        if (silent || tailSamples[(size_t) tp] > (int64_t) (kTailSecs * sampleRate))
         {
             for (auto& d : devices[(size_t) tp]) if (d) { NoteEvent e; e.type = NoteEvent::Panic; d->handleEvent (e); }
             tailing[(size_t) tp] = false;

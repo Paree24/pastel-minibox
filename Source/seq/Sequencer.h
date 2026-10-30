@@ -16,6 +16,16 @@ struct SeqEvent
     float value = 0.0f;
 };
 
+/** Audio thread: append an event without ever reallocating (the vector is reserved up front). Past
+    capacity the event is dropped; the last 256 slots are kept for note-offs and panics, so a flood
+    can lose notes but never leave one hanging. */
+inline void pushEvent (std::vector<SeqEvent>& v, const SeqEvent& e)
+{
+    const bool ending = e.kind == SeqEvent::Note
+                        && (e.note.type == NoteEvent::NoteOff || e.note.type == NoteEvent::AllNotesOff || e.note.type == NoteEvent::Panic);
+    if (v.size() + (ending ? 0 : 256) < v.capacity()) v.push_back (e);
+}
+
 /** Device lookup the sequencer needs (lane notes for drum devices). */
 struct DeviceLookup
 {
