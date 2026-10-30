@@ -243,7 +243,16 @@ void Sequencer::scheduleStep (Project& p, DeviceLookup& devs, int si, int offset
                 if (cn.cond != 0 && ! trigConditionPasses (cn.cond, pass)) continue;
                 if (cn.probability < 100 && chance (pat, t, (int) (cn.id & 0x7fffffff), pass) >= cn.probability) continue;
                 const double delay = (cn.start - a) / (double) stT * stepLen + (cn.start == a ? swingDelay : 0.0);
-                note (cn.note, cn.vel / 127.0f, cn.flags, delay, std::max (1.0, cn.length / (double) stT * stepLen));
+                double len = std::max (1.0, cn.length / (double) stT * stepLen);
+                if (cn.flags & (kSlide | kTie))
+                {
+                    // a slide / tie note holds until the next note starts (the overlap is what slides), as a step does
+                    int next = -1;
+                    for (const auto& o : track.clip) if (! o.muted && o.start > cn.start && (next < 0 || o.start < next)) next = o.start;
+                    if (next < 0) for (const auto& o : track.clip) if (! o.muted && (next < 0 || o.start < next)) next = o.start + p.patternTicks (pat);   // wraps
+                    if (next > cn.start) len = std::max (len, (next - cn.start) / (double) stT * stepLen + 0.004 * sampleRate);
+                }
+                note (cn.note, cn.vel / 127.0f, cn.flags, delay, len);
             }
             continue;
         }

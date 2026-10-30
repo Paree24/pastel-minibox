@@ -19,7 +19,8 @@ struct ProbeDevice : DeviceProcessor
         if (e.type == NoteEvent::NoteOn) ons.push_back ({ clock + e.sampleOffset, e.note });
         if (e.type == NoteEvent::NoteOn) ++active; else if (e.type == NoteEvent::NoteOff && active > 0) --active;
         if (e.type == NoteEvent::AllNotesOff || e.type == NoteEvent::Panic) active = 0;
-        if (e.type == NoteEvent::NoteOff) ++offs;
+        if (e.type == NoteEvent::NoteOff) { ++offs; offTimes.push_back ({ clock + e.sampleOffset, e.note }); }
+        if (e.type == NoteEvent::NoteOn) onFlags.push_back (e.flags);
     }
     void render (float* L, float*, int n) override { clock += n; L[0] += 0.0f; }
     bool anyVoiceActive() const override { return true; }
@@ -28,7 +29,8 @@ struct ProbeDevice : DeviceProcessor
     int numLanes;
     int64_t clock = 0;
     int active = 0, offs = 0;
-    std::vector<std::pair<int64_t, int>> ons;
+    std::vector<std::pair<int64_t, int>> ons, offTimes;
+    std::vector<int> onFlags;
 };
 
 std::vector<int64_t> runAndCollect (Engine& e, ProbeDevice* probe, double seconds, int block = 128)
@@ -945,4 +947,39 @@ MB_TEST (roll_repeats_on_the_grid)
     bool spaced = true;
     for (size_t i = 2; i < t.size(); ++i) spaced = spaced && std::abs ((double) (t[i] - t[i - 1]) - 2 * Rig::stepLen) <= 1.0;
     ctx.check (spaced, "every other step (1/8)");
+}
+
+/** An Acid slide step holds its note into the next step's (the overlap is what slides), carrying the slide flag. */
+MB_TEST (seq_slide_overlaps_next_note)
+{
+    Rig rig (1);
+    auto& tr = rig.track();
+    tr.steps[0].addNote (36); tr.steps[0].flags = kSlideFlag;
+    tr.steps[1].addNote (43);
+    rig.e.play();
+    rig.runTo (3);
+    const auto& p = *rig.probe;
+    int64_t on2 = -1, off1 = -1;
+    for (auto& o : p.ons) if (o.second == 43 && on2 < 0) on2 = o.first;
+    for (auto& o : p.offTimes) if (o.second == 36 && off1 < 0) off1 = o.first;
+    ctx.check (! p.onFlags.empty() && (p.onFlags[0] & kSlideFlag) != 0, "the slide step's note carries the slide flag");
+    ctx.check (on2 >= 0 && off1 > on2, "its note-off comes after the next note-on (on " + juce::String (on2) + ", off " + juce::String (off1) + ")");
+}
+
+/** The same for a piano-roll clip: a slide note holds into the next note, however short it was drawn. */
+MB_TEST (seq_clip_slide_overlaps_next_note)
+{
+    Rig rig (1);
+    auto& tr = rig.track();
+    tr.pianoRoll = true;
+    const int st = rig.stepT();
+    ClipNote a; a.start = 0; a.length = st / 2; a.note = 36; a.flags = kSlideFlag; tr.addClipNote (a);
+    ClipNote b; b.start = 2 * st; b.length = st / 2; b.note = 43; tr.addClipNote (b);
+    rig.e.play();
+    rig.runTo (4);
+    const auto& p = *rig.probe;
+    int64_t on2 = -1, off1 = -1;
+    for (auto& o : p.ons) if (o.second == 43 && on2 < 0) on2 = o.first;
+    for (auto& o : p.offTimes) if (o.second == 36 && off1 < 0) off1 = o.first;
+    ctx.check (on2 >= 0 && off1 > on2, "the slide note lasts past the next note-on (on " + juce::String (on2) + ", off " + juce::String (off1) + ")");
 }
