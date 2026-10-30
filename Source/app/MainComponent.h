@@ -106,6 +106,7 @@ private:
     int keyboardOctave = 4;
     std::map<int, int> keysDown;   // key code → note
     std::array<bool, kPerformFx> padKeysDown {};
+    std::array<bool, kPerformFx> padKeyIsRate {};   // pressed while note repeat was on: it picked a rate
     int retireCounter = 0;
     bool autosaveOn = false;
     int autosaveCounter = 0;

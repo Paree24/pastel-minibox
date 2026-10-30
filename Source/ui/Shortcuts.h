@@ -32,7 +32,7 @@ enum : juce::CommandID
     note0, note15 = note0 + 15, octaveDown, octaveUp,
     // added later (at the end, so saved key maps keep their IDs)
     exportDawProject, recordSettings,
-    perform0, perform7 = perform0 + 7, masterEffects, fxKeys
+    perform0, perform7 = perform0 + 7, masterEffects, fxKeys, noteRepeat
 };
 } // namespace cmd
 

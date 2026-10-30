@@ -949,6 +949,42 @@ MB_TEST (roll_repeats_on_the_grid)
     ctx.check (spaced, "every other step (1/8)");
 }
 
+/** Note repeat on everything played (the desktop's N): a held key rolls at the chosen rate; a synth holds each
+    repeat for half the rate; releasing ends it cleanly, even if repeat was switched off meanwhile. */
+MB_TEST (note_repeat_rolls_played_keys)
+{
+    Rig rig (1);   // a synth track
+    rig.e.noteRepeat = true;
+    rig.e.repeatBeats = 0.5;   // 1/8: two steps
+    rig.runTo (0.3);
+    rig.midi (1, 60, true);
+    rig.runTo (8.3);
+    rig.midi (1, 60, false);
+    rig.runTo (12);
+    const auto& p = *rig.probe;
+    ctx.check (p.ons.size() == 5, "the press plus a hit every other step for 8 steps (" + juce::String ((int) p.ons.size()) + ")");
+    ctx.check (p.offTimes.size() == p.ons.size(), "every repeat ends");
+    bool gate = true;
+    for (size_t i = 1; i + 1 < p.ons.size() && i < p.offTimes.size(); ++i)
+        gate = gate && std::abs ((double) (p.offTimes[i].first - p.ons[i].first) - Rig::stepLen) <= 2.0;
+    ctx.check (gate, "each repeat lasts half the rate (one step)");
+
+    rig.probe->ons.clear(); rig.probe->offTimes.clear();
+    rig.midi (1, 62, true);
+    rig.e.noteRepeat = false;
+    rig.runTo (20);
+    rig.midi (1, 62, false);
+    rig.runTo (24);
+    const auto n = rig.probe->ons.size();
+    rig.runTo (30);
+    ctx.check (n > 1 && rig.probe->ons.size() == n, "switched off while held: the release still stops it");
+    ctx.check (rig.probe->offTimes.size() == rig.probe->ons.size(), "no stuck note");
+
+    rig.probe->ons.clear(); rig.probe->offTimes.clear();
+    rig.midi (1, 64, true); rig.runTo (34); rig.midi (1, 64, false);
+    ctx.check (rig.probe->ons.size() == 1 && rig.probe->offTimes.size() == 1, "off again: a key plays once");
+}
+
 /** An Acid slide step holds its note into the next step's (the overlap is what slides), carrying the slide flag. */
 MB_TEST (seq_slide_overlaps_next_note)
 {

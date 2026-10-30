@@ -123,6 +123,7 @@ Shortcuts::Shortcuts()
              "Performance effects (held)", { key ('1' + i) });
     add (masterEffects, "Master effects (the chain and the pads' effects)", "Pages and drawers", { key ('F', ctrl | shift) });
     add (fxKeys, "FX keys on / off (8 notes from a controller hold the performance effects)", "Performance effects (held)", { key ('K', ctrl | shift) });
+    add (noteRepeat, "Note repeat on / off (while on, keys 1-6 pick the rate: 1/4, 1/8, 1/16, 1/32, 1/8T, 1/16T)", "Instruments", { key ('N') });
     load();
 }
 

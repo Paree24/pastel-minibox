@@ -146,6 +146,20 @@ void SlotStrip::paint (juce::Graphics& g)
     const auto& mixer = ctx.engine.project().patterns[(size_t) ctx.focusPattern()].slots[(size_t) track].mixer;
     paint::msButtons (g, 18, h - 44, mixer.mute, mixer.solo, 26);
     muteR = { 18, h - 44, 26, 26 }; soloR = { 50, h - 44, 26, 26 };
+    // the track's own effects (3 slots): a dot per effect, in its category's colour
+    {
+        fxR = { 122, h - 44, 126, 26 };
+        g.setColour (col::control); g.fillRoundedRectangle (fxR, 13);
+        paint::text (g, "Effects", fxR.getX() + 12, fxR.getY() + 17, 11, Weight::Bold, col::text);
+        int dot = 0;
+        for (const auto& fx : ctx.engine.project().patterns[(size_t) ctx.focusPattern()].slots[(size_t) track].fx)
+            if (const auto* fd = efx::defForId (efx::idForName (fx.effect)))
+            {
+                g.setColour (fx.bypass ? col::control.brighter (0.3f) : efx::catAccent (fd->cat));
+                g.fillEllipse (fxR.getX() + 68 + dot++ * 11.0f, fxR.getCentreY() - 3.5f, 7, 7);
+            }
+        paint::chevron (g, fxR.getRight() - 12, fxR.getCentreY(), 6, col::quiet, 'r');
+    }
     // the selected instrument (click it, or Up / Down): what the keyboard and MIDI play
     if (ctx.focusTrack() == track)
     {
@@ -157,6 +171,7 @@ void SlotStrip::paint (juce::Graphics& g)
     g.setColour (col::control); g.fillRoundedRectangle (openR, 12);
     paint::openIcon (g, openR.getCentreX(), openR.getCentreY(), 18, col::text);
     for (auto r : { nameR, prevR, nextR, presetR.reduced (32, 0), muteR, soloR }) fb.hot (r);
+    fb.hot (fxR, 13);
     fb.hot (openR, 12);
     fb.hot (visR, 10);   // Enter opens the editor, as a click does
     fb.paint (g);
@@ -178,6 +193,7 @@ void SlotStrip::mouseUp (const juce::MouseEvent& e)
     else if (presetR.contains (p) && ctx.showPresetBrowser) { ctx.engine.focusTrack = track; ctx.showPresetBrowser (d, this); }
     else if (muteR.contains (p)) { mixer.mute = ! mixer.mute; ctx.markDirty(); repaint(); }
     else if (soloR.contains (p)) { mixer.solo = ! mixer.solo; ctx.markDirty(); repaint(); }
+    else if (fxR.contains (p)) { if (ctx.onTrackFx) ctx.onTrackFx (track); }
     else if (openR.contains (p) || visR.contains (p)) { if (ctx.openEditor) ctx.openEditor (track); }
 }
 
@@ -205,6 +221,7 @@ void SlotStrip::refresh()
         if (built->type() == DeviceType::FM) s << built->get ("algorithm");
         const auto& mixer = ctx.engine.project().patterns[(size_t) ctx.focusPattern()].slots[(size_t) track].mixer;
         s << (int) mixer.mute << (int) mixer.solo << (int) (ctx.focusTrack() == track);
+        for (const auto& fx : ctx.engine.project().patterns[(size_t) ctx.focusPattern()].slots[(size_t) track].fx) s << fx.effect << (int) fx.bypass;
     }
     if (s != sig) { sig = s; repaint(); }
 }
@@ -285,6 +302,13 @@ void MasterRow::paint (juce::Graphics& g)
                                       18, 9, on ? Weight::Black : Weight::Bold, false, juce::Justification::right);
         fxKeysR = { right - pw, 6, pw, 18 };
         fb.hot (fxKeysR, 9);
+        // note repeat (N): every held key rolls at the rate (keys 1–6 while on; right-click: the rate)
+        const bool rep = ctx.engine.noteRepeat.load();
+        const auto rl = "Repeat  " + juce::String (Engine::repeatRateName (ctx.engine.repeatRateIndex()));
+        const float rw = paint::pill (g, fxKeysR.getX() - 6, 6, rl, 10, rep ? col::pattern : col::control, rep ? col::bg : col::quiet,
+                                      18, 9, rep ? Weight::Black : Weight::Bold, false, juce::Justification::right);
+        repeatR = { fxKeysR.getX() - 6 - rw, 6, rw, 18 };
+        fb.hot (repeatR, 9);
     }
     for (int i = 0; i < kPerformFx; ++i)
     {
@@ -337,6 +361,21 @@ void MasterRow::mouseUp (const juce::MouseEvent& e)
     {
         return std::make_unique<KnobView> (std::make_unique<FloatBinding> (v, lo, hi, def, f, false, &ctx), lab, col::pattern, 18.0f, true);
     };
+    if (repeatR.contains (e.position))
+    {
+        auto& en = ctx.engine;
+        if (! e.mods.isRightButtonDown()) { en.noteRepeat = ! en.noteRepeat.load(); repaint(); return; }
+        juce::PopupMenu m;
+        m.addSectionHeader ("Note repeat (N): held keys roll at");
+        for (int i = 0; i < Engine::kRepeatRates; ++i)
+            m.addItem (i + 1, juce::String (Engine::repeatRateName (i)) + "    (" + juce::String (i + 1) + ")", true, en.repeatRateIndex() == i);
+        m.showMenuAsync (menuAt (*this, repeatR), [this] (int r)
+        {
+            if (r > 0) { ctx.engine.repeatBeats = Engine::repeatRate (r - 1); ctx.engine.noteRepeat = true; }
+            repaint();
+        });
+        return;
+    }
     if (fxKeysR.contains (e.position) && ctx.midiMap != nullptr)
     {
         auto* map = ctx.midiMap;
@@ -396,6 +435,7 @@ void MasterRow::refresh()
     for (int i = 0; i < kPerformFx; ++i) s << (ctx.masterFx != nullptr && ctx.masterFx->isHeld (i) ? 1 : 0);
     for (const auto& fx : ctx.engine.project().masterFx) s << fx.effect << (int) fx.bypass;
     if (ctx.midiMap != nullptr) s << (int) ctx.midiMap->fxKeysOn.load() << (int) ctx.midiMap->fxKeysLearning.load() << ctx.midiMap->fxKeysBase.load();
+    s << (int) ctx.engine.noteRepeat.load() << ctx.engine.repeatRateIndex();
     if (s != shown) { shown = s; repaint(); }
     repaint (juce::Rectangle<int> ((int) (1160 + extra * 0.75f), 0, (int) (230 + extra * 0.25f), getHeight()));
 }

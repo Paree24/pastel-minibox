@@ -2,6 +2,7 @@
 #include <juce_audio_devices/juce_audio_devices.h>
 #include "ui/PresetBrowser.h"
 #include "ui/Shortcuts.h"
+#include "ui/FxParamBinding.h"
 #include "model/Serializer.h"
 #include "model/MidiFiles.h"
 #include "model/DawProject.h"
@@ -31,6 +32,13 @@ MainComponent::MainComponent (Engine& e)
     {
         const bool same = masterFxOpen() && masterFxDrawer.showingPads() == pads && (! pads || masterFxDrawer.selected() == index);
         showMasterFx (! same, pads, index);
+    };
+    ctx.onTrackFx = [this] (int track)
+    {
+        const bool same = masterFxOpen() && masterFxDrawer.shownTrack() == track;
+        if (same) { showMasterFx (false); return; }
+        showMasterFx (true);
+        masterFxDrawer.showTrack (track);
     };
     juce::LookAndFeel::setDefaultLookAndFeel (&laf);
     setLookAndFeel (&laf);
@@ -206,6 +214,22 @@ void MainComponent::midiControl (const juce::String& target, const MidiControl& 
         if (c.type == MidiControl::Type::Press) runAction (target.fromFirstOccurrenceOf (":", false, false));
         return;
     }
+    // while a performance effect is held, the knobs mapped to macros play its controls instead (in the order the
+    // master effects drawer shows them, then its mix); letting go hands them back to the macros
+    const bool knob = c.type == MidiControl::Type::Set || c.type == MidiControl::Type::Delta;
+    if (knob && target.startsWith ("macro:"))
+        if (const int pad = masterFx.heldPad(); pad >= 0)
+        {
+            const int k = target.fromLastOccurrenceOf (":", false, false).getIntValue();
+            const auto* d = efx::defForId (efx::idForName (engine.project().performFx[(size_t) pad].effect));
+            const int n = d != nullptr ? d->numParams : 0;
+            if (k > n) return;
+            FxParamBinding b (ctx, true, pad, k < n ? k : -1);
+            auto direct = mp;
+            direct.pickup = false;   // a held effect is played, not set up: the knob takes over at once
+            applyLearnControl (b, c, direct);
+            return;
+        }
     if (auto b = learnBinding (ctx, target)) applyLearnControl (*b, c, mp);
 }
 
@@ -659,6 +683,7 @@ void MainComponent::runCommand (juce::CommandID id)
         case cmd::recordSettings: topBar.showRecording(); break;
         case cmd::masterEffects: showMasterFx (! masterFxOpen()); break;
         case cmd::fxKeys: ctx.setFxKeys (! map.fxKeysOn.load()); break;
+        case cmd::noteRepeat: engine.noteRepeat = ! engine.noteRepeat.load(); rack.refresh(); break;
         case cmd::importMidi: this->importMidi(); break;
         case cmd::settings: showSettings(); break;
         case cmd::playStop: if (engine.isPlaying()) engine.stop(); else engine.play(); break;
@@ -702,7 +727,7 @@ bool MainComponent::keyStateChanged (bool)
     }
     if (juce::ModifierKeys::currentModifiers.isCommandDown()) return false;
     bool used = false;
-    // performance effects: on while their keys (1–8) are held
+    // performance effects: on while their keys (1–8) are held; while note repeat is on, 1–6 pick its rate instead
     for (int i = 0; i < kPerformFx; ++i)
     {
         const int key = shortcuts().keyCode (cmd::perform0 + i);
@@ -711,7 +736,9 @@ bool MainComponent::keyStateChanged (bool)
         if (down != padKeysDown[(size_t) i])
         {
             padKeysDown[(size_t) i] = down;
-            masterFx.setHeld (i, down);
+            if (down) padKeyIsRate[(size_t) i] = engine.noteRepeat.load() && i < Engine::kRepeatRates;
+            if (padKeyIsRate[(size_t) i]) { if (down) { engine.repeatBeats = Engine::repeatRate (i); rack.refresh(); } }
+            else masterFx.setHeld (i, down);
             used = true;
         }
     }

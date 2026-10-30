@@ -30,6 +30,7 @@ struct AppContext
     /** The groovebox's master and performance effects (null in the plugin) and the drawer that edits them. */
     MasterFx* masterFx = nullptr;
     std::function<void (bool pads, int index)> onMasterFx;
+    std::function<void (int track)> onTrackFx;   // a track's own effects in the drawer (toggles when already there)
     /** The controller map (null in the plugin): FX keys live there. */
     MidiMap* midiMap = nullptr;
     /** FX keys on / off (releases the effects the keys held). */

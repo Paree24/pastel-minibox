@@ -1,5 +1,6 @@
 #include "MasterFxDrawer.h"
 #include "efx/MasterFx.h"
+#include "FxParamBinding.h"
 
 namespace mb::ui
 {
@@ -8,42 +9,6 @@ namespace
 using R = juce::Rectangle<float>;
 constexpr float kTileY = 44, kTileH = 58, kKnobY = 208;
 
-/** A control of the selected slot's effect: its 0–1 position in the project (looked up on every use, so a
-    loaded project or a replaced effect never leaves a dangling reference). */
-struct FxParamBinding : Binding
-{
-    FxParamBinding (AppContext& c, bool p, int s, int k) : ctx (c), pads (p), slot (s), param (k) {}
-    FxSlot& fx() const { auto& pr = ctx.engine.project(); return pads ? pr.performFx[(size_t) slot] : pr.masterFx[(size_t) slot]; }
-    const efx::ParamSpec* spec() const
-    {
-        const auto* d = efx::defForId (efx::idForName (fx().effect));
-        return d != nullptr && param < d->numParams ? &d->p[param] : nullptr;
-    }
-    float getNorm() const override { return param < 0 ? fx().mix : fx().norm[(size_t) param]; }
-    void setNorm (float v) override
-    {
-        v = juce::jlimit (0.0f, 1.0f, v);
-        if (param < 0) fx().mix = v; else fx().norm[(size_t) param] = v;
-        ctx.markDirty();
-    }
-    float defaultNorm() const override { if (param < 0) return 1.0f; auto* s = spec(); return s != nullptr ? s->def : 0.5f; }
-    juce::String text() const override
-    {
-        if (param < 0) return juce::String (juce::roundToInt (fx().mix * 100)) + "%";
-        auto* s = spec();
-        return s != nullptr ? efx::formatParam (*s, getNorm()) : juce::String();
-    }
-    bool bipolar() const override
-    {
-        auto* s = spec();
-        if (s == nullptr) return false;
-        using K = efx::K;
-        return s->kind == K::BiPct || s->kind == K::Pan || s->kind == K::Semis || s->kind == K::Cents || s->kind == K::BiHz
-            || (s->kind == K::Db && s->lo < 0.0f && s->hi > 0.0f && std::abs (s->lo + s->hi) < 1.0e-3f);
-    }
-    int steps() const override { auto* s = spec(); return s != nullptr && s->isChoice() ? std::max (2, s->numChoices) : 0; }
-    AppContext& ctx; bool pads; int slot, param;
-};
 } // namespace
 
 MasterFxDrawer::MasterFxDrawer (AppContext& c) : ctx (c)
@@ -66,13 +31,26 @@ MasterFxDrawer::MasterFxDrawer (AppContext& c) : ctx (c)
 FxSlot& MasterFxDrawer::slot (int i) const
 {
     auto& p = ctx.engine.project();
+    if (fxTrack >= 0) return p.patterns[(size_t) fxPattern].slots[(size_t) fxTrack].fx[(size_t) juce::jlimit (0, kTrackFx - 1, i)];
     return padsView ? p.performFx[(size_t) juce::jlimit (0, kPerformFx - 1, i)] : p.masterFx[(size_t) juce::jlimit (0, kMasterFxSlots - 1, i)];
 }
 
 void MasterFxDrawer::show (bool pads, int index)
 {
+    fxTrack = -1;
     padsView = pads;
     sel = juce::jlimit (0, 7, index);
+    rebuildKnobs();
+    repaint();
+}
+
+void MasterFxDrawer::showTrack (int track)
+{
+    fxTrack = juce::jlimit (0, kTracks - 1, track);
+    fxPattern = ctx.focusPattern();
+    padsView = false;
+    sel = 0;
+    builtFor.clear();
     rebuildKnobs();
     repaint();
 }
@@ -80,7 +58,7 @@ void MasterFxDrawer::show (bool pads, int index)
 void MasterFxDrawer::rebuildKnobs()
 {
     const auto& fx = slot (sel);
-    juce::String key; key << (int) padsView << sel << fx.effect << fx.mode;
+    juce::String key; key << (int) padsView << fxTrack << fxPattern << sel << fx.effect << fx.mode;
     if (key == builtFor) return;
     builtFor = key;
     knobs.clear();
@@ -88,15 +66,20 @@ void MasterFxDrawer::rebuildKnobs()
     const auto* d = efx::defForId (efx::idForName (fx.effect));
     if (d == nullptr) return;
     const auto colour = efx::catAccent (d->cat);
+    auto binding = [this] (int k) -> std::unique_ptr<Binding>
+    {
+        if (fxTrack >= 0) return std::make_unique<FxParamBinding> (ctx, fxPattern, fxTrack, sel, k);
+        return std::make_unique<FxParamBinding> (ctx, padsView, sel, k);
+    };
     for (int k = 0; k < d->numParams; ++k)
     {
         // controls that do nothing in this mode (or with this choice) are left out, as in EFX Grid
         if (! efx::paramVisible (*d, k, fx.mode, fx.norm.data())) continue;
-        auto kv = std::make_unique<KnobView> (std::make_unique<FxParamBinding> (ctx, padsView, sel, k), d->p[k].name, colour, 20.0f, true);
+        auto kv = std::make_unique<KnobView> (binding (k), d->p[k].name, colour, 20.0f, true);
         addAndMakeVisible (*kv);
         knobs.push_back (std::move (kv));
     }
-    mixKnob = std::make_unique<KnobView> (std::make_unique<FxParamBinding> (ctx, padsView, sel, -1), "Mix", col::text, 20.0f, true);
+    mixKnob = std::make_unique<KnobView> (binding (-1), "Mix", col::text, 20.0f, true);
     addAndMakeVisible (*mixKnob);
     resized();
 }
@@ -119,18 +102,28 @@ void MasterFxDrawer::paint (juce::Graphics& g)
     const float w = (float) getWidth(), h = (float) getHeight();
     g.setColour (col::surface); g.fillRoundedRectangle (0, 0, w, h, 14);
     g.setColour (col::divider); g.drawRoundedRectangle (0.75f, 0.75f, w - 1.5f, h - 1.5f, 14, 1.5f);
+    if (fxTrack >= 0)
+    {
+        paint::trackBadge (g, 30, 23, fxTrack);
+        paint::text (g, "Track effects", 48, 28, 13, Weight::Black, col::text);
+        paint::text (g, "in series after the instrument, before its mixer (pattern " + juce::String::charToString ((juce::juce_wchar) ('A' + fxPattern)) + ")",
+                     160, 28, 11, Weight::Bold, col::faint);
+    }
+    else
+    {
     paint::text (g, "Master effects", 18, 28, 13, Weight::Black, col::text);
     const auto views = paint::segmented (g, { 140, 10, 150, 26 }, { "Chain", "Pads" }, padsView ? 1 : 0, col::text, 11);
     for (size_t i = 0; i < views.size(); ++i) zone (views[i].reduced (2), "view", (int) i);
     paint::text (g, padsView ? "each pad's effect while it is held (pads, keys 1-8, the controller's pads)"
                              : "in series, left to right, before the bus's glue and limiter", 306, 28, 11, Weight::Bold, col::faint);
+    }
     g.setColour (col::control); g.fillEllipse (w - 40, 9, 28, 28);
     g.setColour (col::quiet); g.drawLine (w - 31, 18, w - 21, 28, 1.8f); g.drawLine (w - 21, 18, w - 31, 28, 1.8f);
     zone ({ w - 40, 9, 28, 28 }, "close", 0, 14);
 
     // the tiles: the chain's slots, or the pads
     const float tw = (w - 28 - 7 * 8) / 8;
-    for (int i = 0; i < 8; ++i)
+    for (int i = 0; i < count(); ++i)
     {
         const R t (14 + i * (tw + 8), kTileY, tw, kTileH);
         const auto& fx = slot (i);
@@ -238,9 +231,13 @@ void MasterFxDrawer::addEffect (int index, bool replace)
         if (d == nullptr) return;
         int at = index;
         if (! replace)
-            for (int i = 0; i < kMasterFxSlots; ++i)
+            for (int i = 0; i < count(); ++i)
                 if (slot (i).effect.isEmpty()) { at = i; break; }
-        if (ctx.masterFx != nullptr) ctx.masterFx->setSlotEffect (padsView, at, d->name);
+        if (ctx.masterFx != nullptr)
+        {
+            if (fxTrack >= 0) ctx.masterFx->setTrackEffect (fxPattern, fxTrack, at, d->name);
+            else ctx.masterFx->setSlotEffect (padsView, at, d->name);
+        }
         sel = at;
         changed();
     });
@@ -250,7 +247,8 @@ void MasterFxDrawer::remove()
 {
     if (padsView || ctx.masterFx == nullptr) return;
     // the later effects shift left: no gaps in the chain
-    ctx.masterFx->removeSlot (sel);
+    if (fxTrack >= 0) ctx.masterFx->removeTrackSlot (fxPattern, fxTrack, sel);
+    else ctx.masterFx->removeSlot (sel);
     while (sel > 0 && slot (sel).effect.isEmpty()) --sel;
     changed();
 }
@@ -259,8 +257,9 @@ void MasterFxDrawer::move (int dir)
 {
     if (padsView || ctx.masterFx == nullptr) return;
     const int to = sel + dir;
-    if (to < 0 || to >= kMasterFxSlots || slot (to).effect.isEmpty() || slot (sel).effect.isEmpty()) return;
-    ctx.masterFx->moveSlot (sel, to);
+    if (to < 0 || to >= count() || slot (to).effect.isEmpty() || slot (sel).effect.isEmpty()) return;
+    if (fxTrack >= 0) ctx.masterFx->moveTrackSlot (fxPattern, fxTrack, sel, to);
+    else ctx.masterFx->moveSlot (sel, to);
     sel = to;
     changed();
 }
@@ -276,9 +275,10 @@ void MasterFxDrawer::changed()
 
 void MasterFxDrawer::refresh()
 {
+    if (fxTrack >= 0 && fxPattern != ctx.focusPattern()) fxPattern = ctx.focusPattern();   // follows the pattern in view
     juce::String s;
-    s << (int) padsView << sel;
-    for (int i = 0; i < 8; ++i) { const auto& fx = slot (i); s << fx.effect << (int) fx.bypass << fx.mode << (ctx.masterFx != nullptr && ctx.masterFx->isHeld (i) ? 1 : 0); }
+    s << (int) padsView << fxTrack << fxPattern << sel;
+    for (int i = 0; i < count(); ++i) { const auto& fx = slot (i); s << fx.effect << (int) fx.bypass << fx.mode << (ctx.masterFx != nullptr && ctx.masterFx->isHeld (i) ? 1 : 0); }
     if (s != sig) { sig = s; builtFor.clear(); rebuildKnobs(); repaint(); }
     for (auto& k : knobs) k->refresh();
     if (mixKnob) mixKnob->refresh();

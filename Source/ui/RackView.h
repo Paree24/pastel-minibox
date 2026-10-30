@@ -21,7 +21,7 @@ private:
     std::vector<std::unique_ptr<KnobView>> macros, mixKnobs;
     std::unique_ptr<FaderView> fader;
     juce::String sig;
-    juce::Rectangle<float> nameR, presetR, prevR, nextR, muteR, soloR, openR, visR, plusR;
+    juce::Rectangle<float> nameR, presetR, prevR, nextR, muteR, soloR, openR, visR, plusR, fxR;
     Feedback fb { *this };
     /** Any press on the strip or its knobs selects this instrument (what the keyboard and MIDI play). */
     struct Selector : juce::MouseListener
@@ -49,7 +49,7 @@ private:
     AppContext& ctx;
     std::vector<std::unique_ptr<KnobView>> knobs;
     std::unique_ptr<FaderView> volume;
-    juce::Rectangle<float> delayR, reverbR, effectsR, fxKeysR;
+    juce::Rectangle<float> delayR, reverbR, effectsR, fxKeysR, repeatR;
     std::array<juce::Rectangle<float>, 8> padR;
     int pressedPad = -1;
     float extra = 0.0f;   // the width beyond the 16:10 layout

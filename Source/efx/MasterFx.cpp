@@ -143,30 +143,44 @@ void MasterFx::setSlotEffect (bool pad, int i, const juce::String& effect)
     }
 }
 
-void MasterFx::removeSlot (int i)
+void MasterFx::removeIn (FxSlot* chain, Inst* in, int count, int i)
 {
-    if (i < 0 || i >= kMasterFxSlots) return;
+    if (i < 0 || i >= count) return;
     std::unique_ptr<efx::GridEffect> gone;
     const Engine::ScopedEdit edit (engine);
-    auto& chain = engine.project().masterFx;
-    gone = std::move (slots[(size_t) i].fx);
-    for (int k = i; k < kMasterFxSlots - 1; ++k)
+    gone = std::move (in[i].fx);
+    for (int k = i; k < count - 1; ++k)
     {
-        chain[(size_t) k] = chain[(size_t) k + 1];
-        slots[(size_t) k].fx = std::move (slots[(size_t) k + 1].fx);
-        slots[(size_t) k].name = slots[(size_t) k + 1].name;
+        chain[k] = chain[k + 1];
+        in[k].fx = std::move (in[k + 1].fx);
+        in[k].name = in[k + 1].name;
     }
-    chain[(size_t) kMasterFxSlots - 1] = FxSlot();
-    slots[(size_t) kMasterFxSlots - 1].name = {};
+    chain[count - 1] = FxSlot();
+    in[count - 1].name = {};
 }
 
-void MasterFx::moveSlot (int from, int to)
+void MasterFx::moveIn (FxSlot* chain, Inst* in, int count, int from, int to)
 {
-    if (from < 0 || to < 0 || from >= kMasterFxSlots || to >= kMasterFxSlots || from == to) return;
+    if (from < 0 || to < 0 || from >= count || to >= count || from == to) return;
     const Engine::ScopedEdit edit (engine);
-    std::swap (engine.project().masterFx[(size_t) from], engine.project().masterFx[(size_t) to]);
-    std::swap (slots[(size_t) from].fx, slots[(size_t) to].fx);
-    std::swap (slots[(size_t) from].name, slots[(size_t) to].name);
+    std::swap (chain[from], chain[to]);
+    std::swap (in[from].fx, in[to].fx);
+    std::swap (in[from].name, in[to].name);
+}
+
+void MasterFx::removeSlot (int i) { removeIn (engine.project().masterFx.data(), slots.data(), kMasterFxSlots, i); }
+void MasterFx::moveSlot (int from, int to) { moveIn (engine.project().masterFx.data(), slots.data(), kMasterFxSlots, from, to); }
+
+void MasterFx::removeTrackSlot (int pattern, int track, int i)
+{
+    if (pattern < 0 || pattern >= kPatterns || track < 0 || track >= kTracks) return;
+    removeIn (engine.project().patterns[(size_t) pattern].slots[(size_t) track].fx.data(), tracks[(size_t) pattern][(size_t) track].data(), kTrackFx, i);
+}
+
+void MasterFx::moveTrackSlot (int pattern, int track, int from, int to)
+{
+    if (pattern < 0 || pattern >= kPatterns || track < 0 || track >= kTracks) return;
+    moveIn (engine.project().patterns[(size_t) pattern].slots[(size_t) track].fx.data(), tracks[(size_t) pattern][(size_t) track].data(), kTrackFx, from, to);
 }
 
 void MasterFx::syncOne (Inst& in, const juce::String& want)
@@ -201,7 +215,9 @@ void MasterFx::sync()
 
 void MasterFx::setHeld (int pad, bool h)
 {
-    if (pad >= 0 && pad < kPerformFx) held[(size_t) pad] = h;
+    if (pad < 0 || pad >= kPerformFx) return;
+    held[(size_t) pad] = h;
+    if (h) lastHeld = pad;
 }
 
 const efx::GridEffect* MasterFx::instance (bool perform, int i) const

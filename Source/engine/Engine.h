@@ -146,6 +146,15 @@ public:
         track's input like played notes (so they are recorded). Message thread; up to kRolls at once. */
     void setRoll (int track, int note, float velocity, double beats, bool on);
     static constexpr int kRolls = 8;
+    /** Note repeat for everything played (the desktop's N): while on, every held key or pad rolls at `repeatBeats`
+        (MIDI, the computer keyboard, the mouse). Drums hit; synths play each repeat for half the rate. */
+    std::atomic<bool> noteRepeat { false };
+    std::atomic<double> repeatBeats { 0.25 };
+    /** The note repeat rates (keys 1–6 while repeat is on), in beats, and their names. */
+    static constexpr int kRepeatRates = 6;
+    static double repeatRate (int i) { constexpr double r[kRepeatRates] = { 1.0, 0.5, 0.25, 0.125, 1.0 / 3.0, 1.0 / 6.0 }; return r[std::clamp (i, 0, kRepeatRates - 1)]; }
+    static const char* repeatRateName (int i) { const char* n[kRepeatRates] = { "1/4", "1/8", "1/16", "1/32", "1/8T", "1/16T" }; return n[std::clamp (i, 0, kRepeatRates - 1)]; }
+    int repeatRateIndex() const { for (int i = 0; i < kRepeatRates; ++i) if (std::abs (repeatRate (i) - repeatBeats.load()) < 1.0e-6) return i; return 2; }
     /** The track that live input is playing right now (for the UI). */
     int inputTrack() const { return focusTrack.load(); }
 
@@ -167,7 +176,7 @@ private:
     void applyEvent (const SeqEvent& e);
     void routeMidi (const juce::MidiMessage& m, int offset, std::vector<SeqEvent>& out);
     /** A key from MIDI or the UI: through the track's note input (scale, chord, arp) to the device and the recorder. */
-    void inputKey (int pattern, int track, int note, float vel, bool on, int offset, std::vector<SeqEvent>& out);
+    void inputKey (int pattern, int track, int note, float vel, bool on, int offset, std::vector<SeqEvent>& out, bool fromRoll = false);
     void flushInput (int track, std::vector<SeqEvent>& out);
     void recordNote (int track, int note, float vel, bool on, int offset);
     /** Live recording of a controller (pitch bend, mod wheel, expression, pressure) into the clip's lane. */
@@ -223,9 +232,16 @@ private:
         std::atomic<double> beats { 0.25 };
         bool started = false;      // audio thread
         double nextBeat = 0.0;     // audio thread
+        // a synth repeat's note-off, due half a repeat after its hit (audio thread)
+        bool offPending = false;
+        double offBeat = 0.0;
+        int offPattern = 0, offTrack = 0, offNote = 0;
+        int startOffset = 0;
     };
     std::array<Roll, kRolls> rolls;
+    std::array<Roll, kRolls> liveRolls;   // note repeat on played keys: the audio thread's own (inputKey)
     void runRolls (int n, std::vector<SeqEvent>& out);
+    void runRoll (Roll&, double b0, double b1, double perSample, int n, std::vector<SeqEvent>& out);
 
     // UI note FIFO
     struct UiNote { int pattern, track, note; float vel; bool on, audition; };

@@ -30,9 +30,20 @@ public:
     void setSlotEffect (bool pad, int index, const juce::String& effect);
     void removeSlot (int index);            // the later slots shift left (no gaps)
     void moveSlot (int from, int to);
+    /** The same for a track's own slots. */
+    void removeTrackSlot (int pattern, int track, int index);
+    void moveTrackSlot (int pattern, int track, int from, int to);
     /** A pad held (its effect fades in and starts fresh) or released (it fades out). */
     void setHeld (int pad, bool held);
     bool isHeld (int pad) const { return pad >= 0 && pad < kPerformFx && held[(size_t) pad].load(); }
+    /** The pad held most recently that is still held (-1: none): a controller's knobs play its controls. */
+    int heldPad() const
+    {
+        const int last = lastHeld.load();
+        if (isHeld (last)) return last;
+        for (int i = 0; i < kPerformFx; ++i) if (isHeld (i)) return i;
+        return -1;
+    }
     /** The running instance of a slot or pad (message thread: meters, the drawer). */
     const efx::GridEffect* instance (bool perform, int index) const;
 
@@ -47,6 +58,8 @@ public:
 private:
     struct Inst { std::unique_ptr<efx::GridEffect> fx; juce::String name; };
     void syncOne (Inst&, const juce::String& want);
+    void removeIn (FxSlot* chain, Inst* in, int count, int index);
+    void moveIn (FxSlot* chain, Inst* in, int count, int from, int to);
     std::unique_ptr<efx::GridEffect> build (const juce::String& effect) const;
     void run (Inst&, const FxSlot&, float* L, float* R, int n, double bpm, double ppq, bool playing, bool bypass);
 
@@ -55,6 +68,7 @@ private:
     std::array<Inst, kPerformFx> pads;
     std::array<std::array<std::array<Inst, kTrackFx>, kTracks>, kPatterns> tracks;   // mostly empty
     std::array<std::atomic<bool>, kPerformFx> held {};
+    std::atomic<int> lastHeld { -1 };
     std::array<bool, kPerformFx> wasHeld {};
     int syncedGen = -1;   // a newly loaded project waits (dry) until sync() built its effects
     double sampleRate = 48000.0;

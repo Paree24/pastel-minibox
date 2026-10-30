@@ -344,6 +344,7 @@ void Engine::setRoll (int track, int note, float velocity, double beats, bool on
         {
             r.pattern = focusPattern.load(); r.track = track; r.note = note; r.vel = velocity;
             r.beats = std::clamp (beats, 1.0 / 32.0, 4.0);
+            r.startOffset = 0;
             r.started = false;   // the audio thread has finished with this slot: it is inactive
             r.active.store (true, std::memory_order_release);
             return;
@@ -356,30 +357,53 @@ void Engine::runRolls (int n, std::vector<SeqEvent>& out)
     const double b0 = synced ? seq.beatPosition() : beatClock;
     const double perSample = std::max (20.0, proj.bpm) / (60.0 * sampleRate);
     const double b1 = b0 + n * perSample;
-    for (auto& r : rolls)
+    for (auto& r : rolls) runRoll (r, b0, b1, perSample, n, out);
+    for (auto& r : liveRolls) runRoll (r, b0, b1, perSample, n, out);
+}
+
+void Engine::runRoll (Roll& r, double b0, double b1, double perSample, int n, std::vector<SeqEvent>& out)
+{
+    auto at = [&] (double beat) { return std::clamp ((int) ((beat - b0) / perSample), 0, n - 1); };
+    auto endNote = [&] (int off)
     {
-        if (! r.active.load (std::memory_order_acquire)) continue;
-        const double step = r.beats.load();
-        const int pat = r.pattern.load(), tr = r.track.load(), note = r.note.load();
-        const float vel = r.vel.load();
-        auto hit = [&] (int off)
+        if (! r.offPending) return;
+        r.offPending = false;
+        inputKey (r.offPattern, r.offTrack, r.offNote, 0.0f, false, off, out, true);
+    };
+    const bool active = r.active.load (std::memory_order_acquire);
+    if (! active || ! r.started) endNote (0);   // released (or the slot reused): the last repeat stops now
+    if (! active) return;
+    const double step = r.beats.load();
+    const int pat = r.pattern.load(), tr = r.track.load(), note = r.note.load();
+    const float vel = r.vel.load();
+    auto* dev = device (pat, tr);
+    const bool gated = dev != nullptr && dev->laneCount() == 0;   // a synth: each repeat holds for half the rate
+    auto hit = [&] (int off, double beat)
+    {
+        endNote (off);
+        inputKey (pat, tr, note, vel, true, off, out, true);
+        if (gated)
         {
-            inputKey (pat, tr, note, vel, true, off, out);
-            inputKey (pat, tr, note, vel, false, std::min (off + 1, n - 1), out);
-        };
-        if (! r.started)
-        {
-            r.started = true;
-            hit (0);   // the press itself sounds at once
-            r.nextBeat = (std::floor (b0 / step + 1.0e-9) + 1.0) * step;
+            r.offPending = true; r.offBeat = beat + step * 0.5;
+            r.offPattern = pat; r.offTrack = tr; r.offNote = note;
         }
-        if (r.nextBeat < b0 - step || r.nextBeat > b1 + 2.0 * step)   // the grid jumped (Play, a seek): realign
-            r.nextBeat = std::ceil (b0 / step - 1.0e-9) * step;
-        while (r.nextBeat < b1)
-        {
-            hit (std::clamp ((int) ((r.nextBeat - b0) / perSample), 0, n - 1));
-            r.nextBeat += step;
-        }
+        else inputKey (pat, tr, note, vel, false, std::min (off + 1, n - 1), out, true);
+    };
+    if (! r.started)
+    {
+        r.started = true;
+        const int off = std::clamp (r.startOffset, 0, n - 1);
+        hit (off, b0 + off * perSample);   // the press itself sounds at once
+        r.nextBeat = (std::floor (b0 / step + 1.0e-9) + 1.0) * step;
+    }
+    if (r.nextBeat < b0 - step || r.nextBeat > b1 + 2.0 * step)   // the grid jumped (Play, a seek): realign
+        r.nextBeat = std::ceil (b0 / step - 1.0e-9) * step;
+    while (true)
+    {
+        if (r.offPending && r.offBeat < b1 && r.offBeat <= r.nextBeat) { endNote (at (r.offBeat)); continue; }
+        if (r.nextBeat >= b1) break;
+        hit (at (r.nextBeat), r.nextBeat);
+        r.nextBeat += step;
     }
 }
 
@@ -506,9 +530,35 @@ void Engine::routeMidi (const juce::MidiMessage& m, int offset, std::vector<SeqE
     }
 }
 
-void Engine::inputKey (int pattern, int track, int note, float vel, bool on, int offset, std::vector<SeqEvent>& out)
+void Engine::inputKey (int pattern, int track, int note, float vel, bool on, int offset, std::vector<SeqEvent>& out, bool fromRoll)
 {
     const bool plugin = engineMode == Mode::Plugin;
+    if (! fromRoll && ! plugin)
+    {
+        // note repeat: a key starts (or stops) a roll; its hits come back here from runRolls. A key released after
+        // repeat was switched either way ends what its press started.
+        bool rolled = false;
+        for (auto& r : liveRolls)
+            if (r.active.load (std::memory_order_relaxed) && r.track.load() == track && r.note.load() == note)
+            {
+                r.active.store (false, std::memory_order_relaxed);
+                rolled = true;
+            }
+        if (on && noteRepeat.load (std::memory_order_relaxed))
+        {
+            for (auto& r : liveRolls)
+                if (! r.active.load (std::memory_order_relaxed) && ! r.offPending)
+                {
+                    r.pattern = pattern; r.track = track; r.note = note; r.vel = vel;
+                    r.beats = std::clamp (repeatBeats.load(), 1.0 / 32.0, 4.0);
+                    r.startOffset = offset; r.started = false;
+                    r.active.store (true, std::memory_order_relaxed);
+                    break;
+                }
+            return;
+        }
+        if (! on && rolled) return;
+    }
     auto* dev = device (pattern, track);
     auto direct = [&] (int n, float v, bool o, int off)
     {

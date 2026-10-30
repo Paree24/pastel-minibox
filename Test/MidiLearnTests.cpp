@@ -127,3 +127,70 @@ MB_TEST (midi_learn)
     MidiMap::currentFileOverride() = juce::File();
     tmp.deleteRecursively();
 }
+
+/** While a performance effect is held, the knobs mapped to macros play its controls (then its mix); released, they
+    are the macros again. N turns note repeat on; a track's Effects opens its 3 slots in the drawer. */
+MB_TEST (held_effect_takes_the_knobs)
+{
+    ui::shortcuts().mappings().resetToDefaultMappings();
+    const auto tmp = juce::File::getSpecialLocation (juce::File::tempDirectory).getChildFile ("mb_held_knobs");
+    tmp.deleteRecursively(); tmp.createDirectory();
+    MidiMap::currentFileOverride() = tmp.getChildFile ("current.mbmidi");
+    Engine e;
+    e.prepare (48000.0, 512);
+    e.setDevice (0, 1, createDevice (DeviceType::Poly));
+    e.focusTrack = 1;
+    {
+        MainComponent mc (e);
+        mc.setSize (1600, 1000);
+        auto& map = mc.midiMap();
+        map.clear();
+        mc.keyPressed (juce::KeyPress ('m', juce::ModifierKeys::commandModifier, 0));
+        learnHooks().arm ("macro:1:0");
+        map.filter (kMid, cc (77, 40)); map.dispatch();
+        mc.keyPressed (juce::KeyPress (juce::KeyPress::escapeKey));
+        ctx.check (map.mappings.size() == 1, "a knob mapped to macro 1");
+
+        auto& pad = e.project().performFx[5];   // Filter
+        const float before = pad.norm[0], macro = e.device (0, 1)->getMacro (0);
+        mc.masterEffects().setHeld (5, true);
+        map.filter (kMid, cc (77, 127)); map.dispatch();
+        ctx.check (pad.norm[0] > 0.99f && before < 0.99f, "held: the knob plays the effect's first control");
+        ctx.check (std::abs (e.device (0, 1)->getMacro (0) - macro) < 1.0e-6f, "and leaves the macro alone");
+        mc.masterEffects().setHeld (5, false);
+        map.filter (kMid, cc (77, 0)); map.dispatch();
+        ctx.check (pad.norm[0] > 0.99f && e.device (0, 1)->getMacro (0) < 0.01f, "released: the knob is the macro again");
+
+        // note repeat: N
+        ctx.check (! e.noteRepeat.load() && mc.keyPressed (juce::KeyPress ('n', {}, 'n')) && e.noteRepeat.load(), "N turns note repeat on");
+        mc.keyPressed (juce::KeyPress ('n', {}, 'n'));
+        ctx.check (! e.noteRepeat.load(), "and off");
+
+        // a track's effects
+        mc.context().onTrackFx (1);
+        mc.refreshAll();
+        ctx.check (mc.masterFxOpen() && mc.masterFxView().shownTrack() == 1, "a track's Effects opens its slots");
+        mc.masterEffects().setTrackEffect (0, 1, 0, "Bitcrusher");
+        mc.masterEffects().setTrackEffect (0, 1, 1, "Soft Clip Drive");
+        mc.refreshAll();
+        if (auto dir = juce::SystemStats::getEnvironmentVariable ("MB_SNAP_DIR", {}); dir.isNotEmpty())
+        {
+            e.noteRepeat = true;
+            mc.refreshAll();
+            juce::PNGImageFormat png;
+            juce::FileOutputStream out (juce::File (dir).getChildFile ("track_fx.png"));
+            out.setPosition (0); out.truncate();
+            png.writeImageToStream (mc.createComponentSnapshot (mc.getLocalBounds()), out);
+        }
+        else mc.createComponentSnapshot (mc.getLocalBounds());
+        mc.masterEffects().moveTrackSlot (0, 1, 0, 1);
+        const auto& fx = e.project().patterns[0].slots[1].fx;
+        ctx.check (fx[0].effect == "Soft Clip Drive" && fx[1].effect == "Bitcrusher", "move swaps two slots");
+        mc.masterEffects().removeTrackSlot (0, 1, 0);
+        ctx.check (fx[0].effect == "Bitcrusher" && fx[1].effect.isEmpty(), "remove closes the gap");
+        mc.context().onTrackFx (1);
+        ctx.check (! mc.masterFxOpen(), "clicking it again closes the drawer");
+    }
+    MidiMap::currentFileOverride() = juce::File();
+    tmp.deleteRecursively();
+}

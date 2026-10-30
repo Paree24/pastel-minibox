@@ -5,7 +5,8 @@ namespace mb::ui
 {
 /** Master effects (desktop.py master_fx_drawer, mockup 19_master_fx): the chain's 8 slots in series (EFX Grid's
     effects), or the 8 performance pads' effects; the selected one's mode, controls and mix below. Chain: add,
-    replace, remove, move, bypass. Pads: tune each pad's effect, reset it to the pad's settings. */
+    replace, remove, move, bypass. Pads: tune each pad's effect, reset it to the pad's settings. A track's own
+    3 slots (after its device, before the mixer) are the same chain, shorter. */
 class MasterFxDrawer : public juce::Component
 {
 public:
@@ -17,11 +18,15 @@ public:
     std::function<void()> onClose;
     /** Shows the chain (false) or the pads (true), with slot / pad `index` selected. */
     void show (bool pads, int index);
+    /** A track's own effects (the focused pattern's). */
+    void showTrack (int track);
     bool showingPads() const { return padsView; }
+    int shownTrack() const { return fxTrack; }
     int selected() const { return sel; }
 
 private:
     FxSlot& slot (int i) const;
+    int count() const { return fxTrack >= 0 ? kTrackFx : 8; }
     void rebuildKnobs();
     void addEffect (int index, bool replace);
     void remove();
@@ -31,6 +36,7 @@ private:
     AppContext& ctx;
     bool padsView = false;
     int sel = 0;
+    int fxTrack = -1, fxPattern = 0;   // a track's slots (-1: the master's)
     juce::String builtFor;                       // what the knobs show (rebuilt when it changes)
     std::vector<std::unique_ptr<KnobView>> knobs;
     std::unique_ptr<KnobView> mixKnob;
