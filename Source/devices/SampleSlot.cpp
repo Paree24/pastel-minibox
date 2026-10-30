@@ -21,8 +21,19 @@ void SampleData::computePeaks()
     }
 }
 
+namespace
+{
+juce::File& factoryOverride() { static juce::File f; return f; }
+MainThreadPoster& poster() { static MainThreadPoster p; return p; }
+} // namespace
+
+void setFactoryDir (const juce::File& f) { factoryOverride() = f; }
+void setMainThreadPoster (MainThreadPoster p) { poster() = std::move (p); }
+bool canLoadAsync() { return poster() != nullptr || juce::MessageManager::getInstanceWithoutCreating() != nullptr; }
+
 juce::File factoryDir()
 {
+    if (factoryOverride() != juce::File()) return factoryOverride();
     const auto exe = juce::File::getSpecialLocation (juce::File::currentExecutableFile);
     const juce::File candidates[] = {
         exe.getParentDirectory().getChildFile ("Factory"),
@@ -118,7 +129,8 @@ void loadSampleAsync (const juce::String& ref, std::function<void (SamplePtr)> d
     ioPool().addJob ([ref, done]
     {
         auto p = loadSample (ref);
-        juce::MessageManager::callAsync ([p, done] { done (p); });
+        if (poster()) poster() ([p, done] { done (p); });
+        else juce::MessageManager::callAsync ([p, done] { done (p); });
     });
 }
 } // namespace mb

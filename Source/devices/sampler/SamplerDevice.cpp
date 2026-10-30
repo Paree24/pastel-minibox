@@ -77,7 +77,7 @@ void SamplerDevice::loadZone (int z, const juce::String& ref, bool sync)
     if (z < 0 || z >= kZones) return;
     refs[(size_t) z] = ref;
     if (ref.isEmpty()) { zone[z].set ({}); return; }
-    if (sync || forceSyncSampleLoads().load() || juce::MessageManager::getInstanceWithoutCreating() == nullptr) { zone[z].set (loadSample (ref)); return; }
+    if (sync || forceSyncSampleLoads().load() || ! canLoadAsync()) { zone[z].set (loadSample (ref)); return; }
     std::weak_ptr<int> alive = lifetime;
     loadSampleAsync (ref, [this, alive, z, ref] (SamplePtr p) { if (! alive.expired() && refs[(size_t) z] == ref) zone[z].set (p); });
 }

@@ -840,7 +840,7 @@ void Engine::processBlock (float* L, float* R, int n, const juce::MidiBuffer* mi
     std::fill (L, L + n, 0.0f);
     std::fill (R, R + n, 0.0f);
     const auto t0 = juce::Time::getHighResolutionTicks();
-    const juce::ScopedLock sl (audioLock);
+    const AudioLock::ScopedLockType sl (audioLock);
     const bool plugin = engineMode == Mode::Plugin;
 
     // transport commands

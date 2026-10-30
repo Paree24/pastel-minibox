@@ -97,7 +97,7 @@ void DrumSamplerDevice::loadPad (int p, const juce::String& ref, bool sync)
     if (p < 0 || p >= kPads) return;
     refs[(size_t) p] = ref;
     if (ref.isEmpty()) { pad[p].set ({}); return; }
-    if (sync || forceSyncSampleLoads().load() || juce::MessageManager::getInstanceWithoutCreating() == nullptr) { pad[p].set (loadSample (ref)); return; }
+    if (sync || forceSyncSampleLoads().load() || ! canLoadAsync()) { pad[p].set (loadSample (ref)); return; }
     std::weak_ptr<int> alive = lifetime;
     loadSampleAsync (ref, [this, alive, p, ref] (SamplePtr s) { if (! alive.expired() && refs[(size_t) p] == ref) pad[p].set (s); });
 }
@@ -160,7 +160,7 @@ std::vector<double> DrumSamplerDevice::findSlices (const SampleData& d, bool tra
 
 std::vector<double> DrumSamplerDevice::sliceLoop (const juce::String& ref, bool sync, std::function<void (std::vector<double>)> done)
 {
-    if (sync || forceSyncSampleLoads().load() || juce::MessageManager::getInstanceWithoutCreating() == nullptr)
+    if (sync || forceSyncSampleLoads().load() || ! canLoadAsync())
     {
         auto starts = applySlices (ref, loadSample (ref));
         if (done) done (starts);
@@ -356,7 +356,7 @@ void DrumSamplerDevice::load (const juce::ValueTree& tree)
     for (auto& ref : files)
     {
         auto apply = [this, ref] (SamplePtr data) { for (int p = 0; p < kPads; ++p) if (refs[(size_t) p] == ref) pad[p].set (data); };
-        if (forceSyncSampleLoads().load() || juce::MessageManager::getInstanceWithoutCreating() == nullptr) { apply (loadSample (ref)); continue; }
+        if (forceSyncSampleLoads().load() || ! canLoadAsync()) { apply (loadSample (ref)); continue; }
         std::weak_ptr<int> alive = lifetime;
         loadSampleAsync (ref, [alive, apply] (SamplePtr data) { if (! alive.expired()) apply (data); });
     }

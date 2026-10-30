@@ -7,9 +7,46 @@
 #include "MasterBus.h"
 #include <atomic>
 #include <memory>
+#if JUCE_LINUX || JUCE_ANDROID || JUCE_MAC
+ #include <pthread.h>
+#endif
 
 namespace mb
 {
+/** The audio lock. Where the platform has one (Linux, Android, macOS) it is a priority-inheriting mutex: a UI thread
+    holding it for an edit is lifted to the audio thread's priority until it lets go, so the audio thread never waits
+    behind a pre-empted UI thread (with the 2–4 ms buffers of a phone that wait would be a dropout). */
+class AudioLock
+{
+public:
+   #if JUCE_LINUX || JUCE_ANDROID || JUCE_MAC
+    AudioLock()
+    {
+        pthread_mutexattr_t a;
+        pthread_mutexattr_init (&a);
+        pthread_mutexattr_settype (&a, PTHREAD_MUTEX_RECURSIVE);
+        pthread_mutexattr_setprotocol (&a, PTHREAD_PRIO_INHERIT);
+        pthread_mutex_init (&m, &a);
+        pthread_mutexattr_destroy (&a);
+    }
+    ~AudioLock() { pthread_mutex_destroy (&m); }
+    void enter() const noexcept { pthread_mutex_lock (&m); }
+    void exit() const noexcept { pthread_mutex_unlock (&m); }
+   #else
+    void enter() const noexcept { cs.enter(); }
+    void exit() const noexcept { cs.exit(); }
+   #endif
+    using ScopedLockType = juce::GenericScopedLock<AudioLock>;
+
+private:
+   #if JUCE_LINUX || JUCE_ANDROID || JUCE_MAC
+    mutable pthread_mutex_t m;
+   #else
+    juce::CriticalSection cs;
+   #endif
+    JUCE_DECLARE_NON_COPYABLE (AudioLock)
+};
+
 /** Owns the rack(s), the device pool, the master bus and the sequencer, and renders audio.
 
     Threading: parameters are atomics written directly by the UI. Structural changes (device swaps,
@@ -36,7 +73,7 @@ public:
     struct ScopedEdit
     {
         explicit ScopedEdit (Engine& e) : lock (e.audioLock) {}
-        juce::ScopedLock lock;
+        AudioLock::ScopedLockType lock;
     };
 
     // ---- model and devices
@@ -117,7 +154,7 @@ public:
     int projectGeneration() const { return projectGen; }
     std::atomic<float> cpuLoad { 0.0f };
 
-    juce::CriticalSection audioLock;
+    AudioLock audioLock;
 
 private:
     DeviceProcessor* deviceAt (int pattern, int track) override { return devices[(size_t) pattern][(size_t) track].get(); }

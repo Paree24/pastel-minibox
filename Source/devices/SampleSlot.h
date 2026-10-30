@@ -18,8 +18,10 @@ struct SampleData
 };
 using SamplePtr = std::shared_ptr<const SampleData>;
 
-/** Where factory content lives: next to the binary (bundle Resources) or in the source tree. */
+/** Where factory content lives: next to the binary (bundle Resources) or in the source tree, unless
+    setFactoryDir() named a folder (Android: the content unpacked into app storage). */
 juce::File factoryDir();
+void setFactoryDir (const juce::File&);
 juce::File resolveSampleRef (const juce::String& ref);
 juce::String refForFile (const juce::File&);
 SamplePtr loadSample (const juce::String& ref);      // synchronous decode (IO worker or tests)
@@ -50,4 +52,11 @@ std::atomic<bool>& forceSyncSampleLoads();
 
 /** Background decoding: load `ref` on a worker, then hand the result to `done` on the message thread. */
 void loadSampleAsync (const juce::String& ref, std::function<void (SamplePtr)> done);
+
+/** How a worker hands a result to the main thread. The default is JUCE's MessageManager; a host without
+    a JUCE message loop (the Android app) installs its own. */
+using MainThreadPoster = std::function<void (std::function<void()>)>;
+void setMainThreadPoster (MainThreadPoster);
+/** True when a finished background load can reach the main thread; when false, loads decode synchronously. */
+bool canLoadAsync();
 } // namespace mb
