@@ -341,6 +341,9 @@ void PolyDevice::render (float* outL, float* outR, int n)
 
 void PolyDevice::renderChunk (float* L, float* R, int start, int len)
 {
+    // the voices' pitch, cutoff and filter coefficients move at a control rate of 1/8 of the samples (0.17 ms at
+    // 48 kHz): inaudible as steps, and it takes the exp / log / tan of every voice off every sample
+    constexpr int kCtl = 8;
     if (len <= 0) return;
     const float sr = (float) sampleRate;
     const bool va = pv (engine) > 0.5f;
@@ -386,17 +389,12 @@ void PolyDevice::renderChunk (float* L, float* R, int start, int len)
             const float et = v.tol.envTime;
             v.fenv.set (fa * et, fd * et, fs, fr * et);
             v.aenv.set (aa * et, ad * et, as, ar * et);
+            double hz[3] {};   // control rate (below): pitch, cutoff and filter coefficients every kCtl samples
             for (int k = 0; k < m; ++k)
             {
                 const int i = start + off + k;
                 const float lv = lfoBuf[(size_t) i];
                 v.pitch += (v.target - v.pitch) * glideCoef;
-                // DCO pitch is crystal-locked: its Drift spreads and slowly moves each voice's filter instead;
-                // VCOs wander a little in pitch (more with Drift)
-                const float drift = v.tol.vcoSemis (sr);
-                const float wander = va ? drift * (1.0f + 4.0f * driftAmt) : 0.0f;
-                const float filterDrift = va ? 0.0f : driftAmt * (40.0f * drift + 6.0f * (v.tol.cutoff - 1.0f)) * 0.0578f;
-                const float baseNote = v.pitch + octave + fine + v.stack * det + lv * lPitch + wander + exprNow;
                 const float fenv = v.fenv.process();
                 float aenv = v.aenv.process();
                 if (aSrc == 1) aenv = fenv;
@@ -409,11 +407,21 @@ void PolyDevice::renderChunk (float* L, float* R, int start, int len)
                 }
                 const float pw = clamp (pwBase + 0.4f * (pwmAmt + lPwm) * lv, 0.05f, 0.95f);
 
-                const float c = std::log (cut * v.tol.cutoff) + (baseNote - 60.0f) * keyT * 0.0578f + envA * fenv * 4.6f
-                                + lCut * lv * 2.2f + fVel * (v.vel - 0.5f) * 1.6f + filterDrift;
-                const float fc = clamp (std::exp (c), 15.0f, 20000.0f);
-                double hz[3];
-                for (int o = 0; o < nOsc; ++o) hz[o] = midiToHz (baseNote + (nOsc == 3 ? stackOff[mode - 3][o] : 0.0f));
+                if (k % kCtl == 0)
+                {
+                    // DCO pitch is crystal-locked: its Drift spreads and slowly moves each voice's filter instead;
+                    // VCOs wander a little in pitch (more with Drift)
+                    const float drift = v.tol.vcoSemis (sr / (float) kCtl);
+                    const float wander = va ? drift * (1.0f + 4.0f * driftAmt) : 0.0f;
+                    const float filterDrift = va ? 0.0f : driftAmt * (40.0f * drift + 6.0f * (v.tol.cutoff - 1.0f)) * 0.0578f;
+                    const float baseNote = v.pitch + octave + fine + v.stack * det + lv * lPitch + wander + exprNow;
+                    const float c = std::log (cut * v.tol.cutoff) + (baseNote - 60.0f) * keyT * 0.0578f + envA * fenv * 4.6f
+                                    + lCut * lv * 2.2f + fVel * (v.vel - 0.5f) * 1.6f + filterDrift;
+                    const float fc = clamp (std::exp (c), 15.0f, 20000.0f);
+                    for (int o = 0; o < nOsc; ++o) hz[o] = midiToHz (baseNote + (nOsc == 3 ? stackOff[mode - 3][o] : 0.0f));
+                    if (! va) v.cascade.set (fc, res, sr2);
+                    else if (! sharedFilt) v.peak.set (fc, res, sr2);
+                }
                 // one oscillator-mixer sample at the 2× rate
                 auto gen = [&]
                 {
@@ -426,33 +434,31 @@ void PolyDevice::renderChunk (float* L, float* R, int start, int len)
                             auto& d = v.dco[(size_t) o];
                             d.setFreq (hz[o], 2.0 * sampleRate); d.advance();
                             s = dWave == 0 ? d.pulse (pw) : (dWave == 1 ? d.saw() : 0.7f * (d.saw() + d.pulse (pw)));
-                            if (o == 0) sig += subLvl * 0.67f * v.dco[0].sub();
+                            if (o == 0 && subLvl > 0.0f) sig += subLvl * 0.67f * v.dco[0].sub();
                         }
                         else
                         {
                             auto& osc = v.osc[(size_t) o];
                             osc.setFreq ((float) hz[o], sr2); osc.advance();
                             s = vWave == 0 ? osc.saw() : (vWave == 1 ? osc.pulse (pw) : osc.tri());
-                            if (o == 0) sig += subLvl * 0.6f * v.subOsc.process (osc.wrapped, 0);
+                            if (o == 0 && subLvl > 0.0f) sig += subLvl * 0.6f * v.subOsc.process (osc.wrapped, 0);
                         }
                         if (mode == 5 && o == 0) { ring0 = s; continue; }                         // ring: osc 1 waits for osc 2
                         if (mode == 5 && o == 1) { sig += v.ringDc.process (ring0 * s) * 1.1f; continue; }   // osc 1 × osc 2, DC removed
                         sig += nOsc == 3 ? s * 0.55f : s;
                     }
-                    sig += noiseLvl * 0.5f * v.noiseLp.lp (v.noiseGen.white());
+                    if (noiseLvl > 0.0f) sig += noiseLvl * 0.5f * v.noiseLp.lp (v.noiseGen.white());   // off: not generated at all
                     return sig * 0.5f;
                 };
                 float y;
                 if (! va)
                 {
-                    v.cascade.set (fc, res, sr2);
                     auto tick = [&] { return v.cascade.process (v.hp.process (gen(), hpPos, sr2) * 0.8f); };
                     const float t0 = tick(), t1 = tick();
                     y = v.os.downsample (t0, t1) * 1.25f;
                 }
                 else if (! sharedFilt)
                 {
-                    v.peak.set (fc, res, sr2);
                     auto tick = [&] { return v.peak.process (gen(), fDrv); };
                     const float t0 = tick(), t1 = tick();
                     y = v.os.downsample (t0, t1);

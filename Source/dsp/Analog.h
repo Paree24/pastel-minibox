@@ -25,7 +25,8 @@ struct Oversampler2x
 {
     static constexpr int N = 31, C = 15;
     float h[N] {};
-    float up[N] {}, dn[N] {};
+    // each history is written twice (at p and p + N), so a tap reads b[p + N - i] with no wrap-around
+    float up[2 * N] {}, dn[2 * N] {};
     int pu = 0, pd = 0;
     Oversampler2x()
     {
@@ -42,19 +43,21 @@ struct Oversampler2x
     }
     float fir (const float* b, int p) const
     {
-        float acc = h[C] * b[(p - C + N) % N];
-        for (int i = 0; i < N; i += 2) acc += h[i] * b[(p - i + N) % N];   // half-band: odd taps off-centre are zero
+        const float* x = b + p + N;   // x[-i] is the sample i steps back
+        float acc = h[C] * x[-C];
+        for (int i = 0; i < N; i += 2) acc += h[i] * x[-i];   // half-band: odd taps off-centre are zero
         return acc;
     }
+    static void push (float* b, int& p, float v) { p = p + 1 == N ? 0 : p + 1; b[p] = b[p + N] = v; }
     void upsample (float x, float& a, float& b)
     {
-        pu = (pu + 1) % N; up[pu] = 2.0f * x; a = fir (up, pu);
-        pu = (pu + 1) % N; up[pu] = 0.0f;     b = fir (up, pu);
+        push (up, pu, 2.0f * x); a = fir (up, pu);
+        push (up, pu, 0.0f);     b = fir (up, pu);
     }
     float downsample (float a, float b)
     {
-        pd = (pd + 1) % N; dn[pd] = a;
-        pd = (pd + 1) % N; dn[pd] = b;
+        push (dn, pd, a);
+        push (dn, pd, b);
         return fir (dn, pd);
     }
     void reset() { std::fill (std::begin (up), std::end (up), 0.0f); std::fill (std::begin (dn), std::end (dn), 0.0f); }

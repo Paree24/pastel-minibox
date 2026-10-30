@@ -137,3 +137,24 @@ MB_TEST (eco_tier_costs_less)
     ctx.check (ecoPeak > 0.05f, "Eco still plays, finite and audible (peak " + juce::String (ecoPeak, 3) + ")");
     ctx.check (voiceCap (6) == 6, "Full keeps the polyphony");
 }
+
+/** Not a check: the VA holding six-note chords on each engine (the phone's heaviest single device). */
+MB_TEST (tool_perf_va_chords)
+{
+    for (int engineVa = 0; engineVa < 2; ++engineVa)
+    {
+        Engine e;
+        e.prepare (48000.0, 128);
+        auto d = createDevice (DeviceType::Poly); presets::loadDefault (*d, true);
+        d->set ("engine", (float) engineVa);
+        e.setDevice (0, 2, std::move (d));
+        auto& p = e.project();
+        for (int s = 0; s < 16; s += 4) { for (int n : { 48, 52, 55, 59, 62, 65 }) p.patterns[0].slots[2].track.steps[(size_t) s].addNote (n); p.patterns[0].slots[2].track.steps[(size_t) s].setLength (512); }
+        e.play();
+        std::vector<float> l (128), r (128);
+        const auto t0 = juce::Time::getMillisecondCounterHiRes();
+        for (int i = 0; i < (int) (10.0 * 48000 / 128); ++i) e.process (l.data(), r.data(), 128, nullptr);
+        std::printf ("    VA chords (%s engine) %.2f %%\n", engineVa ? "VCO" : "DCO", (juce::Time::getMillisecondCounterHiRes() - t0) / 100.0);
+    }
+    ctx.check (true, "measured");
+}
