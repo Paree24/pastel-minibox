@@ -194,3 +194,41 @@ MB_TEST (tool_perf_all_devices)
     }
     ctx.check (true, "measured");
 }
+
+/** The phone's 1× voices: the VA (both engines) and the Bassline still play (finite, audible) and cost less. */
+MB_TEST (voices_at_1x)
+{
+    auto run = [] (DeviceType type, float engine, bool os, float& peak)
+    {
+        oversampleVoices() = os;
+        Engine e;
+        e.prepare (48000.0, 128);
+        auto d = createDevice (type); presets::loadDefault (*d, true);
+        if (type == DeviceType::Poly) d->set ("engine", engine);
+        e.setDevice (0, 0, std::move (d));
+        auto& tr = e.project().patterns[0].slots[0].track;
+        for (int s = 0; s < 16; s += 4) { for (int n : { 48, 52, 55, 59, 62, 65 }) tr.steps[(size_t) s].addNote (n); tr.steps[(size_t) s].setLength (512); }
+        e.play();
+        std::vector<float> l (128), r (128);
+        peak = 0.0f;
+        bool finite = true;
+        const auto t0 = juce::Time::getMillisecondCounterHiRes();
+        for (int i = 0; i < (int) (6.0 * 48000 / 128); ++i)
+        {
+            e.process (l.data(), r.data(), 128, nullptr);
+            for (float v : l) { finite = finite && std::isfinite (v); peak = std::max (peak, std::abs (v)); }
+        }
+        if (! finite) peak = -1.0f;
+        return juce::Time::getMillisecondCounterHiRes() - t0;
+    };
+    for (auto [type, engine, name] : { std::tuple { DeviceType::Poly, 0.0f, "VA DCO" }, std::tuple { DeviceType::Poly, 1.0f, "VA VCO" },
+                                       std::tuple { DeviceType::Mono, 0.0f, "Bassline" } })
+    {
+        float p2 = 0, p1 = 0;
+        const double t2 = run (type, engine, true, p2), t1 = run (type, engine, false, p1);
+        std::printf ("    %-8s 2x %.0f ms, 1x %.0f ms\n", name, t2, t1);
+        ctx.check (p1 > 0.02f && p1 < 4.0f, juce::String (name) + " plays at 1x (peak " + juce::String (p1, 3) + ")");
+        ctx.check (t1 < t2, juce::String (name) + " costs less at 1x");
+    }
+    oversampleVoices() = true;
+}

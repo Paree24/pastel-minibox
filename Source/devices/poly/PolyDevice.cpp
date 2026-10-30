@@ -90,11 +90,11 @@ void PolyDevice::prepare (double sr, int maxBlock)
         v.fenv.prepare (r); v.aenv.prepare (r);
         v.rng.seed (rng.next());
         for (auto& o : v.osc) o.randomise (rng);
-        for (auto& d : v.dco) { d.prepare (2.0f * r); d.randomise (rng); }
+        for (auto& d : v.dco) { d.prepare ((float) voiceOs() * r); d.randomise (rng); }
         v.noiseGen.rng.seed (rng.next());
-        v.noiseLp.setCutoff (8000.0f, 2.0f * r);   // the oscillator mixer runs at 2×
-        v.ringDc.prepare (2.0f * r);
-        v.subOsc.prepare (2.0f * r);
+        v.noiseLp.setCutoff (8000.0f, (float) voiceOs() * r);   // the oscillator mixer runs at 2× (1× on the phone)
+        v.ringDc.prepare ((float) voiceOs() * r);
+        v.subOsc.prepare ((float) voiceOs() * r);
         v.tol.roll (rng, true);   // each voice card has its own tolerances
     }
     sharedEnv.prepare (r);
@@ -371,7 +371,8 @@ void PolyDevice::renderChunk (float* L, float* R, int start, int len)
     // Octave, Fifth, Ring: osc 2 and 3 against osc 1 (Ring multiplies osc 1 by osc 2 a fifth up: sum and
     // difference tones, the bell of a ring modulator; osc 3 an octave down mixes in as it is)
     static constexpr float stackOff[3][3] = { { 0, 12, -12 }, { 0, 7, 12 }, { 0, 7, -12 } };
-    const float sr2 = 2.0f * sr;
+    const int osN = voiceOs();
+    const float sr2 = (float) osN * sr;   // the voices' rate: 2× (desktop) or 1× (phone)
 
     const float fa = pv (fAttack), fd = pv (fDecay), fs = pv (fSustain), fr = pv (fRelease);
     const float aa = pv (aAttack), ad = pv (aDecay), as = pv (aSustain), ar = pv (aRelease);
@@ -432,7 +433,7 @@ void PolyDevice::renderChunk (float* L, float* R, int start, int len)
                         if (! va)
                         {
                             auto& d = v.dco[(size_t) o];
-                            d.setFreq (hz[o], 2.0 * sampleRate); d.advance();
+                            d.setFreq (hz[o], (double) sr2); d.advance();
                             s = dWave == 0 ? d.pulse (pw) : (dWave == 1 ? d.saw() : 0.7f * (d.saw() + d.pulse (pw)));
                             if (o == 0 && subLvl > 0.0f) sig += subLvl * 0.67f * v.dco[0].sub();
                         }
@@ -454,16 +455,17 @@ void PolyDevice::renderChunk (float* L, float* R, int start, int len)
                 if (! va)
                 {
                     auto tick = [&] { return v.cascade.process (v.hp.process (gen(), hpPos, sr2) * 0.8f); };
-                    const float t0 = tick(), t1 = tick();
-                    y = v.os.downsample (t0, t1) * 1.25f;
+                    if (osN == 2) { const float t0 = tick(), t1 = tick(); y = v.os.downsample (t0, t1) * 1.25f; }
+                    else y = tick() * 1.25f;
                 }
                 else if (! sharedFilt)
                 {
                     auto tick = [&] { return v.peak.process (gen(), fDrv); };
-                    const float t0 = tick(), t1 = tick();
-                    y = v.os.downsample (t0, t1);
+                    if (osN == 2) { const float t0 = tick(), t1 = tick(); y = v.os.downsample (t0, t1); }
+                    else y = tick();
                 }
-                else { const float t0 = gen(), t1 = gen(); y = v.os.downsample (t0, t1); }
+                else if (osN == 2) { const float t0 = gen(), t1 = gen(); y = v.os.downsample (t0, t1); }
+                else y = gen();
 
                 if (v.fadeIn < 1.0f) v.fadeIn = std::min (1.0f, v.fadeIn + fadeStep);
                 v.velGain += ((1.0f - velSens + velSens * v.vel) - v.velGain) * velGlide;
@@ -488,7 +490,8 @@ void PolyDevice::renderChunk (float* L, float* R, int start, int len)
                 const float c = std::log (cut) + (lastPitch - 60.0f) * keyT * 0.0578f + envA * env * 4.6f + lCut * lfoBuf[(size_t) i] * 2.2f;
                 sharedFilter.set (clamp (std::exp (c), 15.0f, 20000.0f), res, sr2);
                 // the voice sum is padded into the one filter's input stage (six voices would slam it)
-                const float y = 2.5f * dsp::analog::run2x (sharedOs, sharedBuf[k] * 0.4f, [this, fDrv] (float x) { return sharedFilter.process (x, fDrv); });
+                const float y = 2.5f * (osN == 2 ? dsp::analog::run2x (sharedOs, sharedBuf[k] * 0.4f, [this, fDrv] (float x) { return sharedFilter.process (x, fDrv); })
+                                                 : sharedFilter.process (sharedBuf[k] * 0.4f, fDrv));
                 L[i] += y; R[i] += y;
             }
         }

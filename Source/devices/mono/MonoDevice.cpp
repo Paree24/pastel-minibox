@@ -66,7 +66,7 @@ void MonoDevice::prepare (double sr, int maxBlock)
     const float r = (float) sr;
     for (auto& v : voices)
     {
-        v.env.prepare (r); v.sub.prepare (2.0f * r);
+        v.env.prepare (r); v.sub.prepare ((float) voiceOs() * r);
         v.osc.randomise (rng); v.noise.rng.seed (rng.next());
         v.tol.roll (rng, true);
     }
@@ -248,10 +248,12 @@ void MonoDevice::render (float* outL, float* outR, int n)
             const float cutNote = cutBuf[(size_t) i] + std::log (v.tol.cutoff) + (note - 60.0f) * (keyT * 0.0578f)
                                   + envA * env * 4.6f + lfoC * lv * 2.2f;
             const float fc = clamp (std::exp (cutNote), 15.0f, 20000.0f);
-            v.filter.set (fc, res, 2.0f * sr);
+            const int osN = voiceOs();
+            const float srOs = (float) osN * sr;   // 2× (desktop) or 1× (phone)
+            v.filter.set (fc, res, srOs);
             // oscillators and filter run at 2×: the oscillators' residual aliasing lands above the audio
             // band and is removed by the decimator; the mixer drives the filter's input OTA (Drive)
-            v.osc.setFreq (midiToHz (note), 2.0f * sr);
+            v.osc.setFreq (midiToHz (note), srOs);
             auto tick = [&]
             {
                 v.osc.advance();
@@ -259,8 +261,9 @@ void MonoDevice::render (float* outL, float* outR, int n)
                                    + mSub * 0.8f * v.sub.process (v.osc.wrapped, sType) + mN * 0.6f * v.noise.white()) * mixNorm;
                 return v.filter.process (sig * 0.8f * (1.0f + drv * 3.0f));
             };
-            const float t0 = tick(), t1 = tick();
-            float y = v.os.downsample (t0, t1) * 1.25f;
+            float y;
+            if (osN == 2) { const float t0 = tick(), t1 = tick(); y = v.os.downsample (t0, t1) * 1.25f; }
+            else y = tick() * 1.25f;
             if (drv > 0.0f) y /= (1.0f + drv * 1.2f);
             float amp = env;
             if (amode == 1)

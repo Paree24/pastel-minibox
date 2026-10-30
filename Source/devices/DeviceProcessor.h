@@ -101,6 +101,10 @@ struct TransportInfo
 enum class Quality { Full = 0, Eco = 1 };
 std::atomic<int>& qualitySetting();
 inline bool eco() { return qualitySetting().load (std::memory_order_relaxed) == (int) Quality::Eco; }
+/** The VA and Bassline voices run their oscillators and filters at 2× (the desktop) or 1× (the phone: less CPU, a
+    little more aliasing at the top). Set before the devices are prepared. */
+std::atomic<bool>& oversampleVoices();
+inline int voiceOs() { return oversampleVoices().load (std::memory_order_relaxed) ? 2 : 1; }
 /** A device's polyphony under the current tier. */
 inline int voiceCap (int full) { return eco() ? std::max (1, (full + 1) / 2) : full; }
 
