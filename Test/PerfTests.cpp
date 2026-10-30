@@ -158,3 +158,39 @@ MB_TEST (tool_perf_va_chords)
     }
     ctx.check (true, "measured");
 }
+
+/** Not a check: every device on a busy part (the baseline for the CPU work on the phone). */
+MB_TEST (tool_perf_all_devices)
+{
+    const DeviceType types[7] = { DeviceType::Mono, DeviceType::Poly, DeviceType::Acid, DeviceType::FM, DeviceType::Sampler, DeviceType::Drums, DeviceType::DrumSampler };
+    for (auto type : types)
+    {
+        Engine e;
+        e.prepare (48000.0, 128);
+        auto d = createDevice (type); presets::loadDefault (*d, true);
+        const bool drums = d->laneCount() > 0;
+        e.setDevice (0, 0, std::move (d));
+        auto& tr = e.project().patterns[0].slots[0].track;
+        for (int s = 0; s < 16; ++s)
+        {
+            if (drums) { for (int l = 0; l < 8; ++l) tr.lanes[(size_t) l][(size_t) s].on = (s + l) % 2 == 0; continue; }
+            if (type == DeviceType::Mono || type == DeviceType::Acid) { tr.steps[(size_t) s].addNote (36 + s % 5); continue; }
+            if (s % 4 == 0) { for (int n : { 48, 52, 55, 59, 62, 65 }) tr.steps[(size_t) s].addNote (n); tr.steps[(size_t) s].setLength (512); }
+        }
+        e.play();
+        std::vector<float> l (128), r (128);
+        const auto t0 = juce::Time::getMillisecondCounterHiRes();
+        for (int i = 0; i < (int) (10.0 * 48000 / 128); ++i) e.process (l.data(), r.data(), 128, nullptr);
+        std::printf ("    %-13s %.2f %%\n", deviceTypeName (type).toRawUTF8(), (juce::Time::getMillisecondCounterHiRes() - t0) / 100.0);
+    }
+    {
+        Engine e;
+        e.prepare (48000.0, 128);
+        e.play();
+        std::vector<float> l (128), r (128);
+        const auto t0 = juce::Time::getMillisecondCounterHiRes();
+        for (int i = 0; i < (int) (10.0 * 48000 / 128); ++i) e.process (l.data(), r.data(), 128, nullptr);
+        std::printf ("    %-13s %.2f %%\n", "(empty)", (juce::Time::getMillisecondCounterHiRes() - t0) / 100.0);
+    }
+    ctx.check (true, "measured");
+}

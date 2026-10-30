@@ -9,6 +9,14 @@
 namespace mb::dsp::drum
 {
 /** Controls shared by every model (the part's knobs, read once per block). */
+/** exp (x) for an argument that rarely changes (a per-sample decay factor from a fixed time): recomputed only when x
+    changes, so the result is exactly std::exp's. */
+struct ExpCache
+{
+    float x = std::numeric_limits<float>::quiet_NaN(), v = 1.0f;
+    float operator() (float a) { if (a != x) { x = a; v = std::exp (a); } return v; }
+};
+
 struct Ctl
 {
     float pitch = 50.0f, bend = 0.5f, bendTime = 0.05f, decay = 0.5f, tone = 0.5f, click = 0.4f;
@@ -99,6 +107,7 @@ inline float blepSquare (double phase, double dt)
     (leakage into the tuning transistor: the "sigh"). Retriggers add to the ringing state. */
 struct BridgedT
 {
+    ExpCache ec0, ec1;   // per-sample decay factors from fixed times: exp only when they change
     Svf res;
     Tpt1 shelf;
     float sr = 48000.0f, pulseAmp = 0.0f, follower = 0.0f, attackEnv = 0.0f, gain = 1.0f;
@@ -114,13 +123,13 @@ struct BridgedT
         float s = p - 0.7f * shelf.lp (p, 1100.0f, sr);
         if (s < 0.0f) s = -0.05f * (1.0f - std::exp (s / 0.05f));
         // attack envelope: high while the trigger is on, settles ~5 ms after it falls
-        attackEnv = t < pulseLen ? 1.0f : attackEnv * std::exp (-1.0f / (0.0018f * sr));
+        attackEnv = t < pulseLen ? 1.0f : attackEnv * ec0 (-1.0f / (0.0018f * sr));
         const float hz = f0 * (1.0f + shift * attackEnv) * (1.0f + sigh * std::min (1.0f, follower));
         const float k = dampFor (hz, t60) * (1.0f - 0.6f * attackEnv);
         res.tick (s + extraIn, hz, k, sr);
         // normalised by the shaped pulse's area (≈ 0.3 × 1 ms) × ω: a full trigger rings at about unit level
         const float y = res.bp / (kTwoPi * hz * 0.0003f) * gain;
-        follower = std::max (std::abs (y), follower * std::exp (-1.0f / (0.035f * sr)));
+        follower = std::max (std::abs (y), follower * ec1 (-1.0f / (0.035f * sr)));
         ++t;
         return y;
     }
@@ -155,6 +164,7 @@ struct Kick808
     time), body holds near full level before decaying, attack = a short pulse plus low-passed noise. */
 struct Kick909
 {
+    ExpCache ec0;   // per-sample decay factors from fixed times: exp only when they change
     double phase = 0.25, dt = 0.0;
     float sr = 48000.0f, penv = 0.0f, amp = 0.0f;
     int t = 1 << 30;
@@ -165,7 +175,7 @@ struct Kick909
     float process (const Ctl& c)
     {
         const float tm = (float) t / sr;
-        penv *= std::exp (-1.0f / (std::max (0.002f, c.bendTime) * sr));
+        penv *= ec0 (-1.0f / (std::max (0.002f, c.bendTime) * sr));
         const float hz = c.pitch * (1.0f + 13.0f * c.bend * penv);   // bend 0.45: ≈ 6× at the start (≈ 300 Hz → 50 Hz, τ ≈ 10 ms)
         dt = std::min (0.45, (double) hz / sr);
         phase += dt; if (phase >= 1.0) phase -= 1.0;
@@ -187,6 +197,7 @@ struct Kick909
     shapes it, a multi-stage drive and a 12 dB tone low-pass follow. */
 struct KickResonator
 {
+    ExpCache ec0;   // per-sample decay factors from fixed times: exp only when they change
     Svf osc, toneLp;
     float sr = 48000.0f, penv = 0.0f, amp = 0.0f, accAmp = 1.0f;
     int t = 1 << 30;
@@ -196,7 +207,7 @@ struct KickResonator
     float process (const Ctl& c)
     {
         const float tm = (float) t / sr;
-        penv *= std::exp (-1.0f / (std::max (0.003f, c.bendTime) * sr));
+        penv *= ec0 (-1.0f / (std::max (0.003f, c.bendTime) * sr));
         const float hz = c.pitch * std::exp2 (4.0f * c.bend * penv);
         const float pulse = t < (int) (0.0006f * sr) ? 2.5f * (0.3f + c.click) : 0.0f;
         // negative damping makes it sing; the saturating band-pass state sets the singing level
@@ -220,6 +231,7 @@ struct KickResonator
     2–8 kHz band with its own short envelope ("snappy"); the snappy contour also nudges the resonators. */
 struct Snare808
 {
+    ExpCache ec0;   // per-sample decay factors from fixed times: exp only when they change
     BridgedT lo, hi;
     Svf noiseHp;
     Tpt1 noiseLp;
@@ -231,7 +243,7 @@ struct Snare808
     float process (const Ctl& c)
     {
         const float a = std::min (1.0f, (float) t / (0.0004f * sr));
-        nEnv *= std::exp (-1.0f / ((0.018f + 0.05f * c.decay) * sr));
+        nEnv *= ec0 (-1.0f / ((0.018f + 0.05f * c.decay) * sr));
         const float body = lo.process (c.pitch, 0.8f * c.decay + 0.04f, 0.15f, 0.02f, nEnv * 0.004f)
                          + (0.05f + 0.3f * c.tone) * hi.process (c.pitch * 1.98f, 0.55f * c.decay + 0.03f, 0.1f, 0.0f);
         noiseHp.tick (analogNoise (rng), 1800.0f, 1.2f, sr);
@@ -249,6 +261,7 @@ struct Snare808
     the main high-passed "snappy" blast that holds ~24 ms before decaying (Tone sets that decay). */
 struct Snare909
 {
+    ExpCache ec0, ec1, ec2, ec3;   // per-sample decay factors from fixed times: exp only when they change
     double ph1 = 0.25, ph2 = 0.25;
     float sr = 48000.0f, e1 = 0.0f, e2 = 0.0f, bump = 0.0f, nA = 0.0f, nB = 0.0f, acc = 1.0f;
     int t = 1 << 30;
@@ -265,17 +278,17 @@ struct Snare909
     {
         const float tm = (float) t / sr;
         // pitch bump: ~0.6 ms rise, ~4 ms fall
-        bump = tm < 0.0006f ? tm / 0.0006f : bump * std::exp (-1.0f / (0.004f * sr));
+        bump = tm < 0.0006f ? tm / 0.0006f : bump * ec0 (-1.0f / (0.004f * sr));
         const float f1 = c.pitch * (1.0f + 1.2f * c.bend * bump), f2 = f1 * 1.62f;
         const double d1 = std::min (0.45, (double) f1 / sr), d2 = std::min (0.45, (double) f2 / sr);
         ph1 += d1; if (ph1 >= 1.0) ph1 -= 1.0;
         ph2 += d2; if (ph2 >= 1.0) ph2 -= 1.0;
         const float tau1 = 0.03f + 0.15f * c.decay;
-        e1 *= std::exp (-1.0f / (tau1 * sr));
-        e2 *= std::exp (-1.0f / (0.55f * tau1 * sr));
+        e1 *= ec1 (-1.0f / (tau1 * sr));
+        e2 *= ec2 (-1.0f / (0.55f * tau1 * sr));
         const float body = diodeRound (bandTri (ph1, d1), 0.1f) * vca (e1) + 0.55f * diodeRound (bandTri (ph2, d2), 0.1f) * vca (e2);
         const float n = lfsr.next();
-        nA *= std::exp (-1.0f / (0.006f * sr));
+        nA *= ec3 (-1.0f / (0.006f * sr));
         const float pathA = aLp.lp (n, 4500.0f, sr) * nA * 0.25f;
         const float holdT = 0.024f;
         const float decB = 0.015f + 0.12f * c.tone;
@@ -329,6 +342,7 @@ struct Clap
 /** 1983 tom: diode-rounded triangle with a pitch envelope (Bend, Bend Time) and a little noise. */
 struct Tom909
 {
+    ExpCache ec0;   // per-sample decay factors from fixed times: exp only when they change
     double phase = 0.25;
     float sr = 48000.0f, penv = 0.0f, amp = 0.0f;
     int t = 1 << 30;
@@ -339,7 +353,7 @@ struct Tom909
     float process (const Ctl& c)
     {
         const float tm = (float) t / sr;
-        penv *= std::exp (-1.0f / (std::max (0.003f, c.bendTime) * sr));
+        penv *= ec0 (-1.0f / (std::max (0.003f, c.bendTime) * sr));
         const float hz = c.pitch * (1.0f + 1.5f * c.bend * penv);
         const double d = std::min (0.45, (double) hz / sr);
         phase += d; if (phase >= 1.0) phase -= 1.0;
@@ -357,6 +371,7 @@ struct Tom909
     optional upper mode (Tone; ratio 3.6 = rim shot) and a high-passed noise tick (Click). */
 struct Ping808
 {
+    ExpCache ec0;   // per-sample decay factors from fixed times: exp only when they change
     BridgedT main, upper;
     Svf nHp;
     Rng rng { 1980u };
@@ -365,7 +380,7 @@ struct Ping808
     void trigger (const Ctl& c) { const float a = 0.6f + 0.4f * c.accent; main.trigger (a); upper.trigger (a); nEnv = a; }
     float process (const Ctl& c, float upperRatio = 3.6f)
     {
-        nEnv *= std::exp (-1.0f / (0.004f * sr));
+        nEnv *= ec0 (-1.0f / (0.004f * sr));
         const float m = main.process (c.pitch, c.decay, 0.12f, 0.03f * c.bend);
         const float u = c.tone > 0.01f ? upper.process (c.pitch * upperRatio, 0.35f * c.decay, 0.05f, 0.0f) * c.tone * (upperRatio > 3.0f ? 2.5f : 0.35f) : 0.0f;
         nHp.tick (analogNoise (rng), 3000.0f, 1.0f, sr);
@@ -378,6 +393,7 @@ struct Ping808
 /** Cowbell: two square oscillators at ~1 : 1.48 through a band-pass, with a fast drop then a long tail. */
 struct Cowbell
 {
+    ExpCache ec0, ec1;   // per-sample decay factors from fixed times: exp only when they change
     double p1 = 0.0, p2 = 0.0;
     Svf bp;
     Tpt1 hp;
@@ -391,8 +407,8 @@ struct Cowbell
         p2 += d2; if (p2 >= 1.0) p2 -= 1.0;
         const float s = 0.5f * (blepSquare (p1, d1) + blepSquare (p2, d2));
         bp.tick (s, 900.0f + 1800.0f * c.tone, 0.9f, sr);
-        fast *= std::exp (-1.0f / (0.012f * sr));
-        slow *= std::exp (-6.9f / (std::max (0.05f, 2.5f * c.decay) * sr));
+        fast *= ec0 (-1.0f / (0.012f * sr));
+        slow *= ec1 (-6.9f / (std::max (0.05f, 2.5f * c.decay) * sr));
         return hp.hp (bp.bp, 350.0f, sr) * (fast + slow) * 1.6f;
     }
     bool done() const { return fast + slow < 1.0e-4f; }
@@ -405,6 +421,7 @@ struct Cowbell
     Cymbal: three bands with their own envelopes; band 3 through a resonant high-pass near 10.5 kHz. */
 struct Metal808
 {
+    ExpCache ec0, ec1, ec2, ec3;   // per-sample decay factors from fixed times: exp only when they change
     static constexpr double kHz[6] = { 205.3, 304.4, 369.6, 522.7, 540.0, 800.0 };
     double ph[6] {};
     Svf bp1, bp2, hp1, hp2, hp3;
@@ -430,7 +447,7 @@ struct Metal808
         ++t;
         if (! cymbal)
         {
-            e1 *= std::exp (-6.9f / (std::max (0.01f, c.decay) * sr));
+            e1 *= ec0 (-6.9f / (std::max (0.01f, c.decay) * sr));
             // the band-passed cluster plus the squares' own upper harmonics, through a steep high-pass
             const float x = (0.3f * bp1.bp + 0.7f * bp2.bp + 0.35f * sum) * e1 * a;
             hp1.tick (x, 6000.0f + 3000.0f * c.tone, 1.3f, sr);
@@ -438,9 +455,9 @@ struct Metal808
             return hp2.hp * 5.0f;
         }
         // a fast first band and long upper bands: the measured fast drop then ~3 s ring
-        e1 *= std::exp (-6.9f / (std::max (0.02f, 0.12f * c.decay) * sr));
-        e2 *= std::exp (-6.9f / (std::max (0.02f, c.decay) * sr));
-        e3 *= std::exp (-6.9f / (std::max (0.02f, 0.45f * c.decay) * sr));
+        e1 *= ec1 (-6.9f / (std::max (0.02f, 0.12f * c.decay) * sr));
+        e2 *= ec2 (-6.9f / (std::max (0.02f, c.decay) * sr));
+        e3 *= ec3 (-6.9f / (std::max (0.02f, 0.45f * c.decay) * sr));
         hp1.tick (bp1.bp * e1 * a, 2500.0f, 1.4f, sr);
         hp2.tick (bp2.bp * e2 * a, 5500.0f, 1.4f, sr);
         hp3.tick (bp2.bp * e3 * a, 10500.0f, 0.6f, sr);
@@ -537,6 +554,7 @@ struct BoxKick
 /** Beat box snare: a resonator body plus noise through a resonant band-pass (Snappy = its level). */
 struct BoxSnare
 {
+    ExpCache ec0;   // per-sample decay factors from fixed times: exp only when they change
     Svf res, nbp;
     Rng rng { 2013u };
     float sr = 48000.0f, pulseAmp = 0.0f, nEnv = 0.0f, fol = 0.0f;
@@ -548,7 +566,7 @@ struct BoxSnare
         const float pulse = t < (int) (0.0006f * sr) ? pulseAmp : 0.0f;
         res.tick (pulse, c.pitch, dampFor (c.pitch, 0.6f * c.decay + 0.03f), sr);
         const float body = res.bp / (kTwoPi * c.pitch * 0.0006f) * 0.6f;
-        nEnv *= std::exp (-6.9f / ((0.08f + 0.5f * c.decay) * sr));
+        nEnv *= ec0 (-6.9f / ((0.08f + 0.5f * c.decay) * sr));
         nbp.tick (analogNoise (rng), 2500.0f + 4000.0f * c.tone, 0.7f, sr);
         fol = std::max (std::abs (body), fol * 0.9995f);
         ++t;
@@ -585,6 +603,7 @@ struct BoxTom
     band-pass whose ring gives the "grain"; Pitch moves the cluster, Tone the resonance. */
 struct BoxHat
 {
+    ExpCache ec0;   // per-sample decay factors from fixed times: exp only when they change
     static constexpr double kRatio[6] = { 1.0, 1.304, 1.466, 1.718, 2.053, 2.386 };
     double ph[6] {};
     Svf bp, hp;
@@ -600,7 +619,7 @@ struct BoxHat
             ph[i] += d; if (ph[i] >= 1.0) ph[i] -= 1.0;
             sum += blepSquare (ph[i], d);
         }
-        env *= std::exp (-6.9f / (std::max (0.01f, c.decay) * sr));
+        env *= ec0 (-6.9f / (std::max (0.01f, c.decay) * sr));
         bp.tick (sum / 6.0f, 8200.0f, 0.5f - 0.38f * c.tone, sr);
         hp.tick (bp.bp, 6500.0f, 1.3f, sr);
         return hp.hp * env * 4.0f;
@@ -614,6 +633,7 @@ struct BoxHat
     and length together (Pitch / reference pitch), a VCA envelope (Decay) and the stored bit depth. */
 struct PcmVoice
 {
+    ExpCache ec0;   // per-sample decay factors from fixed times: exp only when they change
     const std::vector<float>* buf = nullptr;
     double pos = 1.0e12;
     float env = 0.0f, acc = 1.0f, sr = 48000.0f;
@@ -626,7 +646,7 @@ struct PcmVoice
         const float f = (float) (pos - i);
         const float x = (*buf)[(size_t) i] + ((*buf)[(size_t) i + 1] - (*buf)[(size_t) i]) * f;
         pos += std::clamp (c.pitch / refPitch, 0.25f, 4.0f);
-        env *= std::exp (-6.9f / (std::max (0.02f, c.decay) * sr));
+        env *= ec0 (-6.9f / (std::max (0.02f, c.decay) * sr));
         return x * env * acc;
     }
     bool done() const { return env < 1.0e-4f || buf == nullptr || pos >= (double) buf->size() - 2.0; }

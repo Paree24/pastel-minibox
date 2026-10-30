@@ -254,21 +254,26 @@ void FmDevice::render (float* outL, float* outR, int n)
             const float ks = 1.0f - x.keyScale * clamp ((v.pitch - 48.0f) / 48.0f, 0.0f, 1.0f);
             opAmp[o] = x.muted ? 0.0f : x.amp * ks * (1.0f - x.velSens * (1.0f - v.vel));
         }
+        float baseHz = 0.0f;
         for (int i = 0; i < n; ++i)
         {
             v.pitch += (v.target - v.pitch) * glideCoef;
             const float lv = lfoBuf[(size_t) i];
-            float note = v.pitch + transposeSt + lv * lPitch + xs;
-            if (pegActive) note += (v.pitchEnv.process() - 0.5f) * 2.0f * 12.0f;
-            const float baseHz = midiToHz (note);
+            const float peg = pegActive ? (v.pitchEnv.process() - 0.5f) * 2.0f * 12.0f : 0.0f;
+            // pitch at a control rate of every 8 samples (0.17 ms): the exp2 and the operators' frequencies
+            const bool ctl = (i & 7) == 0;
+            if (ctl)
+            {
+                baseHz = midiToHz (v.pitch + transposeSt + lv * lPitch + xs + peg);
+                for (int o = 0; o < kOps; ++o)
+                    v.op[(size_t) o].setFreq (s[(size_t) o].fixed ? s[(size_t) o].freq : baseHz * s[(size_t) o].detRatio, sr);
+            }
             float out[kOps] {};
             float sum = 0.0f;
             for (int o = kOps - 1; o >= 0; --o)
             {
                 const auto& x = s[(size_t) o];
                 auto& op = v.op[(size_t) o];
-                const float hz = x.fixed ? x.freq : baseHz * x.detRatio;
-                op.setFreq (hz, sr);
                 float pm = 0.0f;
                 const uint8_t mods = A.mods[(size_t) o];
                 if (mods) for (int m = 0; m < kOps; ++m) if ((mods >> m) & 1u) pm += out[m];

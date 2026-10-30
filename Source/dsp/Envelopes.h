@@ -64,6 +64,7 @@ struct RateLevelEnv
     int stage = -1;  // -1 idle, 0..2 attack-to-sustain, 3 release
     float value = 0.0f, sr = 48000.0f, rateScale = 1.0f;
     float decaySecs = -1.0f, decayMul = 1.0f;   // the decay's per-sample factor, cached
+    float cRate = -1.0f, cScale = -1.0f, cSecs = 1.0f, cRise = 0.0f;   // the stage's time and rise step, cached (no pow per sample)
 
     void prepare (float rate) { sr = rate; }
     static float rateToSeconds (float r) { return 0.0015f * std::pow (2.0f, (1.0f - clamp (r, 0.0f, 1.0f)) * 14.5f); }
@@ -76,11 +77,17 @@ struct RateLevelEnv
     {
         if (stage < 0) return 0.0f;
         const float target = levels[stage];
-        const float secs = rateToSeconds (rates[stage]) / rateScale;
+        if (rates[stage] != cRate || rateScale != cScale)
+        {
+            cRate = rates[stage]; cScale = rateScale;
+            cSecs = rateToSeconds (cRate) / rateScale;
+            cRise = (1.0f / (cSecs * sr)) * 1.2f;
+        }
+        const float secs = cSecs;
         const float rising = target > value;
         if (rising)
         {
-            value += (1.0f / (secs * sr)) * 1.2f;
+            value += cRise;
             if (value >= target) { value = target; if (stage < 2) ++stage; }
         }
         else
