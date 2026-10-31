@@ -68,8 +68,11 @@ DrumSamplerDevice::DrumSamplerDevice() : DeviceProcessor (DeviceType::DrumSample
 juce::String DrumSamplerDevice::laneName (int lane) const
 {
     const auto s = pad[std::clamp (lane, 0, 7)].get();
-    if (! s) return "Pad " + juce::String (lane + 1);
-    auto n = s->name.containsChar ('_') ? s->name.fromLastOccurrenceOf ("_", false, false) : s->name;
+    // still loading (a sample loads in the background): named from its file meanwhile
+    const auto& ref = refs[(size_t) std::clamp (lane, 0, 7)];
+    if (! s && ref.isEmpty()) return "Pad " + juce::String (lane + 1);
+    const auto raw = s ? s->name : ref.fromLastOccurrenceOf ("/", false, false).fromFirstOccurrenceOf ("factory:", false, false).upToLastOccurrenceOf (".", false, false);
+    auto n = raw.containsChar ('_') ? raw.fromLastOccurrenceOf ("_", false, false) : raw;
     if (refs[(size_t) lane] == refs[(size_t) ((lane + 1) % kPads)] && refs[(size_t) lane] == refs[(size_t) ((lane + 2) % kPads)])
         n = "Slice " + juce::String (lane + 1);   // a sliced loop
     static const juce::StringPairArray names = []
