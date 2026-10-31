@@ -1074,19 +1074,31 @@ void Engine::processBlock (float* L, float* R, int n, const juce::MidiBuffer* mi
     {
         int s1, n1, s2, n2;
         uiFifo.prepareToRead (uiFifo.getNumReady(), s1, n1, s2, n2);
+        // a key released in the same block it was pressed (a tap shorter than the audio callback): its off goes a
+        // sample after its on; at the same instant the offs-first order below would play the off first and the
+        // note would ring on
+        std::array<std::pair<int, int>, 32> struck;
+        int numStruck = 0;
+        auto offsetFor = [&] (int track, int note, bool on)
+        {
+            if (on) { if (numStruck < (int) struck.size()) struck[(size_t) numStruck++] = { track, note }; return 0; }
+            for (int k = 0; k < numStruck; ++k) if (struck[(size_t) k] == std::make_pair (track, note)) return std::min (1, n - 1);
+            return 0;
+        };
         auto take = [&] (int start, int count)
         {
             for (int i = 0; i < count; ++i)
             {
                 const auto& u = uiNotes[(size_t) (start + i)];
+                const int off = offsetFor (u.track, u.note, u.on);
                 if (u.audition)
                 {
-                    SeqEvent ev; ev.offset = 0; ev.pattern = plugin ? 0 : u.pattern; ev.track = plugin ? 0 : u.track;
+                    SeqEvent ev; ev.offset = off; ev.pattern = plugin ? 0 : u.pattern; ev.track = plugin ? 0 : u.track;
                     ev.note.type = u.on ? NoteEvent::NoteOn : NoteEvent::NoteOff; ev.note.note = u.note; ev.note.velocity = u.vel;
                     pushEvent (events, ev);
                     continue;
                 }
-                inputKey (plugin ? 0 : u.pattern, plugin ? 0 : u.track, u.note, u.vel, u.on, 0, events);
+                inputKey (plugin ? 0 : u.pattern, plugin ? 0 : u.track, u.note, u.vel, u.on, off, events);
             }
         };
         take (s1, n1); take (s2, n2);

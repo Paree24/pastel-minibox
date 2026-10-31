@@ -2,6 +2,7 @@
 #include <map>
 #include <iostream>
 #include "engine/Engine.h"
+#include "model/Serializer.h"
 #include "app/presets/PresetBank.h"
 
 using namespace mb;
@@ -383,6 +384,237 @@ MB_TEST (record_chord_pad_held_two_bars)
             for (size_t j = i + 1; j < rig.probe->order.size(); ++j)
                 if (rig.probe->order[j].second == -rig.probe->order[i].second) { whole = whole && rig.probe->order[j].first - rig.probe->order[i].first > 30 * Rig::stepLen; break; }
     ctx.check (whole, "the chord plays whole on later passes: " + log);
+}
+
+/** Notes from the UI note path (the phone's pads and roll previews), on each starter instrument, stopped and
+    playing: a tap whose on and off arrive in the same audio block, and a note released 250 ms later, both end. */
+MB_TEST (ui_note_preview_stops)
+{
+    for (bool playing : { false, true })
+    for (auto type : { DeviceType::Mono, DeviceType::Acid, DeviceType::Poly, DeviceType::FM })
+    {
+        Engine e;
+        e.prepare (48000.0, 192);
+        auto dev = createDevice (type);
+        presets::loadDefault (*dev, true);
+        e.setDevice (0, 1, std::move (dev));
+        e.focusTrack = 1;
+        if (playing) e.play();
+        std::vector<float> l (192), r (192);
+        auto run = [&] (double secs)
+        {
+            double peak = 0;
+            for (int i = 0; i < (int) (secs * 48000 / 192); ++i)
+            {
+                std::fill (l.begin(), l.end(), 0.0f); std::fill (r.begin(), r.end(), 0.0f);
+                e.process (l.data(), r.data(), 192, nullptr);
+                for (float v : l) peak = std::max (peak, (double) std::abs (v));
+            }
+            return peak;
+        };
+        run (0.2);
+        {
+            // a tap shorter than the audio block: on and off arrive together; the note must still end
+            e.injectNote (1, 50, 0.8f, true); e.injectNote (1, 50, 0.0f, false);
+            run (2.5);
+            const double ring = run (0.5);
+            ctx.check (ring < 0.002, juce::String (deviceTypeName (type)) + (playing ? " playing" : " stopped")
+                       + ": a tap within one block ends (2.5 s later " + juce::String (ring, 4) + ")");
+        }
+        e.injectNote (1, 48, 0.8f, true);
+        const double during = run (0.25);
+        e.injectNote (1, 48, 0.0f, false);
+        run (2.5);
+        const double after = run (0.5);
+        ctx.check (during > 0.01 && after < 0.002, juce::String (deviceTypeName (type)) + (playing ? " playing" : " stopped")
+                   + ": sounds, then stops (during " + juce::String (during, 3) + ", 2.5 s after the off " + juce::String (after, 4) + ")");
+    }
+}
+
+namespace
+{
+/** The level of one pitch in a stretch of audio (a Goertzel filter at its frequency). */
+double pitchLevel (const std::vector<float>& x, int note, double sr)
+{
+    // the strongest of 13 frequencies across ±3 % (a VCO's pitch drifts a little), over 8192 samples
+    const size_t n = std::min<size_t> (x.size(), 8192);
+    double best = 0;
+    for (int k = -6; k <= 6; ++k)
+    {
+        const double f = 440.0 * std::pow (2.0, (note - 69) / 12.0) * (1.0 + k * 0.005);
+        const double w = 2.0 * juce::MathConstants<double>::pi * f / sr, c = 2.0 * std::cos (w);
+        double s1 = 0, s2 = 0;
+        for (size_t i = 0; i < n; ++i) { const double s0 = x[i] + c * s1 - s2; s2 = s1; s1 = s0; }
+        best = std::max (best, std::sqrt (std::max (0.0, s1 * s1 + s2 * s2 - c * s1 * s2)) / (double) n);
+    }
+    return best;
+}
+} // namespace
+
+/** The phone's report (screen recording): a VA chord filling a two-bar pattern; after the first loop two of its
+    three notes went silent. Every note of the chord must sound in every pass, in Full and in Eco quality. */
+MB_TEST (va_chord_keeps_every_note_on_loop)
+{
+    for (int variant = 0; variant < 8; ++variant)
+    {
+        const auto q = (variant & 1) ? Quality::Eco : Quality::Full;
+        const bool vco = (variant & 2) != 0, x1 = (variant & 4) != 0;
+        qualitySetting() = (int) q;
+        oversampleVoices() = ! x1;
+        Engine e;
+        e.prepare (48000.0, 192);
+        auto dev = createDevice (DeviceType::Poly);
+        presets::loadDefault (*dev, true);
+        dev->set ("engine", vco ? 1.0f : 0.0f);
+        e.setDevice (0, 1, std::move (dev));
+        auto& p = e.project();
+        p.patterns[0].lengthBars = 2;
+        auto& tr = p.patterns[0].slots[1].track;
+        tr.pianoRoll = true;
+        const int chord[3] = { 72, 75, 79 };   // C5 Eb5 G5, as in the recording
+        for (int n : chord) { ClipNote c; c.start = 0; c.length = p.patternTicks (0); c.note = (uint8_t) n; tr.addClipNote (c); }
+        e.play();
+        std::vector<float> l (192), r (192), buf;
+        const double passLen = 48000.0 * 4.0;   // two bars at 120 BPM
+        juce::String log;
+        bool ok = true;
+        for (int pass = 0; pass < 3; ++pass)
+        {
+            // the middle of the pass
+            buf.clear();
+            for (double t = 0; t < passLen; t += 192)
+            {
+                std::fill (l.begin(), l.end(), 0.0f); std::fill (r.begin(), r.end(), 0.0f);
+                e.process (l.data(), r.data(), 192, nullptr);
+                if (t > passLen * 0.4 && t < passLen * 0.6) buf.insert (buf.end(), l.begin(), l.end());
+            }
+            log << "pass " << pass + 1 << ":";
+            for (int n : chord) { const double lv = pitchLevel (buf, n, 48000.0); log << " " << n << "=" << juce::String (lv, 4); ok = ok && lv > 0.002; }
+            log << "; ";
+        }
+        ctx.check (ok, juce::String (q == Quality::Eco ? "Eco" : "Full") + (vco ? " VCO" : " DCO") + (x1 ? " 1x" : " 2x")
+                   + ": every note sounds in every pass: " + log);
+    }
+    qualitySetting() = (int) Quality::Full;
+    oversampleVoices() = true;
+}
+
+/** Tool (MB_PROJECT=<file>): plays a saved project's pattern A for three passes and prints, per pass, the level of
+    each note its clips hold (how the phone's report was checked against the real project). */
+MB_TEST (tool_project_note_levels)
+{
+    const auto path = juce::SystemStats::getEnvironmentVariable ("MB_PROJECT", {});
+    if (path.isEmpty()) return;
+    Engine e;
+    e.prepare (48000.0, 192);
+    const auto r = serializer::load (e, juce::File (path));
+    ctx.check (r.ok, "loads: " + r.error);
+    std::vector<int> notes;
+    for (auto& s : e.project().patterns[0].slots) for (auto& n : s.track.clip) notes.push_back (n.note);
+    e.play();
+    std::vector<float> l (192), r2 (192), buf;
+    const double passLen = e.project().patternTicks (0) / (double) kPPQ * 48000.0 * 60.0 / e.project().bpm;
+    for (int pass = 0; pass < 3; ++pass)
+    {
+        buf.clear();
+        for (double t = 0; t < passLen; t += 192)
+        {
+            std::fill (l.begin(), l.end(), 0.0f); std::fill (r2.begin(), r2.end(), 0.0f);
+            e.process (l.data(), r2.data(), 192, nullptr);
+            if (t > passLen * 0.4 && t < passLen * 0.6) buf.insert (buf.end(), l.begin(), l.end());
+        }
+        std::cout << "    pass " << pass + 1 << ":";
+        for (int n : notes) std::cout << " " << n << "=" << pitchLevel (buf, n, 48000.0);
+        std::cout << std::endl;
+    }
+}
+
+/** The phone's drawn chord: each note was previewed as it was drawn (on and off in the same instant, as the roll
+    did), then the pattern played. Every note must sound in every pass. */
+MB_TEST (drawn_chord_after_previews_sounds_every_pass)
+{
+    for (auto type : { DeviceType::Poly, DeviceType::FM })
+    {
+        Engine e;
+        e.prepare (48000.0, 192);
+        auto dev = createDevice (type);
+        presets::loadDefault (*dev, true);
+        e.setDevice (0, 1, std::move (dev));
+        e.focusTrack = 1;
+        auto& p = e.project();
+        p.patterns[0].lengthBars = 2;
+        auto& tr = p.patterns[0].slots[1].track;
+        tr.pianoRoll = true;
+        const int chord[3] = { 72, 75, 79 };
+        std::vector<float> l (192), r (192), buf;
+        auto block = [&] { std::fill (l.begin(), l.end(), 0.0f); std::fill (r.begin(), r.end(), 0.0f); e.process (l.data(), r.data(), 192, nullptr); };
+        for (int n : chord)
+        {
+            e.injectNote (1, n, 0.8f, true); e.injectNote (1, n, 0.0f, false);   // the roll's preview
+            for (int i = 0; i < 100; ++i) block();
+            ClipNote c; c.start = 0; c.length = p.patternTicks (0); c.note = (uint8_t) n; tr.addClipNote (c);
+        }
+        e.play();
+        const double passLen = 48000.0 * 4.0;
+        juce::String log;
+        bool ok = true;
+        for (int pass = 0; pass < 3; ++pass)
+        {
+            buf.clear();
+            for (double t = 0; t < passLen; t += 192) { block(); if (t > passLen * 0.4 && t < passLen * 0.6) buf.insert (buf.end(), l.begin(), l.end()); }
+            log << "pass " << pass + 1 << ":";
+            for (int n : chord) { const double lv = pitchLevel (buf, n, 48000.0); log << " " << n << "=" << juce::String (lv, 4); ok = ok && lv > 0.002; }
+            log << "; ";
+        }
+        ctx.check (ok, juce::String (deviceTypeName (type)) + ": " + log);
+    }
+}
+
+/** The phone drives the engine prepared for 1024-sample blocks with the device's own callback sizes (often small
+    and uneven): a chord filling the pattern must still sound in every pass. */
+MB_TEST (chord_loops_with_phone_block_sizes)
+{
+    for (double sr : { 48000.0, 44100.0 })
+    for (int sizes : { 0, 1, 2 })
+    {
+        Engine e;
+        e.prepare (sr, 1024);
+        auto dev = createDevice (DeviceType::Poly);
+        presets::loadDefault (*dev, true);
+        e.setDevice (0, 1, std::move (dev));
+        auto& p = e.project();
+        p.patterns[0].lengthBars = 2;
+        auto& tr = p.patterns[0].slots[1].track;
+        tr.pianoRoll = true;
+        const int chord[3] = { 72, 75, 79 };
+        for (int n : chord) { ClipNote c; c.start = 0; c.length = p.patternTicks (0); c.note = (uint8_t) n; tr.addClipNote (c); }
+        e.play();
+        std::vector<float> l (1024), r (1024), buf;
+        const int pattern[3][4] = { { 96, 96, 96, 96 }, { 240, 240, 240, 240 }, { 96, 192, 37, 480 } };
+        const double passLen = sr * 4.0;
+        juce::String log;
+        bool ok = true;
+        double t = 0;
+        int k = 0;
+        for (int pass = 0; pass < 3; ++pass)
+        {
+            buf.clear();
+            const double end = (pass + 1) * passLen;
+            while (t < end)
+            {
+                const int n = pattern[sizes][k++ % 4];
+                std::fill (l.begin(), l.end(), 0.0f); std::fill (r.begin(), r.end(), 0.0f);
+                e.process (l.data(), r.data(), n, nullptr);
+                const double rel = t - pass * passLen;
+                if (rel > passLen * 0.4 && rel < passLen * 0.6) buf.insert (buf.end(), l.begin(), l.begin() + n);
+                t += n;
+            }
+            log << "pass " << pass + 1 << ":";
+            for (int n : chord) { const double lv = pitchLevel (buf, n, sr); log << " " << n << "=" << juce::String (lv, 4); ok = ok && lv > 0.002; }
+            log << "; ";
+        }
+        ctx.check (ok, juce::String (sr) + " Hz, blocks " + juce::String (sizes) + ": " + log);
+    }
 }
 
 /** Step recording: each key (or chord) is written at the cursor, which moves on by the step length when the
