@@ -708,32 +708,55 @@ void Engine::recordNote (int track, int note, float vel, bool on, int offset)
             RecEvent ev; ev.kind = RecEvent::On; ev.pattern = pat; ev.track = track; ev.note = note; ev.vel = v;
             ev.tick = std::max (0, (pastEnd ? total : si) * stT + micro * stT / kTicksPerStep);
             pushRec (ev);
-            for (auto& o : openNotes) if (! o.used) { o = { track, note, pastEnd ? total : si, pos, true, true }; break; }
+            for (auto& o : openNotes) if (! o.used) { o = { track, note, pastEnd ? total : si, pos, true, true, absAt (pat, offset) }; break; }
             return;
         }
         auto& s = tr.steps[(size_t) si];   // recording adds; it never removes what was there
         s.addNote (note, v, 96);
         s.microTiming = (int8_t) micro;
-        for (auto& o : openNotes) if (! o.used) { o = { track, note, si, pos, true }; break; }
+        for (auto& o : openNotes) if (! o.used) { o = { track, note, si, pos, true, false, absAt (pat, offset) }; break; }
         return;
     }
     for (auto& o : openNotes)
-        if (o.used && o.track == track && o.note == note)
-        {
-            double len = pos - o.startPos;
-            if (len < 0.0) len += total;   // held across the loop point
-            takeLastStep = std::max (takeLastStep.load(), o.step + std::max (0, (int) std::ceil (len - 0.05) - 1));   // the bars a held note reaches
-            if (o.clip)
-            {
-                RecEvent ev; ev.kind = RecEvent::Off; ev.pattern = pat; ev.track = track; ev.note = note;
-                ev.len = std::max (1, (int) std::lround (std::max (0.05, len) * proj.stepTicks (pat)));
-                pushRec (ev);
-                o.used = false;
-                continue;
-            }
-            tr.steps[(size_t) o.step].addNote (note, -1, std::clamp ((int) (std::max (0.05, len) * 128.0), 4, kMaxNoteLen));   // this note's length
-            o.used = false;
-        }
+        if (o.used && o.track == track && o.note == note) endOpenNote (o, pat, pos, absAt (pat, offset));
+}
+
+double Engine::absAt (int pat, int offset) const
+{
+    const double stepLen = proj.stepQuarters (pat) * sampleRate * 60.0 / std::max (20.0, proj.bpm);
+    return blockAbs + std::max (0, offset - blockCountIn) / stepLen;
+}
+
+void Engine::closeOpenNotes()
+{
+    bool any = false;
+    for (auto& o : openNotes) any = any || o.used;
+    if (! any) return;
+    const int pat = seq.activePattern;
+    double pos = 0.0;
+    recordPosition (pat, 0, pos);
+    for (auto& o : openNotes) if (o.used) endOpenNote (o, pat, std::max (0.0, pos), absAt (pat, 0));
+}
+
+void Engine::endOpenNote (OpenNote& o, int pat, double pos, double abs)
+{
+    const int total = proj.patternSteps (pat);
+    auto& tr = proj.patterns[(size_t) pat].slots[(size_t) o.track].track;
+    const int track = o.track, note = o.note;
+    double len = abs - o.startAbs;   // on the unwrapped clock: held across the loop point, even for several passes
+    if (len <= 0.0) { len = pos - o.startPos; if (len < 0.0) len += total; }
+    len = std::min (len, (double) total);   // at most the whole pattern
+    takeLastStep = std::max (takeLastStep.load(), o.step + std::max (0, (int) std::ceil (len - 0.05) - 1));   // the bars a held note reaches
+    if (o.clip)
+    {
+        RecEvent ev; ev.kind = RecEvent::Off; ev.pattern = pat; ev.track = track; ev.note = note;
+        ev.len = std::max (1, (int) std::lround (std::max (0.05, len) * proj.stepTicks (pat)));
+        pushRec (ev);
+        o.used = false;
+        return;
+    }
+    tr.steps[(size_t) o.step].addNote (note, -1, std::clamp ((int) (std::max (0.05, len) * 128.0), 4, kMaxNoteLen));   // this note's length
+    o.used = false;
 }
 
 void Engine::recordControl (int track, int lane, float value, int offset)
@@ -784,6 +807,9 @@ bool Engine::applyRecorded()
                 ClipNote n;
                 n.start = e.tick; n.length = std::max (1, e.len > 0 ? e.len : proj.stepTicks (e.pattern) / 4);
                 n.note = (uint8_t) e.note; n.vel = (uint8_t) std::clamp (e.vel, 1, 127);
+                // still held: silent in playback until the key is released (a loop coming round would otherwise
+                // play its placeholder length and cut the note being held)
+                n.muted = true;
                 open = tr.addClipNote (n);
                 takeIds.push_back (open);
             }
@@ -795,7 +821,7 @@ bool Engine::applyRecorded()
             }
             else if (e.kind == RecEvent::Off)
             {
-                if (auto* n = tr.clipNote (open)) n->length = std::max (1, e.len);
+                if (auto* n = tr.clipNote (open)) { n->length = std::max (1, e.len); n->muted = false; }
                 open = 0;
             }
             else if (tr.pianoRoll)
@@ -1022,6 +1048,13 @@ void Engine::processBlock (float* L, float* R, int n, const juce::MidiBuffer* mi
     blockLen = n;
     blockStartPos = seq.position();
     blockCountIn = seq.isPlaying() ? seq.countInSamplesLeft : 0;
+    {
+        // the unwrapped clock: a key held for several passes gets its whole length
+        blockAbs = absSteps;
+        const double stepLen = proj.stepQuarters (seq.activePattern) * sampleRate * 60.0 / std::max (20.0, proj.bpm);
+        if (seq.isPlaying()) absSteps += std::max (0, n - blockCountIn) / stepLen; else absSteps = 0.0;
+    }
+    if (! plugin && ! recording.load()) closeOpenNotes();   // the take ended with keys still held
     masterBus.clearSends (n);
     if (! plugin)
     {

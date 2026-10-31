@@ -221,6 +221,35 @@ MB_TEST (record_live_from_midi)
     ctx.check (rig.heard() == std::vector<int> ({ 60, 64 }), "and plays back on the next pass");
 }
 
+/** A key held across the loop point while overdubbing: its own recorded note (not yet released) must not play on
+    the next pass and cut it; released, it plays back. Stopping the take with a key held gives the note its length. */
+MB_TEST (record_held_note_survives_the_loop)
+{
+    Rig rig (1);
+    rig.e.project().overdub = true;
+    rig.e.setRecord (true);
+    rig.e.play();
+    rig.runTo (2); rig.midi (1, 60, true);
+    rig.probe->offTimes.clear();
+    rig.runTo (16 + 6);   // held past the loop point (16 steps) and past where it started
+    bool cut = false;
+    for (auto& o : rig.probe->offTimes) cut = cut || o.second == 60;
+    ctx.check (! cut, "the held note is not cut when the loop comes round");
+    rig.midi (1, 60, false);
+    rig.runTo (24);
+    const auto* a = rig.clipNote (60);
+    ctx.check (a != nullptr && ! a->muted && a->length > 12 * rig.stepT(), "released: a long note that plays (" + juce::String (a ? a->length / (double) rig.stepT() : 0.0) + " steps)");
+
+    rig.midi (1, 67, true);
+    rig.runTo (28);
+    rig.e.setRecord (false);
+    rig.runTo (29);
+    rig.midi (1, 67, false);
+    rig.runTo (30);
+    const auto* b = rig.clipNote (67);
+    ctx.check (b != nullptr && ! b->muted && b->length >= 3 * rig.stepT() - rig.stepT() / 4, "a key held when the take stops still gets its length");
+}
+
 /** Step recording: each key (or chord) is written at the cursor, which moves on by the step length when the
     keys are released; Rest leaves a gap, Back clears, To start returns the cursor. */
 MB_TEST (record_step_mode)

@@ -248,8 +248,10 @@ private:
     juce::AbstractFifo uiFifo { 256 };
     std::array<UiNote, 256> uiNotes {};
     // live recording: open notes waiting for their note-off (gate length)
-    struct OpenNote { int track, note, step; double startPos; bool used = false; bool clip = false; };
+    struct OpenNote { int track, note, step; double startPos; bool used = false; bool clip = false; double startAbs = 0.0; };
     std::array<OpenNote, 32> openNotes {};
+    void endOpenNote (OpenNote&, int pattern, double pos, double abs);   // a held key's recording ends: its length
+    void closeOpenNotes();
     // live recording: notes struck together (a chord) land on one step; Replace clears a step once per pass
     struct ChordGroup { double pos = -1.0e9; int step = -1, micro = 0, pattern = -1; };
     std::array<ChordGroup, kTracks> chordGroup {};
@@ -259,6 +261,8 @@ private:
     std::vector<Touched> touched;   // message thread
     double blockStartPos = 0.0;   // the playhead (steps) and the count-in left (samples) when this block began
     int blockCountIn = 0;
+    double blockAbs = 0.0, absSteps = 0.0;   // steps played since Play, never wrapping (a held note's length)
+    double absAt (int pat, int offset) const;
     /** A live-recorded event's position in steps, from the block's start (no wrapping guesses). False while the
         count-in still has more than a step to go (struck that early, it is not part of the take). */
     bool recordPosition (int pat, int offset, double& pos) const;
