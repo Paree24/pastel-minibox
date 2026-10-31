@@ -21,6 +21,7 @@ struct ProbeDevice : DeviceProcessor
         if (e.type == NoteEvent::AllNotesOff || e.type == NoteEvent::Panic) active = 0;
         if (e.type == NoteEvent::NoteOff) { ++offs; offTimes.push_back ({ clock + e.sampleOffset, e.note }); }
         if (e.type == NoteEvent::NoteOn) onFlags.push_back (e.flags);
+        if (e.type == NoteEvent::NoteOn || e.type == NoteEvent::NoteOff) order.push_back ({ clock + e.sampleOffset, e.type == NoteEvent::NoteOn ? e.note : -e.note });
     }
     void render (float* L, float*, int n) override { clock += n; L[0] += 0.0f; }
     bool anyVoiceActive() const override { return true; }
@@ -31,6 +32,7 @@ struct ProbeDevice : DeviceProcessor
     int active = 0, offs = 0;
     std::vector<std::pair<int64_t, int>> ons, offTimes;
     std::vector<int> onFlags;
+    std::vector<std::pair<int64_t, int>> order;   // every note on (+note) and off (-note) as it arrived
 };
 
 std::vector<int64_t> runAndCollect (Engine& e, ProbeDevice* probe, double seconds, int block = 128)
@@ -248,6 +250,139 @@ MB_TEST (record_held_note_survives_the_loop)
     rig.runTo (30);
     const auto* b = rig.clipNote (67);
     ctx.check (b != nullptr && ! b->muted && b->length >= 3 * rig.stepT() - rig.stepT() / 4, "a key held when the take stops still gets its length");
+}
+
+/** A chord held for two bars, recorded into a one-bar pattern (Extend, the default): the pattern grows to two
+    bars and the chord plays back whole on every later pass. */
+MB_TEST (record_two_bar_chord_plays_back)
+{
+    Rig rig (1);
+    rig.e.setRecord (true);
+    rig.e.play();
+    rig.runTo (0.1);
+    for (int n : { 60, 64, 67 }) rig.midi (1, n, true);
+    rig.runTo (32.0);
+    for (int n : { 60, 64, 67 }) rig.midi (1, n, false);
+    rig.runTo (34);
+    rig.e.setRecord (false);
+    rig.runTo (40);
+    juce::String clip;
+    for (auto& n : rig.track().clip) clip << (int) n.note << "@" << n.start / rig.stepT() << "+" << n.length / (double) rig.stepT() << (n.muted ? "M" : "") << " ";
+    ctx.check (rig.e.project().patterns[0].lengthBars == 2, "the pattern grew to two bars (" + juce::String (rig.e.project().patterns[0].lengthBars) + ")");
+    for (int n : { 60, 64, 67 })
+    {
+        const auto* c = rig.clipNote (n);
+        ctx.check (c != nullptr && ! c->muted && c->length > 30 * rig.stepT(), "note " + juce::String (n) + " is two bars long and plays: " + clip);
+    }
+    rig.probe->ons.clear(); rig.probe->offTimes.clear();
+    const double from = rig.pos;
+    rig.runTo (64 + 33);   // the next full passes
+    int ons60 = 0;
+    for (auto& o : rig.probe->ons) if (o.second == 60) ++ons60;
+    juce::String offs;
+    for (auto& o : rig.probe->offTimes) if (o.second == 60) offs << juce::String ((o.first - from) / Rig::stepLen, 1) << " ";
+    juce::String onsS;
+    for (auto& o : rig.probe->ons) if (o.second == 60) onsS << juce::String ((o.first - from) / Rig::stepLen, 1) << " ";
+    ctx.check (ons60 >= 1, "plays on later passes; on at " + onsS + " off at " + offs);
+}
+
+/** A drawn chord that fills the whole pattern (two bars): every pass plays it whole (the previous pass's note-off
+    must not land after the next pass's note-on and cut it). */
+MB_TEST (clip_chord_filling_pattern_loops_whole)
+{
+    Rig rig (1);
+    auto& p = rig.e.project();
+    p.patterns[0].lengthBars = 2;
+    auto& tr = rig.track();
+    tr.pianoRoll = true;
+    const int total = p.patternTicks (0);
+    for (int n : { 60, 64, 67 }) { ClipNote c; c.start = 0; c.length = total; c.note = (uint8_t) n; tr.addClipNote (c); }
+    rig.e.play();
+    rig.runTo (32 * 3 + 4);
+    juce::String log;
+    std::vector<std::pair<int64_t, bool>> ev;
+    for (auto& o : rig.probe->order) if (std::abs (o.second) == 60) ev.push_back ({ o.first, o.second > 0 });
+    for (auto& e : ev) log << (e.second ? "on " : "off ") << juce::String (e.first) << ", ";
+    // the order of events: on, (off, on) at each loop point; never an off after an on at the same time
+    bool ok = ev.size() >= 5 && ev[0].second;
+    for (size_t i = 1; i + 1 < ev.size(); i += 2)
+        ok = ok && ! ev[i].second && ev[i + 1].second && ev[i].first <= ev[i + 1].first;
+    ctx.check (ok, "each pass: off then on at the loop point: " + log);
+}
+
+/** The same with the real instruments: the chord sounds through the middle of every pass, not only the first. */
+MB_TEST (clip_chord_filling_pattern_sounds_every_pass)
+{
+    for (auto type : { DeviceType::Poly, DeviceType::Mono, DeviceType::FM, DeviceType::Acid })
+    {
+        Engine e;
+        e.prepare (48000.0, 128);
+        auto dev = createDevice (type);
+        presets::loadDefault (*dev, true);
+        e.setDevice (0, 1, std::move (dev));
+        auto& p = e.project();
+        p.patterns[0].lengthBars = 2;
+        auto& tr = p.patterns[0].slots[1].track;
+        tr.pianoRoll = true;
+        for (int n : { 60, 64, 67 }) { ClipNote c; c.start = 0; c.length = p.patternTicks (0); c.note = (uint8_t) n; tr.addClipNote (c); }
+        e.play();
+        std::vector<float> l (128), r (128);
+        const double stepLen = 48000.0 * 60.0 / 120.0 / 4.0;
+        juce::String levels;
+        bool ok = true;
+        double pos = 0;
+        for (int pass = 0; pass < 3; ++pass)
+            for (int q = 0; q < 4; ++q)
+            {
+                // a quarter of the pass: its level
+                const double end = (pass * 32 + (q + 1) * 8) * stepLen;
+                double sum = 0; int cnt = 0;
+                while (pos < end) { std::fill (l.begin(), l.end(), 0.0f); std::fill (r.begin(), r.end(), 0.0f); e.process (l.data(), r.data(), 128, nullptr); for (float v : l) sum += v * v; cnt += 128; pos += 128; }
+                const float rms = (float) std::sqrt (sum / cnt);
+                levels << juce::String (rms, 3) << " ";
+                if (q == 2 && rms < 0.003f) ok = false;   // three quarters into a pass: still sounding
+            }
+        ctx.check (ok, juce::String (deviceTypeName (type)) + ": sounds through every pass: " + levels);
+    }
+}
+
+/** As the phone records: a chord pad (Chords mode, one key) held for two bars through the UI note path, Extend. */
+MB_TEST (record_chord_pad_held_two_bars)
+{
+    Rig rig (1);
+    rig.e.project().patterns[0].slots[1].play.chordOn = true;
+    rig.e.setRecord (true);
+    rig.e.play();
+    rig.runTo (0.1);
+    rig.e.injectNote (1, 60, 0.8f, true);
+    rig.runTo (32.0);
+    rig.e.injectNote (1, 60, 0.0f, false);
+    rig.runTo (34);
+    rig.e.setRecord (false);
+    rig.runTo (40);
+    juce::String clip;
+    for (auto& n : rig.track().clip) clip << (int) n.note << "@" << n.start / rig.stepT() << "+" << juce::String (n.length / (double) rig.stepT(), 1) << (n.muted ? "M" : "") << " ";
+    bool ok = rig.track().clip.size() >= 3;
+    for (auto& n : rig.track().clip) ok = ok && ! n.muted && n.length > 30 * rig.stepT();
+    ctx.check (ok, "three two-bar notes, unmuted: bars " + juce::String (rig.e.project().patterns[0].lengthBars) + ": " + clip);
+    rig.probe->order.clear();
+    const double from = rig.pos;
+    rig.runTo (40 + 64);
+    juce::String log;
+    int ons = 0;
+    for (size_t i = 0; i < rig.probe->order.size(); ++i)
+    {
+        const auto& o = rig.probe->order[i];
+        log << (o.second > 0 ? "+" : "") << o.second << "@" << juce::String ((o.first - from) / Rig::stepLen, 1) << " ";
+        if (o.second > 0) ++ons;
+    }
+    // each later pass: the chord starts, and its off comes a whole pattern later (never right after the on)
+    bool whole = ons >= 3;
+    for (size_t i = 0; i < rig.probe->order.size(); ++i)
+        if (rig.probe->order[i].second > 0)
+            for (size_t j = i + 1; j < rig.probe->order.size(); ++j)
+                if (rig.probe->order[j].second == -rig.probe->order[i].second) { whole = whole && rig.probe->order[j].first - rig.probe->order[i].first > 30 * Rig::stepLen; break; }
+    ctx.check (whole, "the chord plays whole on later passes: " + log);
 }
 
 /** Step recording: each key (or chord) is written at the cursor, which moves on by the step length when the

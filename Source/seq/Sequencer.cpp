@@ -25,6 +25,13 @@ void Sequencer::stop()
 
 void Sequencer::push (int64_t time, const SeqEvent& e)
 {
+    // the same note again while its previous note-off is still to come (a note as long as the loop, an overlap):
+    // that off goes first, at this start, or it would cut the new note a sample or a whole note later
+    if (e.kind == SeqEvent::Note && e.note.type == NoteEvent::NoteOn)
+        for (auto& p : pending)
+            if (p.e.kind == SeqEvent::Note && p.e.note.type == NoteEvent::NoteOff && p.e.note.note == e.note.note
+                && p.e.track == e.track && p.e.pattern == e.pattern && p.time > time)
+                p.time = time;
     if (pending.size() < pending.capacity()) { pending.push_back ({ time, e }); return; }
     // full (a very dense pattern): never drop a note-off (a stuck note); a pending note-on gives way to it
     if (e.kind == SeqEvent::Note && e.note.type == NoteEvent::NoteOff)
