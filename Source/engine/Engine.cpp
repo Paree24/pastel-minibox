@@ -745,7 +745,6 @@ void Engine::endOpenNote (OpenNote& o, int pat, double pos, double abs)
     const int track = o.track, note = o.note;
     double len = abs - o.startAbs;   // on the unwrapped clock: held across the loop point, even for several passes
     if (len <= 0.0) { len = pos - o.startPos; if (len < 0.0) len += total; }
-    len = std::min (len, (double) total);   // at most the whole pattern
     takeLastStep = std::max (takeLastStep.load(), o.step + std::max (0, (int) std::ceil (len - 0.05) - 1));   // the bars a held note reaches
     if (o.clip)
     {
