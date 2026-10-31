@@ -617,6 +617,54 @@ MB_TEST (chord_loops_with_phone_block_sizes)
     }
 }
 
+/** Tool (MB_CLICKS=1): VA Silk Pad playing C3 Eb3 G3 for two bars, looped, at the phone's settings (1x voices,
+    960-sample blocks) and the desktop's; writes the output (raw float32, MB_CLICKS_OUT) and lists clicks: samples
+    whose second difference stands far out of its surroundings. */
+MB_TEST (tool_va_pad_clicks)
+{
+    if (juce::SystemStats::getEnvironmentVariable ("MB_CLICKS", {}).isEmpty()) return;
+    for (bool phone : { true, false })
+    {
+        oversampleVoices() = ! phone;
+        Engine e;
+        e.prepare (48000.0, phone ? 1024 : 512);
+        auto dev = createDevice (DeviceType::Poly);
+        for (auto& pi : presets::list (DeviceType::Poly)) if (pi.name == "Silk Pad") presets::apply (*dev, pi);
+        juce::String pname = dev->presetName;
+        // MB_SET=id=value,id=value: parameter overrides (to find which part of the sound makes the clicks)
+        for (auto& kv : juce::StringArray::fromTokens (juce::SystemStats::getEnvironmentVariable ("MB_SET", {}), ",", ""))
+            if (kv.contains ("=")) dev->set (kv.upToFirstOccurrenceOf ("=", false, false), kv.fromFirstOccurrenceOf ("=", false, false).getFloatValue());
+        e.setDevice (0, 1, std::move (dev));
+        auto& p = e.project();
+        p.patterns[0].lengthBars = 2;
+        auto& tr = p.patterns[0].slots[1].track;
+        tr.pianoRoll = true;
+        for (int n : { 48, 51, 55 }) { ClipNote c; c.start = 0; c.length = p.patternTicks (0); c.note = (uint8_t) n; tr.addClipNote (c); }
+        e.play();
+        const int block = phone ? 960 : 256;
+        std::vector<float> l ((size_t) block), r ((size_t) block), out;
+        for (int b = 0; b < 48000 * 12 / block; ++b) { e.process (l.data(), r.data(), block, nullptr); out.insert (out.end(), l.begin(), l.end()); }
+        if (auto o = juce::SystemStats::getEnvironmentVariable ("MB_CLICKS_OUT", {}); o.isNotEmpty())
+            juce::File (o + (phone ? "_phone.raw" : "_desktop.raw")).replaceWithData (out.data(), out.size() * sizeof (float));
+        // second difference against a running average of its size
+        std::vector<double> d2 (out.size(), 0.0);
+        for (size_t i = 2; i < out.size(); ++i) d2[i] = std::abs ((double) out[i] - 2.0 * out[i - 1] + out[i - 2]);
+        double avg = 1e-6; int clicks = 0; juce::String where;
+        for (size_t i = 2; i < out.size(); ++i)
+        {
+            if (i > 4800 && d2[i] > 12.0 * avg && d2[i] > 1e-3)
+            {
+                if (clicks < 12) where << juce::String (i / 48000.0, 4) << "s(" << juce::String (d2[i] / avg, 0) << "x) ";
+                ++clicks;
+            }
+            avg += (d2[i] - avg) * 0.002;
+        }
+        double peak = 0; for (float v : out) peak = std::max (peak, (double) std::abs (v));
+        std::cout << "    " << (phone ? "phone  " : "desktop") << " " << pname << ": peak " << peak << ", clicks " << clicks << ": " << where << std::endl;
+    }
+    oversampleVoices() = true;
+}
+
 /** Step recording: each key (or chord) is written at the cursor, which moves on by the step length when the
     keys are released; Rest leaves a gap, Back clears, To start returns the cursor. */
 MB_TEST (record_step_mode)

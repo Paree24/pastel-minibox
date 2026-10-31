@@ -234,6 +234,7 @@ struct BbdChorus60
     int w = 0, size = 1;
     float sr = 48000.0f, ph1 = 0.0f, ph2 = 0.25f;
     float preL = 0.0f, preR = 0.0f, postL = 0.0f, postR = 0.0f, a15 = 0.5f;
+    static constexpr float kLineGain = 0.4f;
     void prepare (float rate)
     {
         sr = rate; size = (int) (0.012f * rate) + 4;
@@ -255,7 +256,10 @@ struct BbdChorus60
     /** mode 0 off, 1 = I, 2 = II, 3 = I+II; `mix` scales the wet path (1 = the hardware balance). */
     void process (float& l, float& r, int mode, float mix)
     {
-        preL += a15 * (l - preL); preR += a15 * (r - preR);
+        // the line works at 0.4× the voices' level and the wet path is brought back up: a chord (the voices sum to
+        // ~1.6 before the synth's level) stays in the BBD's linear range; at full level its charge saturation
+        // squashed every peak where the notes lined up, a vinyl-like crackle
+        preL += a15 * (l * kLineGain - preL); preR += a15 * (r * kLineGain - preR);
         bl[(size_t) w] = charge (preL); br[(size_t) w] = charge (preR);
         if (++w >= size) w = 0;
         if (mode <= 0) return;
@@ -267,7 +271,7 @@ struct BbdChorus60
         else m = 0.0005f * tri (ph1) + 0.0011f * tri (ph2);
         const float base = 0.0035f * sr;
         const float wl = read (bl, base + m * sr), wr = read (br, base - m * sr);
-        postL += a15 * (wl - postL); postR += a15 * (wr - postR);
+        postL += a15 * (wl / kLineGain - postL); postR += a15 * (wr / kLineGain - postR);
         const float wet = 0.6f * mix, dry = 1.0f - 0.6f * mix;
         l = 1.2f * (dry * 0.67f * l + wet * postL);
         r = 1.2f * (dry * 0.67f * r + wet * postR);
