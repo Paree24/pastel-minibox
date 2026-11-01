@@ -244,7 +244,7 @@ private:
     std::array<Roll, kRolls> rolls;
     std::array<Roll, kRolls> liveRolls;   // note repeat on played keys: the audio thread's own (inputKey)
     void runRolls (int n, std::vector<SeqEvent>& out);
-    void runRoll (Roll&, double b0, double b1, double perSample, int n, std::vector<SeqEvent>& out);
+    void runRoll (Roll&, double b0, double b1, double perSample, int n, std::vector<SeqEvent>& out, bool synced);
 
     // UI note FIFO
     struct UiNote { int pattern, track, note; float vel; bool on, audition; };

@@ -720,6 +720,32 @@ MB_TEST (metronome_on_mid_pattern_is_on_the_beat)
     ctx.check (onBeat && onsets.front() / Rig::stepLen > 7.9, "clicks on steps 8, 12, 16 …, none at the switch: " + at);
 }
 
+/** A drum roll pressed just before a grid line (stopped and playing): no second hit right after the first (a
+    flam); every gap is a whole repeat. */
+MB_TEST (roll_start_has_no_flam)
+{
+    for (bool playing : { false, true })
+    for (double at : { 2.9, 3.05, 3.5 })
+    {
+        Rig rig (0, 8);
+        if (playing) rig.e.play();
+        rig.runTo (at);
+        rig.e.setRoll (0, 38, 0.9f, 0.25, true);
+        rig.runTo (at + 6);
+        rig.e.setRoll (0, 38, 0.0f, 0.25, false);
+        const auto& ons = rig.probe->ons;
+        juce::String gaps;
+        bool ok = ons.size() >= 4;
+        for (size_t i = 1; i < ons.size(); ++i)
+        {
+            const double g = (ons[i].first - ons[i - 1].first) / Rig::stepLen;
+            gaps << juce::String (g, 2) << " ";
+            ok = ok && g > 0.5;
+        }
+        ctx.check (ok, juce::String (playing ? "playing" : "stopped") + ", pressed at step " + juce::String (at, 2) + ": gaps " + gaps);
+    }
+}
+
 /** Step recording: each key (or chord) is written at the cursor, which moves on by the step length when the
     keys are released; Rest leaves a gap, Back clears, To start returns the cursor. */
 MB_TEST (record_step_mode)

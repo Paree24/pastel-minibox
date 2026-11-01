@@ -375,11 +375,11 @@ void Engine::runRolls (int n, std::vector<SeqEvent>& out)
     const double b0 = synced ? seq.beatPosition() : beatClock;
     const double perSample = std::max (20.0, proj.bpm) / (60.0 * sampleRate);
     const double b1 = b0 + n * perSample;
-    for (auto& r : rolls) runRoll (r, b0, b1, perSample, n, out);
-    for (auto& r : liveRolls) runRoll (r, b0, b1, perSample, n, out);
+    for (auto& r : rolls) runRoll (r, b0, b1, perSample, n, out, synced);
+    for (auto& r : liveRolls) runRoll (r, b0, b1, perSample, n, out, synced);
 }
 
-void Engine::runRoll (Roll& r, double b0, double b1, double perSample, int n, std::vector<SeqEvent>& out)
+void Engine::runRoll (Roll& r, double b0, double b1, double perSample, int n, std::vector<SeqEvent>& out, bool synced)
 {
     auto at = [&] (double beat) { return std::clamp ((int) ((beat - b0) / perSample), 0, n - 1); };
     auto endNote = [&] (int off)
@@ -409,10 +409,18 @@ void Engine::runRoll (Roll& r, double b0, double b1, double perSample, int n, st
     };
     if (! r.started)
     {
+        // the first hit: stopped, at the press, the repeats counting from it; playing, on the nearest grid line (at
+        // once when the press came just after one, at the next when it came just before): no flam at the start
         r.started = true;
         const int off = std::clamp (r.startOffset, 0, n - 1);
-        hit (off, b0 + off * perSample);   // the press itself sounds at once
-        r.nextBeat = (std::floor (b0 / step + 1.0e-9) + 1.0) * step;
+        const double at = b0 + off * perSample;
+        if (! synced) { hit (off, at); r.nextBeat = at + step; }
+        else
+        {
+            const double cell = std::floor (at / step + 1.0e-9);
+            if (at / step - cell <= 0.5) { hit (off, at); r.nextBeat = (cell + 1.0) * step; }
+            else r.nextBeat = (cell + 1.0) * step;   // waits for the line just ahead
+        }
     }
     if (r.nextBeat < b0 - step || r.nextBeat > b1 + 2.0 * step)   // the grid jumped (Play, a seek): realign
         r.nextBeat = std::ceil (b0 / step - 1.0e-9) * step;
