@@ -1,0 +1,29 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Punch and Box",
+  "samples": [],
+  "type": "drums",
+  "values": {
+    "kitLevel": 0.629899978637695,
+    "p1Decay": 0.4,
+    "p1Eng": 1,
+    "p2Eng": 2,
+    "p2Pitch": 210,
+    "p2SendReverb": 0.25,
+    "p3Eng": 1,
+    "p3SendReverb": 0.3,
+    "p4Eng": 2,
+    "p5Eng": 2,
+    "p6Eng": 2,
+    "p7Eng": 1,
+    "p8Decay": 0.08,
+    "p8Eng": 0,
+    "p8Pitch": 1700,
+    "p8Tone": 0.6,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

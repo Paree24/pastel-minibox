@@ -1,0 +1,30 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "High Snare Classic",
+  "samples": [],
+  "type": "drums",
+  "values": {
+    "kitLevel": 0.535300016403198,
+    "p1Decay": 0.7,
+    "p1Eng": 0,
+    "p2Click": 0.6,
+    "p2Eng": 1,
+    "p2Pitch": 240,
+    "p2SendReverb": 0.2,
+    "p3Eng": 0,
+    "p3SendReverb": 0.25,
+    "p4Eng": 0,
+    "p5Eng": 0,
+    "p6Eng": 0,
+    "p7Eng": 0,
+    "p8Decay": 0.1,
+    "p8Eng": 0,
+    "p8Pitch": 1200,
+    "p8Tone": 0.7,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

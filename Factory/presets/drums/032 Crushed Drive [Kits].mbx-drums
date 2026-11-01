@@ -1,0 +1,30 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Crushed Drive",
+  "samples": [],
+  "type": "drums",
+  "values": {
+    "kitComp": 0.6,
+    "kitDrive": 0.6,
+    "kitLevel": 0.403499990701675,
+    "p1Decay": 0.5,
+    "p1Drive": 0.8,
+    "p1DriveType": 2,
+    "p1Eng": 1,
+    "p2Drive": 0.6,
+    "p2Eng": 1,
+    "p3Drive": 0.5,
+    "p3Eng": 1,
+    "p3SendReverb": 0.3,
+    "p4Eng": 1,
+    "p5Eng": 1,
+    "p6Eng": 1,
+    "p7Eng": 1,
+    "p8Eng": 2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

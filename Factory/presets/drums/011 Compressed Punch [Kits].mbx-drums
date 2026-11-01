@@ -1,0 +1,31 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Compressed Punch",
+  "samples": [],
+  "type": "drums",
+  "values": {
+    "kitComp": 0.5,
+    "kitLevel": 0.835500001907349,
+    "p1Bend": 0.4,
+    "p1Decay": 0.5,
+    "p1Eng": 1,
+    "p2Eng": 1,
+    "p2SendReverb": 0.2,
+    "p3Decay": 0.4,
+    "p3Eng": 0,
+    "p3SendReverb": 0.35,
+    "p4Eng": 1,
+    "p5Eng": 1,
+    "p6Decay": 0.6,
+    "p6Eng": 1,
+    "p7Eng": 1,
+    "p8Eng": 1,
+    "p8Pitch": 560,
+    "p8SendReverb": 0.15,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

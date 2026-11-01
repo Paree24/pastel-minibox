@@ -1,0 +1,30 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Tuned Toms and Bell",
+  "samples": [],
+  "type": "drums",
+  "values": {
+    "kitLevel": 0.643499970436096,
+    "p1Decay": 0.35,
+    "p1Eng": 2,
+    "p2Click": 0.4,
+    "p2Eng": 0,
+    "p2Pitch": 230,
+    "p3Eng": 0,
+    "p4Decay": 0.45,
+    "p4Eng": 0,
+    "p4Pitch": 150,
+    "p5Decay": 0.06,
+    "p5Eng": 2,
+    "p6Eng": 2,
+    "p7Eng": 0,
+    "p8Decay": 0.3,
+    "p8Eng": 1,
+    "p8Pitch": 640,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

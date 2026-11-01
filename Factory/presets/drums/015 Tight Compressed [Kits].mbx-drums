@@ -1,0 +1,31 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Tight Compressed",
+  "samples": [],
+  "type": "drums",
+  "values": {
+    "kitComp": 0.55,
+    "kitDrive": 0.2,
+    "kitLevel": 0.61870002746582,
+    "p1Click": 0.7,
+    "p1Decay": 0.35,
+    "p1Eng": 1,
+    "p2Click": 0.8,
+    "p2Eng": 1,
+    "p2SendReverb": 0.2,
+    "p2Tone": 0.6,
+    "p3Eng": 1,
+    "p4Eng": 1,
+    "p5Decay": 0.07,
+    "p5Eng": 0,
+    "p5Tone": 0.5,
+    "p6Eng": 0,
+    "p7Eng": 0,
+    "p8Eng": 0,
+    "revPre": 0.005,
+    "revSize": 0.25,
+    "revTone": 0.5
+  },
+  "version": 1
+}

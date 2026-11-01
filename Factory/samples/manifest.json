@@ -964,7 +964,7 @@
    ]
   },
   {
-   "name": "Electro",
+   "name": "Clicky Snap",
    "files": [
     "kit06_kick",
     "kit06_snare",
@@ -977,7 +977,7 @@
    ]
   },
   {
-   "name": "Techno Rumble",
+   "name": "Rumble Kick",
    "files": [
     "kit07_kick",
     "kit07_snare",
@@ -1016,7 +1016,7 @@
    ]
   },
   {
-   "name": "Trap Rolls",
+   "name": "Long Sub Kick",
    "files": [
     "kit10_kick",
     "kit10_snare",
@@ -1029,7 +1029,7 @@
    ]
   },
   {
-   "name": "House Pump",
+   "name": "Compressed Punch",
    "files": [
     "kit11_kick",
     "kit11_snare",
@@ -1042,7 +1042,7 @@
    ]
   },
   {
-   "name": "Minimal Click",
+   "name": "Short Click",
    "files": [
     "kit12_kick",
     "kit12_snare",
@@ -1055,7 +1055,7 @@
    ]
   },
   {
-   "name": "Dub Space",
+   "name": "Echo Space",
    "files": [
     "kit13_kick",
     "kit13_snare",
@@ -1068,7 +1068,7 @@
    ]
   },
   {
-   "name": "Industrial",
+   "name": "Distorted Resonant",
    "files": [
     "kit14_kick",
     "kit14_snare",
@@ -1081,7 +1081,7 @@
    ]
   },
   {
-   "name": "Breakbeat",
+   "name": "Tight Compressed",
    "files": [
     "kit15_kick",
     "kit15_snare",
@@ -1120,7 +1120,7 @@
    ]
   },
   {
-   "name": "Ambient Kit",
+   "name": "Airy Resonant",
    "files": [
     "kit18_kick",
     "kit18_snare",
@@ -1133,7 +1133,7 @@
    ]
   },
   {
-   "name": "Garage Shuffle",
+   "name": "Punch and Box",
    "files": [
     "kit19_kick",
     "kit19_snare",
@@ -1146,7 +1146,7 @@
    ]
   },
   {
-   "name": "Drum and Bass",
+   "name": "Short Snappy",
    "files": [
     "kit20_kick",
     "kit20_snare",
@@ -1159,7 +1159,7 @@
    ]
   },
   {
-   "name": "Synthwave",
+   "name": "Big Reverb Snare",
    "files": [
     "kit21_kick",
     "kit21_snare",
@@ -1172,7 +1172,7 @@
    ]
   },
   {
-   "name": "Footwork",
+   "name": "Ringing Sub",
    "files": [
     "kit22_kick",
     "kit22_snare",
@@ -1185,7 +1185,7 @@
    ]
   },
   {
-   "name": "Afro Percussion",
+   "name": "Tuned Toms and Bell",
    "files": [
     "kit23_kick",
     "kit23_snare",
@@ -1198,7 +1198,7 @@
    ]
   },
   {
-   "name": "Glitch",
+   "name": "Bent Layers",
    "files": [
     "kit24_kick",
     "kit24_snare",
@@ -1211,7 +1211,7 @@
    ]
   },
   {
-   "name": "Big Room",
+   "name": "Driven Big Reverb",
    "files": [
     "kit25_kick",
     "kit25_snare",
@@ -1250,7 +1250,7 @@
    ]
   },
   {
-   "name": "Dark Techno",
+   "name": "Dark Driven",
    "files": [
     "kit28_kick",
     "kit28_snare",
@@ -1263,7 +1263,7 @@
    ]
   },
   {
-   "name": "Funk Machine",
+   "name": "Dry Machine",
    "files": [
     "kit29_kick",
     "kit29_snare",
@@ -1276,7 +1276,7 @@
    ]
   },
   {
-   "name": "Reggaeton",
+   "name": "High Snare Classic",
    "files": [
     "kit30_kick",
     "kit30_snare",
@@ -1302,7 +1302,7 @@
    ]
   },
   {
-   "name": "Crushed Rave",
+   "name": "Crushed Drive",
    "files": [
     "kit32_kick",
     "kit32_snare",

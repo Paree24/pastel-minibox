@@ -1,0 +1,41 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Driven Big Reverb",
+  "samples": [
+    "factory:kit25_kick",
+    "factory:kit25_snare",
+    "factory:kit25_chat",
+    "factory:kit25_ohat",
+    "factory:kit25_clap",
+    "factory:kit25_tom",
+    "factory:kit25_cym",
+    "factory:kit25_perc"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 0.883599996566772,
+    "pd1Decay": 1.1554375,
+    "pd1Pan": 0,
+    "pd2Decay": 0.6995,
+    "pd2Pan": 0.05,
+    "pd2SendReverb": 0.2,
+    "pd3Decay": 0.1448125,
+    "pd3Pan": 0.25,
+    "pd4Decay": 0.3075,
+    "pd4Pan": 0.25,
+    "pd5Decay": 0.40125,
+    "pd5Pan": -0.15,
+    "pd5SendReverb": 0.2,
+    "pd6Decay": 0.584875,
+    "pd6Pan": -0.3,
+    "pd7Decay": 1.218791666666667,
+    "pd7Pan": -0.2,
+    "pd8Decay": 0.271020833333333,
+    "pd8Pan": 0.35,
+    "revPre": 0.025,
+    "revSize": 0.75,
+    "revTone": 0.6
+  },
+  "version": 1
+}
