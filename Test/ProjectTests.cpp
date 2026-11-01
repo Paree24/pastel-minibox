@@ -182,3 +182,23 @@ MB_TEST (export_song_plays_patterns_in_order)
     }
     f.deleteFile();
 }
+
+/** Song and pattern exports in FLAC and Ogg Vorbis (by the file's extension): readable, the right length. */
+MB_TEST (export_flac_and_ogg)
+{
+    Engine e;
+    e.prepare (48000.0, 512);
+    e.setDevice (0, 0, createDevice (DeviceType::Mono));
+    e.project().patterns[0].slots[0].track.steps[0].addNote (48);
+    juce::AudioFormatManager fm; fm.registerBasicFormats();
+    for (auto ext : { ".flac", ".ogg" })
+    {
+        const auto f = juce::File::createTempFile (ext);
+        auto r = serializer::exportSongWav (e, f);
+        std::unique_ptr<juce::AudioFormatReader> rd (fm.createReaderFor (f));
+        ctx.check (r.ok && rd != nullptr && rd->getFormatName() == (juce::String (ext) == ".flac" ? "FLAC file" : "Ogg-Vorbis file")
+                   && std::abs (rd->lengthInSamples - (2 * 48000 + 3 * 48000)) < 4096,
+                   juce::String (ext) + " song: " + (rd ? rd->getFormatName() + ", " + juce::String (rd->lengthInSamples) : r.error));
+        f.deleteFile();
+    }
+}

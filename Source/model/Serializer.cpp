@@ -597,6 +597,31 @@ Result restore (Engine& engine, const juce::MemoryBlock& data)
     return r;
 }
 
+namespace
+{
+/** The render to the file, in the format its name ends in: .flac (24-bit), .ogg (Ogg Vorbis, 256 kbps), else WAV
+    (24-bit). */
+Result writeAudio (const juce::AudioBuffer<float>& buf, const juce::File& file, double sr)
+{
+    Result r;
+    const auto ext = file.getFileExtension().toLowerCase();
+    std::unique_ptr<juce::AudioFormat> format;
+    int bits = 24, quality = 0;
+    if (ext == ".flac") format = std::make_unique<juce::FlacAudioFormat>();
+    else if (ext == ".ogg") { format = std::make_unique<juce::OggVorbisAudioFormat>(); bits = 16; quality = 8; }   // "256 kbps"
+    else format = std::make_unique<juce::WavAudioFormat>();
+    file.deleteFile();
+    std::unique_ptr<juce::OutputStream> os (file.createOutputStream());
+    if (os == nullptr) { r.ok = false; r.error = "Can't write " + file.getFullPathName(); return r; }
+    std::unique_ptr<juce::AudioFormatWriter> w (format->createWriterFor (os.get(), sr, 2, bits, {}, quality));
+    if (w == nullptr) { r.ok = false; r.error = format->getFormatName() + " writer failed."; return r; }
+    os.release();
+    w->writeFromAudioSampleBuffer (buf, 0, buf.getNumSamples());
+    r.ok = true;
+    return r;
+}
+} // namespace
+
 Result exportWav (Engine& live, const juce::File& file, int loops, double sr)
 {
     Result r;
@@ -625,16 +650,7 @@ Result exportWav (Engine& live, const juce::File& file, int loops, double sr)
         buf.copyFrom (1, pos, rr.data(), n);
         if (pos + n >= total - (int) (3.0 * sr) && off.isPlaying()) off.stop();   // let the tails ring for 3 s
     }
-    file.deleteFile();
-    juce::WavAudioFormat wav;
-    std::unique_ptr<juce::OutputStream> os (file.createOutputStream());
-    if (os == nullptr) { r.ok = false; r.error = "Can't write " + file.getFullPathName(); return r; }
-    std::unique_ptr<juce::AudioFormatWriter> w (wav.createWriterFor (os.get(), sr, 2, 24, {}, 0));
-    if (w == nullptr) { r.ok = false; r.error = "WAV writer failed."; return r; }
-    os.release();
-    w->writeFromAudioSampleBuffer (buf, 0, total);
-    r.ok = true;
-    return r;
+    return writeAudio (buf, file, sr);
 }
 
 namespace
@@ -650,20 +666,6 @@ bool patternHasNotes (const Project& p, int pat)
     return false;
 }
 
-Result writeWav (const juce::AudioBuffer<float>& buf, const juce::File& file, double sr)
-{
-    Result r;
-    file.deleteFile();
-    juce::WavAudioFormat wav;
-    std::unique_ptr<juce::OutputStream> os (file.createOutputStream());
-    if (os == nullptr) { r.ok = false; r.error = "Can't write " + file.getFullPathName(); return r; }
-    std::unique_ptr<juce::AudioFormatWriter> w (wav.createWriterFor (os.get(), sr, 2, 24, {}, 0));
-    if (w == nullptr) { r.ok = false; r.error = "WAV writer failed."; return r; }
-    os.release();
-    w->writeFromAudioSampleBuffer (buf, 0, buf.getNumSamples());
-    r.ok = true;
-    return r;
-}
 } // namespace
 
 Result exportSongWav (Engine& live, const juce::File& file, double sr)
@@ -706,7 +708,7 @@ Result exportSongWav (Engine& live, const juce::File& file, double sr)
         }
         if (pos + n >= total - (int) (3.0 * sr) && off.isPlaying()) off.stop();   // let the tails ring for 3 s
     }
-    return writeWav (buf, file, sr);
+    return writeAudio (buf, file, sr);
 }
 
 Result saveRack (Engine& engine, int pattern, const juce::File& file)

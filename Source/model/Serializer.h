@@ -21,6 +21,7 @@ juce::MemoryBlock snapshot (Engine&);
 Result restore (Engine&, const juce::MemoryBlock&);
 
 /** Offline render of the active pattern `loops` times plus a tail, into a 24-bit WAV. */
+/** The playing pattern, `loops` times, then 3 s of tails; WAV, FLAC or Ogg Vorbis by the file's extension. */
 Result exportWav (Engine& live, const juce::File&, int loops, double sampleRate = 48000.0);
 /** The song: every pattern that has notes, in order (A, B, C …), each played once and switched at its end, then 3 s of
     tails. */
