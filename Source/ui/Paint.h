@@ -21,6 +21,9 @@ float pill (G&, float x, float y, const juce::String&, float size, juce::Colour 
 std::vector<R> segmented (G&, R, const juce::StringArray& opts, int sel, juce::Colour, float size = 11.0f);
 bool segmentedFits (float w, const juce::StringArray& opts, float size = 11.0f);
 void trackBadge (G&, float cx, float cy, int idx, float r = 13.0f);
+/** The Minibox mark (Assets/icon/pastel-minibox.svg, the Android icon too): four rounded pads, lilac, mint, pink and
+    amber, the amber one a play button; `pad` square pads `gap` apart from (x, y). */
+void brandMark (G&, float x, float y, float pad = 9.0f, float gap = 2.0f);
 void deviceDots (G&, float cx, float cy, const std::array<bool, 4>& on, float r = 3.0f, float gap = 9.0f);
 void msButtons (G&, float x, float y, bool mute, bool solo, float size = 24.0f);
 

@@ -147,6 +147,22 @@ std::vector<R> segmented (G& g, R r, const juce::StringArray& opts, int sel, juc
     return out;
 }
 
+void brandMark (G& g, float x, float y, float pad, float gap)
+{
+    static const juce::Colour colours[4] = { juce::Colour (0xffB9A7F0), juce::Colour (0xff8FD0C2), juce::Colour (0xffE9A3B8), juce::Colour (0xffE8B86A) };
+    for (int i = 0; i < 4; ++i)
+    {
+        g.setColour (colours[i]);
+        g.fillRoundedRectangle (x + (i % 2) * (pad + gap), y + (i / 2) * (pad + gap), pad, pad, pad * 0.26f);
+    }
+    // the play triangle in the amber pad (as on the 108 grid: 6.5 … 18.5 across a 23 pad)
+    const float px = x + pad + gap, py = y + pad + gap, k = pad / 23.0f;
+    juce::Path tri;
+    tri.addTriangle (px + 6.5f * k, py + 5.0f * k, px + 18.5f * k, py + 11.5f * k, px + 6.5f * k, py + 18.0f * k);
+    g.setColour (juce::Colour (0xff1B1D22));
+    g.fillPath (tri);
+}
+
 void trackBadge (G& g, float cx, float cy, int idx, float r)
 {
     g.setColour (col::track (idx));

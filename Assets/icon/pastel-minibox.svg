@@ -1,17 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Pastel Minibox app icon: a pad grid in the device colours -->
-<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
-  <rect x="8" y="8" width="240" height="240" rx="52" fill="#1B1D22"/>
-  <rect x="8.5" y="8.5" width="239" height="239" rx="51.5" fill="none" stroke="#2E323A" stroke-width="3"/>
-  <g>
-    <rect x="44"  y="44"  width="48" height="48" rx="12" fill="#E9A3B8"/>
-    <rect x="104" y="44"  width="48" height="48" rx="12" fill="#E8B86A"/>
-    <rect x="164" y="44"  width="48" height="48" rx="12" fill="#9EB9F3"/>
-    <rect x="44"  y="104" width="48" height="48" rx="12" fill="#8FD0C2"/>
-    <rect x="104" y="104" width="48" height="48" rx="12" fill="#ECE8E3"/>
-    <rect x="164" y="104" width="48" height="48" rx="12" fill="#D7A6E8"/>
-    <rect x="44"  y="164" width="48" height="48" rx="12" fill="#A8D58A"/>
-    <rect x="104" y="164" width="48" height="48" rx="12" fill="#F0A07C"/>
-    <rect x="164" y="164" width="48" height="48" rx="12" fill="#7FC6E8"/>
-  </g>
+<!-- Pastel Minibox mark (2026-11-01): four rounded pads, the amber one a play button; the same on desktop and Android -->
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 108 108">
+  <rect x="4" y="4" width="100" height="100" rx="22" fill="#1B1D22"/>
+  <rect x="4.6" y="4.6" width="98.8" height="98.8" rx="21.4" fill="none" stroke="#2E323A" stroke-width="1.2"/>
+  <rect x="29" y="29" width="23" height="23" rx="6" fill="#B9A7F0"/>
+  <rect x="56" y="29" width="23" height="23" rx="6" fill="#8FD0C2"/>
+  <rect x="29" y="56" width="23" height="23" rx="6" fill="#E9A3B8"/>
+  <rect x="56" y="56" width="23" height="23" rx="6" fill="#E8B86A"/>
+  <path d="M62.5,61 L74.5,67.5 L62.5,74 Z" fill="#1B1D22"/>
 </svg>

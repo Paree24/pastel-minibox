@@ -25,7 +25,7 @@ void PluginHeader::paint (juce::Graphics& g)
 {
     auto* d = proc.device();
     g.setColour (col::divider); g.drawHorizontalLine (TOP - 1, 0, W);
-    for (int i = 0; i < 4; ++i) { g.setColour (col::track (i)); g.fillRoundedRectangle (M + (i % 2) * 11.0f, 22 + (i / 2) * 11.0f, 9, 9, 2.5f); }
+    paint::brandMark (g, M, 22);
     paint::text (g, "Minibox", M + 32, 39, 20, Weight::Black, col::text);
     tabs.clear();
     float x = 176;
