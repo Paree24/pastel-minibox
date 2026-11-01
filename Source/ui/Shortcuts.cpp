@@ -33,6 +33,7 @@ Shortcuts::Shortcuts()
     add (saveProject, "Save the project", "Project", { key ('S', ctrl) });
     add (saveProjectAs, "Save the project as", "Project", { key ('S', ctrl | shift) });
     add (exportWav, "Export the pattern as a WAV", "Project", { key ('E', ctrl) });
+    add (exportSong, "Export the song as a WAV (the patterns in order)", "Project", { key ('E', ctrl | alt) });
     add (exportMidi, "Export the pattern as a MIDI file", "Project", { key ('E', ctrl | shift) });
     add (importMidi, "Import a MIDI file into the selected track", "Project", { key ('I', ctrl) });
     add (exportDawProject, "Export the project as DAWproject (opens in other DAWs with the Minibox plugin)", "Project", { key ('E', ctrl | alt) });

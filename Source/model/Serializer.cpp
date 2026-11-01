@@ -637,6 +637,78 @@ Result exportWav (Engine& live, const juce::File& file, int loops, double sr)
     return r;
 }
 
+namespace
+{
+bool patternHasNotes (const Project& p, int pat)
+{
+    for (const auto& sl : p.patterns[(size_t) pat].slots)
+    {
+        const auto& tr = sl.track;
+        if (! tr.clip.empty() || tr.hasStepNotes()) return true;
+        for (const auto& lane : tr.lanes) for (const auto& d : lane) if (d.on) return true;
+    }
+    return false;
+}
+
+Result writeWav (const juce::AudioBuffer<float>& buf, const juce::File& file, double sr)
+{
+    Result r;
+    file.deleteFile();
+    juce::WavAudioFormat wav;
+    std::unique_ptr<juce::OutputStream> os (file.createOutputStream());
+    if (os == nullptr) { r.ok = false; r.error = "Can't write " + file.getFullPathName(); return r; }
+    std::unique_ptr<juce::AudioFormatWriter> w (wav.createWriterFor (os.get(), sr, 2, 24, {}, 0));
+    if (w == nullptr) { r.ok = false; r.error = "WAV writer failed."; return r; }
+    os.release();
+    w->writeFromAudioSampleBuffer (buf, 0, buf.getNumSamples());
+    r.ok = true;
+    return r;
+}
+} // namespace
+
+Result exportSongWav (Engine& live, const juce::File& file, double sr)
+{
+    Result r;
+    const auto snap = snapshot (live);
+    Engine off;
+    off.prepare (sr, 512);
+    forceSyncSampleLoads() = true;
+    r = restore (off, snap);
+    forceSyncSampleLoads() = false;
+    if (! r.ok) return r;
+    auto& proj = off.project();
+    std::vector<int> order;
+    for (int p = 0; p < kPatterns; ++p) if (patternHasNotes (proj, p)) order.push_back (p);
+    if (order.empty()) { r.ok = false; r.error = "No pattern has notes."; return r; }
+    proj.switchQuantize = 1;   // each pattern plays to its end, then the next
+    proj.perform = false;
+    double seconds = 3.0;
+    for (int p : order) seconds += proj.patternSteps (p) * proj.stepQuarters (p) * 60.0 / proj.bpm;
+    off.queuePattern (order[0]);
+    off.focusPattern = order[0];
+    std::vector<float> l (512), rr (512);
+    off.process (l.data(), rr.data(), 512, nullptr);   // applies the pattern selection
+    off.play();
+    size_t k = 0;
+    if (order.size() > 1) off.queuePattern (order[1]);
+    const int total = (int) (seconds * sr);
+    juce::AudioBuffer<float> buf (2, total);
+    for (int pos = 0; pos < total; pos += 512)
+    {
+        const int n = std::min (512, total - pos);
+        off.process (l.data(), rr.data(), n, nullptr);
+        buf.copyFrom (0, pos, l.data(), n);
+        buf.copyFrom (1, pos, rr.data(), n);
+        if (k + 1 < order.size() && off.activePattern() == order[k + 1])   // switched: queue the one after
+        {
+            ++k;
+            if (k + 1 < order.size()) off.queuePattern (order[k + 1]);
+        }
+        if (pos + n >= total - (int) (3.0 * sr) && off.isPlaying()) off.stop();   // let the tails ring for 3 s
+    }
+    return writeWav (buf, file, sr);
+}
+
 Result saveRack (Engine& engine, int pattern, const juce::File& file)
 {
     Result r;

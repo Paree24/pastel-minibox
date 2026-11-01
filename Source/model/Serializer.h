@@ -22,6 +22,9 @@ Result restore (Engine&, const juce::MemoryBlock&);
 
 /** Offline render of the active pattern `loops` times plus a tail, into a 24-bit WAV. */
 Result exportWav (Engine& live, const juce::File&, int loops, double sampleRate = 48000.0);
+/** The song: every pattern that has notes, in order (A, B, C …), each played once and switched at its end, then 3 s of
+    tails. */
+Result exportSongWav (Engine& live, const juce::File&, double sampleRate = 48000.0);
 
 /** Rack preset (.mbrack): the 4 slot device presets plus the mixer of one pattern. */
 Result saveRack (Engine&, int pattern, const juce::File&);

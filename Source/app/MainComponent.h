@@ -30,6 +30,7 @@ public:
     void openFile (const juce::File&);
     void saveProject (bool saveAs, std::function<void()> after = {});
     void exportWav();
+    void exportSong();   // every pattern with notes, in order
     void exportMidi();
     void exportDawProject();
     void importMidi();

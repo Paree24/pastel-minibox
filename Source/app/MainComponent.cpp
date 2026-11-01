@@ -436,6 +436,7 @@ void MainComponent::showMenu()
     m.addItem (70, "Save project as...");
     m.addSeparator();
     m.addItem (80, "Import MIDI file into the selected track...", ctx.focusDevice() != nullptr);
+    m.addItem (83, "Export the song as WAV (patterns A, B, C … in order)...");
     m.addItem (81, "Export pattern " + juce::String::charToString ("ABCDEFGH"[ctx.focusPattern()]) + " as a MIDI file...");
     m.addItem (82, "Export the project as DAWproject...");
     m.showMenuAsync (menuAt (topBar, topBar.zoneRect ("menu")), [this] (int id)
@@ -471,6 +472,7 @@ void MainComponent::showMenu()
         if (id == 70) saveProject (true);
         if (id == 80) importMidi();
         if (id == 81) exportMidi();
+        if (id == 83) exportSong();
         if (id == 82) exportDawProject();
         if (id >= 10 && id < 60) ctx.markDirty();
     });
@@ -615,6 +617,23 @@ void MainComponent::importMidi()
     });
 }
 
+void MainComponent::exportSong()
+{
+    auto start = juce::File::getSpecialLocation (juce::File::userDocumentsDirectory)
+                     .getChildFile (juce::File::createLegalFileName (engine.project().name + " - Song") + ".wav");
+    chooser = std::make_unique<juce::FileChooser> ("Export the song as WAV", start, "*.wav");
+    chooser->launchAsync (juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles | juce::FileBrowserComponent::warnAboutOverwriting,
+                          [this] (const juce::FileChooser& fc)
+    {
+        auto f = fc.getResult();
+        if (f == juce::File()) return;
+        f = f.withFileExtension (".wav");
+        auto r = serializer::exportSongWav (engine, f);
+        if (r.ok) juce::AlertWindow::showMessageBoxAsync (juce::MessageBoxIconType::InfoIcon, "Exported", f.getFullPathName());
+        else juce::AlertWindow::showMessageBoxAsync (juce::MessageBoxIconType::WarningIcon, "Export failed", r.error);
+    });
+}
+
 void MainComponent::exportWav()
 {
     const auto pat = juce::String::charToString ("ABCDEFGH"[engine.activePattern()]);
@@ -679,6 +698,7 @@ void MainComponent::runCommand (juce::CommandID id)
         case cmd::saveProjectAs: this->saveProject (true); break;
         case cmd::exportWav: this->exportWav(); break;
         case cmd::exportMidi: this->exportMidi(); break;
+        case cmd::exportSong: this->exportSong(); break;
         case cmd::exportDawProject: this->exportDawProject(); break;
         case cmd::recordSettings: topBar.showRecording(); break;
         case cmd::masterEffects: showMasterFx (! masterFxOpen()); break;

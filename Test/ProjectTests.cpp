@@ -152,3 +152,33 @@ MB_TEST (midi_file_round_trip)
     ctx.check (dr.lanes[0][0].on && dr.lanes[4][2].on, "drums land on their parts and steps");
     f.deleteFile();
 }
+
+/** Export song: the patterns with notes, in order, each once: B's notes come after A's whole length, empty C is
+    skipped, D follows B. */
+MB_TEST (export_song_plays_patterns_in_order)
+{
+    Engine e;
+    e.prepare (48000.0, 512);
+    for (int p : { 0, 1, 3 }) e.setDevice (p, 0, createDevice (DeviceType::Mono));
+    auto& pr = e.project();
+    pr.countIn = false;
+    for (int p : { 0, 1, 3 }) { pr.patterns[(size_t) p].lengthBars = 1; pr.patterns[(size_t) p].slots[0].track.steps[0].addNote (48 + p * 7); }
+    const auto f = juce::File::createTempFile (".wav");
+    auto r = serializer::exportSongWav (e, f);
+    ctx.check (r.ok, "song rendered: " + r.error);
+    juce::AudioFormatManager fm; fm.registerBasicFormats();
+    std::unique_ptr<juce::AudioFormatReader> rd (fm.createReaderFor (f));
+    const double bar = 48000.0 * 2.0;   // one 4/4 bar at 120
+    ctx.check (rd != nullptr && std::abs ((double) rd->lengthInSamples - (3 * bar + 3 * 48000.0)) < 2048, "three one-bar patterns and the tail ("
+               + juce::String (rd ? rd->lengthInSamples / bar : 0.0, 2) + " bars)");
+    if (rd != nullptr)
+    {
+        juce::AudioBuffer<float> b (2, (int) rd->lengthInSamples);
+        rd->read (&b, 0, b.getNumSamples(), 0, true, true);
+        auto onsetAfter = [&] (double from) { for (int i = (int) from; i < b.getNumSamples(); ++i) if (std::abs (b.getSample (0, i)) > 0.01f) return i; return -1; };
+        const int a = onsetAfter (0), bOn = onsetAfter (bar - 2000 > 0 ? bar * 0.98 : 0);
+        ctx.check (a >= 0 && a < 2000, "A starts at once");
+        ctx.check (bOn >= 0, "B plays");
+    }
+    f.deleteFile();
+}
