@@ -1485,10 +1485,10 @@ void PianoRoll::strum()
     put (n);
 }
 
-void PianoRoll::velocityRandomize()
+void PianoRoll::velocityRandomize (float amount)
 {
     auto n = takeTargets();
-    for (auto& x : n) x.vel = std::clamp (x.vel + rnd.nextInt (41) - 20, 1, 127);
+    for (auto& x : n) x.vel = std::clamp ((int) std::lround (x.vel * (1.0 + amount * (2.0 * rnd.nextDouble() - 1.0))), 1, 127);
     put (n);
 }
 

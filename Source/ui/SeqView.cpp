@@ -1344,7 +1344,8 @@ void SeqView::toolAction (int id)
             timing.addItem (32, "Stretch x2"); timing.addItem (33, "Stretch /2"); timing.addItem (34, "Reverse");
             timing.addItem (35, "Chop into steps"); timing.addItem (36, "Glue touching notes"); timing.addItem (37, "Strum chords");
             m.addSubMenu ("Time and length", timing);
-            vel.addItem (40, "Randomize"); vel.addItem (41, "Ramp up"); vel.addItem (42, "Ramp down");
+            static const int randomPct[4] = { 10, 20, 30, 50 };
+            for (int k = 0; k < 4; ++k) vel.addItem (43 + k, "Randomize ±" + juce::String (randomPct[k]) + " %"); vel.addItem (41, "Ramp up"); vel.addItem (42, "Ramp down");
             for (int v : { 127, 100, 80, 60, 40 }) vel.addItem (100 + v, "Set to " + juce::String (v));
             m.addSubMenu ("Velocity", vel);
             pattern.addItem (50, "Rotate left"); pattern.addItem (51, "Rotate right");
@@ -1370,7 +1371,8 @@ void SeqView::toolAction (int id)
                     case 32: roll.stretch (2.0f); break;        case 33: roll.stretch (0.5f); break;
                     case 34: roll.reverse(); break;             case 35: roll.chop(); break;
                     case 36: roll.glue(); break;                case 37: roll.strum(); break;
-                    case 40: roll.velocityRandomize(); break;   case 41: roll.velocityRamp (true); break;
+                    case 43: case 44: case 45: case 46: roll.velocityRandomize ((float) std::array<int, 4> { 10, 20, 30, 50 } [(size_t) (r - 43)] / 100.0f); break;
+                    case 41: roll.velocityRamp (true); break;
                     case 42: roll.velocityRamp (false); break;
                     case 50: roll.rotate (-1); break;           case 51: roll.rotate (1); break;
                     case 52: roll.insertStep (true); break;     case 53: roll.insertStep (false); break;
