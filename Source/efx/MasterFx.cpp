@@ -53,7 +53,7 @@ void MasterFx::defaultPad (FxSlot& fx, int pad)
     if (e == "Stutter") setPhysical (fx, *d, "Hold", 1.0f);          // repeats the slice caught at the press for as long as it is held
     if (e == "Soft Clip Drive") setPhysical (fx, *d, "Out", -6.0f);  // as loud as the dry mix, not louder
     if (e == "Glitch") fx.mode = 1;                                  // Wild
-    if (e == "Slicer") { setPhysical (fx, *d, "Decay", 90.0f); setPhysical (fx, *d, "Attack", 2.0f); }   // slices that ring, not 15 ms clicks
+    if (e == "Slicer") { setPhysical (fx, *d, "Decay", 220.0f); setPhysical (fx, *d, "Attack", 2.0f); }   // slices that ring (≈ 75 ms above half level), not clicks
 }
 
 const std::vector<int>& MasterFx::choosableEffects()

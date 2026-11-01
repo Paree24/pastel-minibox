@@ -640,8 +640,10 @@ public:
                 hitNow = hit ((int) (((sa % steps) + steps) % steps), steps, pulses, rotate);
                 if (hitNow) { t = 0.0f; level = 1.0f - c.p[8] * rng.uni(); ++hitCount; }
             }
+            // a slice fades on through the steps without a hit, until the next hit: the Decay sets how long it rings
+            // (an empty step used to cut it at its start, so no slice outlasted a step whatever the Decay)
             float e = 0.0f;
-            if (hitNow) { e = t < atk ? t / atk : std::exp (-(t - atk) / dec * 2.3f); t += 1.0f; }
+            if (hitCount > 0) { e = t < atk ? t / atk : std::exp (-(t - atk) / dec * 2.3f); t += 1.0f; }
             env += (e * level - env) * 0.25f;
             const float g = floorG + (1.0f - floorG) * env;
             // pan: alternate hits lean left / right

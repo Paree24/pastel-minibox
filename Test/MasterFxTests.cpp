@@ -272,3 +272,63 @@ MB_TEST (tool_pad_effect_renders)
                   << " dB, hf share held " << juce::String (hf (wet, 96000, 96000 * 3), 4) << " vs dry " << juce::String (hf (dry, 96000, 96000 * 3), 4) << std::endl;
     }
 }
+
+/** Tool (MB_PADS=1): the Slicer pad over a sustained chord: how long each slice stays above half level (ms). */
+MB_TEST (tool_slicer_gate)
+{
+    if (juce::SystemStats::getEnvironmentVariable ("MB_PADS", {}).isEmpty()) return;
+    Engine e;
+    e.prepare (48000.0, 512);
+    MasterFx fx (e);
+    e.setMasterInsert (&fx);
+    auto d = createDevice (DeviceType::Poly);
+    presets::loadDefault (*d, true);
+    e.setDevice (0, 0, std::move (d));
+    fx.sync();
+    auto& tr = e.project().patterns[0].slots[0].track;
+    tr.pianoRoll = true;
+    for (int n : { 48, 55, 60 }) { ClipNote c; c.start = 0; c.length = e.project().patternTicks (0); c.note = (uint8_t) n; tr.addClipNote (c); }
+    e.play();
+    std::vector<float> l (512), r (512), out;
+    for (int pos = 0; pos < 96000 * 3; pos += 512)
+    {
+        if (pos >= 96000 && pos < 96000 + 512) fx.setHeld (3, true);
+        e.process (l.data(), r.data(), 512, nullptr);
+        if (pos >= 96000 * 2) out.insert (out.end(), l.begin(), l.end());
+    }
+    e.setMasterInsert (nullptr);
+    std::vector<double> env;
+    for (size_t i = 0; i + 480 < out.size(); i += 480) { double a = 0; for (size_t k = 0; k < 480; ++k) a = std::max (a, (double) std::abs (out[i + k])); env.push_back (a); }
+    const double top = *std::max_element (env.begin(), env.end());
+    std::vector<double> bursts; int run = 0;
+    for (double v : env) { if (v > top * 0.5) ++run; else if (run > 0) { bursts.push_back (run * 10.0); run = 0; } }
+    double avg = 0; for (double b : bursts) avg += b;
+    std::cout << "    slicer: " << bursts.size() << " slices a bar, each above half level for " << juce::String (bursts.empty() ? 0.0 : avg / bursts.size(), 0) << " ms on average" << std::endl;
+}
+
+/** Tool (MB_PADS=1): the Slicer pad's gate itself (the effect on a constant 1.0 at 120 BPM, playing): per bar, the
+    slices and how long each stays above half (ms). MB_SLICER_DECAY overrides the pad's Decay (ms). */
+MB_TEST (tool_slicer_gate_direct)
+{
+    if (juce::SystemStats::getEnvironmentVariable ("MB_PADS", {}).isEmpty()) return;
+    FxSlot fx;
+    MasterFx::defaultPad (fx, 3);
+    const auto* d = efx::defForId (efx::idForName (fx.effect));
+    if (auto ms = juce::SystemStats::getEnvironmentVariable ("MB_SLICER_DECAY", {}); ms.isNotEmpty())
+        for (int k = 0; k < d->numParams; ++k) if (juce::String (d->p[k].name) == "Decay") fx.norm[(size_t) k] = efx::mapParam (d->p[k], ms.getFloatValue());
+    efx::GridEffect g (efx::idForName (fx.effect));
+    g.prepare (48000.0, 512);
+    efx::SlotInput in; in.norm = fx.norm.data(); in.mix = 1.0f; in.mode = fx.mode; in.bpm = 120.0; in.playing = true;
+    std::vector<float> l (512), r (512), gate;
+    for (int pos = 0; pos < 96000 * 2; pos += 512)
+    {
+        std::fill (l.begin(), l.end(), 1.0f); std::fill (r.begin(), r.end(), 1.0f);
+        in.ppq = pos / 24000.0;
+        g.process (l.data(), r.data(), 512, in);
+        if (pos >= 96000) gate.insert (gate.end(), l.begin(), l.end());
+    }
+    std::vector<double> runs; int run = 0;
+    for (float v : gate) { if (v > 0.5f) ++run; else if (run > 0) { runs.push_back (run / 48.0); run = 0; } }
+    double avg = 0; for (double x : runs) avg += x;
+    std::cout << "    slicer gate: " << runs.size() << " slices a bar, above half for " << juce::String (runs.empty() ? 0.0 : avg / runs.size(), 1) << " ms on average" << std::endl;
+}
