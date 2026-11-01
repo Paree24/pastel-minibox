@@ -159,6 +159,14 @@ struct Track
     ClipNote* clipNote (uint32_t id) { for (auto& n : clip) if (n.id == id) return &n; return nullptr; }
     void removeClipNote (uint32_t id) { clip.erase (std::remove_if (clip.begin(), clip.end(), [id] (const ClipNote& n) { return n.id == id; }), clip.end()); }
     bool hasStepNotes() const { for (auto& s : steps) if (s.noteCount > 0) return true; return false; }
+    /** Everything this track plays in its pattern goes: steps, drum hits, the clip, locks, controller lanes. It stays
+        a step or a clip track as it was (the editor in view stays). */
+    void clearAll()
+    {
+        for (auto& s : steps) s.clear();
+        for (auto& l : lanes) for (auto& d : l) d.clear();
+        locks.clear(); clip.clear(); cc.clear();
+    }
     /** Steps → clip (one way): every note at its exact position and length; the steps are cleared. */
     void convertToPianoRoll (int stepTicks, int totalSteps)
     {

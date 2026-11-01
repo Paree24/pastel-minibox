@@ -1490,6 +1490,8 @@ void SeqView::showBarMenu (int bar)
     m.addItem (4, "Clear bar (selected track)");
     m.addItem (5, "Clear bar (all tracks)");
     m.addItem (6, "Duplicate bar into the next");
+    m.addSeparator();
+    m.addItem (7, "Clear the whole pattern (selected track)");
     m.showMenuAsync (menuAt (*this, menuArea), [this, bar] (int r)
     {
         if (r <= 0) return;
@@ -1528,6 +1530,7 @@ void SeqView::showBarMenu (int bar)
             const Engine::ScopedEdit ed (ctx.engine);
             if (r == 3) for (auto& c : barClip) pasteBar (c, barClip.size() == 1 ? sel : c.track, bar);
             if (r == 4) clearBar (sel);
+            if (r == 7) pt.slots[(size_t) sel].track.clearAll();
             if (r == 5) for (int t = 0; t < kTracks; ++t) clearBar (t);
             if (r == 6) { BarClip c; copyBar (sel, c); pasteBar (c, sel, bar + 1); }
         }
