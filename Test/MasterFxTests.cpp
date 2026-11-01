@@ -203,3 +203,72 @@ MB_TEST (track_fx_slots)
     rig.fx.setTrackEffect (0, 0, 1, "");
     ctx.check (rig.e.project().patterns[0].slots[0].fx[1].effect.isEmpty() && ! rig.fx.trackActive (0, 0), "emptied");
 }
+
+/** Tool (MB_PADS=1): the timed performance pads' default settings, by name. */
+MB_TEST (tool_pad_defaults)
+{
+    if (juce::SystemStats::getEnvironmentVariable ("MB_PADS", {}).isEmpty()) return;
+    for (int pad = 0; pad < 4; ++pad)
+    {
+        FxSlot fx;
+        MasterFx::defaultPad (fx, pad);
+        const auto* d = efx::defForId (efx::idForName (fx.effect));
+        juce::String line = juce::String (MasterFx::padName (pad)) + " (" + fx.effect + ", mode " + juce::String (fx.mode) + "):";
+        for (int k = 0; k < d->numParams; ++k) line << " " << d->p[k].name << "=" << efx::formatParam (d->p[k], fx.norm[(size_t) k]);
+        std::cout << "    " << line << std::endl;
+    }
+}
+
+/** Tool (MB_PADS=1): each timed pad held over a playing drum pattern (from bar 2 for 2 bars) against the same render
+    without it: how much it changes the sound, and the high-frequency share (a filter would lower it). */
+MB_TEST (tool_pad_effect_renders)
+{
+    if (juce::SystemStats::getEnvironmentVariable ("MB_PADS", {}).isEmpty()) return;
+    auto render = [] (int pad, std::vector<float>& out)
+    {
+        Engine e;
+        e.prepare (48000.0, 512);
+        MasterFx fx (e);
+        e.setMasterInsert (&fx);
+        auto d = createDevice (DeviceType::Drums);
+        presets::loadDefault (*d, true);
+        e.setDevice (0, 0, std::move (d));
+        fx.sync();
+        auto& tr = e.project().patterns[0].slots[0].track;
+        for (int st = 0; st < 16; ++st) { tr.lanes[0][(size_t) st].on = st % 4 == 0; tr.lanes[4][(size_t) st].on = st % 2 == 0; tr.lanes[1][(size_t) st].on = st % 8 == 4; }
+        e.play();
+        std::vector<float> l (512), r (512);
+        const int bar = 96000;
+        for (int pos = 0; pos < bar * 4; pos += 512)
+        {
+            if (pad >= 0 && pos >= bar && pos < bar + 512) fx.setHeld (pad, true);
+            if (pad >= 0 && pos >= bar * 3 && pos < bar * 3 + 512) fx.setHeld (pad, false);
+            e.process (l.data(), r.data(), 512, nullptr);
+            out.insert (out.end(), l.begin(), l.end());
+        }
+        e.setMasterInsert (nullptr);
+    };
+    std::vector<float> dry;
+    render (-1, dry);
+    auto hf = [] (const std::vector<float>& x, int a, int b)
+    {
+        double all = 0, high = 0, prev = 0;
+        for (int i = a; i < b; ++i) { const double d = x[(size_t) i] - prev; prev = x[(size_t) i]; high += d * d; all += (double) x[(size_t) i] * x[(size_t) i]; }
+        return high / (all + 1e-12);
+    };
+    for (int pad = 0; pad < 4; ++pad)
+    {
+        std::vector<float> wet;
+        render (pad, wet);
+        double diff = 0, ref = 0;
+        for (int i = 96000; i < 96000 * 3; ++i) { const double dd = wet[(size_t) i] - dry[(size_t) i]; diff += dd * dd; ref += (double) dry[(size_t) i] * dry[(size_t) i]; }
+        for (int b = 1; b <= 2; ++b)
+        {
+            double d2 = 0, r2 = 0;
+            for (int i = 96000 * b; i < 96000 * (b + 1); ++i) { const double dd = wet[(size_t) i] - dry[(size_t) i]; d2 += dd * dd; r2 += (double) dry[(size_t) i] * dry[(size_t) i]; }
+            std::cout << "    " << MasterFx::padName (pad) << " bar " << b + 1 << " of the hold: change " << juce::String (10 * std::log10 ((d2 + 1e-12) / (r2 + 1e-12)), 1) << " dB" << std::endl;
+        }
+        std::cout << "    " << MasterFx::padName (pad) << ": change " << juce::String (10 * std::log10 ((diff + 1e-12) / (ref + 1e-12)), 1)
+                  << " dB, hf share held " << juce::String (hf (wet, 96000, 96000 * 3), 4) << " vs dry " << juce::String (hf (dry, 96000, 96000 * 3), 4) << std::endl;
+    }
+}

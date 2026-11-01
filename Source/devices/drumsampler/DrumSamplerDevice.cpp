@@ -78,7 +78,7 @@ juce::String DrumSamplerDevice::laneName (int lane) const
     static const juce::StringPairArray names = []
     {
         juce::StringPairArray a;
-        a.set ("ohat", "O Hat"); a.set ("hat", "C Hat"); a.set ("cym", "Cymbal");
+        a.set ("ohat", "O Hat"); a.set ("hat", "C Hat"); a.set ("chat", "C Hat"); a.set ("cym", "Cymbal");
         return a;
     }();
     if (names.containsKey (n)) n = names[n];
