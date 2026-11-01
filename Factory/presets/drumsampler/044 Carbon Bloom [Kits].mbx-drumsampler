@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Carbon Bloom",
+  "samples": [
+    "factory:dk45_kick",
+    "factory:dk45_snare",
+    "factory:dk45_chat",
+    "factory:dk45_ohat",
+    "factory:dk45_perc",
+    "factory:dk45_tom",
+    "factory:dk45_cym",
+    "factory:dk45_metal"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 1.197100043296814,
+    "pd1Decay": 0.8139,
+    "pd1Pan": 0.0,
+    "pd2Decay": 1.7208,
+    "pd2Pan": 0.0,
+    "pd3Decay": 0.2896,
+    "pd3Pan": -0.16,
+    "pd4Decay": 0.4504,
+    "pd4Pan": -0.16,
+    "pd5Decay": 1.7917,
+    "pd5Pan": 0.2,
+    "pd6Decay": 1.626,
+    "pd6Pan": 0.0,
+    "pd7Decay": 3.5862,
+    "pd7Pan": 0.12,
+    "pd8Decay": 0.9763,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Salt Flats",
+  "samples": [
+    "factory:dk13_kick",
+    "factory:dk13_snare",
+    "factory:dk13_chat",
+    "factory:dk13_ohat",
+    "factory:dk13_perc",
+    "factory:dk13_tom",
+    "factory:dk13_cym",
+    "factory:dk13_metal"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 1.071099996566772,
+    "pd1Decay": 3.2222,
+    "pd1Pan": 0.0,
+    "pd2Decay": 0.82,
+    "pd2Pan": 0.0,
+    "pd3Decay": 0.0473,
+    "pd3Pan": -0.16,
+    "pd4Decay": 0.2809,
+    "pd4Pan": -0.16,
+    "pd5Decay": 0.9552,
+    "pd5Pan": 0.2,
+    "pd6Decay": 0.6934,
+    "pd6Pan": 0.0,
+    "pd7Decay": 2.1437,
+    "pd7Pan": 0.12,
+    "pd8Decay": 0.967,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

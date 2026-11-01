@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Sub Cathedral",
+  "samples": [
+    "factory:dk71_kick",
+    "factory:dk71_snare",
+    "factory:dk71_chat",
+    "factory:dk71_ohat",
+    "factory:dk71_snap",
+    "factory:dk71_tom",
+    "factory:dk71_cym",
+    "factory:dk71_glass"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 0.646499991416931,
+    "pd1Decay": 1.5422,
+    "pd1Pan": 0.0,
+    "pd2Decay": 2.1432,
+    "pd2Pan": 0.0,
+    "pd3Decay": 0.2865,
+    "pd3Pan": -0.16,
+    "pd4Decay": 0.4723,
+    "pd4Pan": -0.16,
+    "pd5Decay": 0.6676,
+    "pd5Pan": 0.2,
+    "pd6Decay": 1.8018,
+    "pd6Pan": 0.0,
+    "pd7Decay": 2.5706,
+    "pd7Pan": 0.12,
+    "pd8Decay": 0.7977,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

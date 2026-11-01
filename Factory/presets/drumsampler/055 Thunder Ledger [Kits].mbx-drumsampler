@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Thunder Ledger",
+  "samples": [
+    "factory:dk72_kick",
+    "factory:dk72_snare",
+    "factory:dk72_chat",
+    "factory:dk72_ohat",
+    "factory:dk72_perc",
+    "factory:dk72_tom",
+    "factory:dk72_cym",
+    "factory:dk72_clang"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 1.123299956321716,
+    "pd1Decay": 1.1262,
+    "pd1Pan": 0.0,
+    "pd2Decay": 2.0421,
+    "pd2Pan": 0.0,
+    "pd3Decay": 0.404,
+    "pd3Pan": -0.16,
+    "pd4Decay": 0.6538,
+    "pd4Pan": -0.16,
+    "pd5Decay": 1.7015,
+    "pd5Pan": 0.2,
+    "pd6Decay": 1.9001,
+    "pd6Pan": 0.0,
+    "pd7Decay": 2.9775,
+    "pd7Pan": 0.12,
+    "pd8Decay": 0.9946,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

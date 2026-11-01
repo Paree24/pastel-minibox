@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Deep Shelf",
+  "samples": [
+    "factory:dk17_kick",
+    "factory:dk17_snare",
+    "factory:dk17_chat",
+    "factory:dk17_ohat",
+    "factory:dk17_perc",
+    "factory:dk17_tom",
+    "factory:dk17_cym",
+    "factory:dk17_metal"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 0.90829998254776,
+    "pd1Decay": 0.8286,
+    "pd1Pan": 0.0,
+    "pd2Decay": 2.6467,
+    "pd2Pan": 0.0,
+    "pd3Decay": 1.0383,
+    "pd3Pan": -0.16,
+    "pd4Decay": 1.3193,
+    "pd4Pan": -0.16,
+    "pd5Decay": 3.0341,
+    "pd5Pan": 0.2,
+    "pd6Decay": 2.8458,
+    "pd6Pan": 0.0,
+    "pd7Decay": 5.4849,
+    "pd7Pan": 0.12,
+    "pd8Decay": 1.701,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

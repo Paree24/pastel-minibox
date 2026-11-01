@@ -1313,6 +1313,422 @@
     "kit32_cym",
     "kit32_perc"
    ]
+  },
+  {
+   "name": "Steel Roller",
+   "files": [
+    "dk01_kick",
+    "dk01_snare",
+    "dk01_chat",
+    "dk01_ohat",
+    "dk01_perc",
+    "dk01_tom",
+    "dk01_cym",
+    "dk01_metal"
+   ]
+  },
+  {
+   "name": "Velvet Static",
+   "files": [
+    "dk05_kick",
+    "dk05_snare",
+    "dk05_chat",
+    "dk05_ohat",
+    "dk05_perc",
+    "dk05_tom",
+    "dk05_cym",
+    "dk05_metal"
+   ]
+  },
+  {
+   "name": "Signal Fade",
+   "files": [
+    "dk09_kick",
+    "dk09_snare",
+    "dk09_chat",
+    "dk09_ohat",
+    "dk09_perc",
+    "dk09_tom",
+    "dk09_cym",
+    "dk09_metal"
+   ]
+  },
+  {
+   "name": "Salt Flats",
+   "files": [
+    "dk13_kick",
+    "dk13_snare",
+    "dk13_chat",
+    "dk13_ohat",
+    "dk13_perc",
+    "dk13_tom",
+    "dk13_cym",
+    "dk13_metal"
+   ]
+  },
+  {
+   "name": "Deep Shelf",
+   "files": [
+    "dk17_kick",
+    "dk17_snare",
+    "dk17_chat",
+    "dk17_ohat",
+    "dk17_perc",
+    "dk17_tom",
+    "dk17_cym",
+    "dk17_metal"
+   ]
+  },
+  {
+   "name": "Ghost Ledger",
+   "files": [
+    "dk21_kick",
+    "dk21_snare",
+    "dk21_chat",
+    "dk21_ohat",
+    "dk21_perc",
+    "dk21_tom",
+    "dk21_cym",
+    "dk21_metal"
+   ]
+  },
+  {
+   "name": "Rust Belt",
+   "files": [
+    "dk25_kick",
+    "dk25_snare",
+    "dk25_chat",
+    "dk25_ohat",
+    "dk25_perc",
+    "dk25_tom",
+    "dk25_cym",
+    "dk25_metal"
+   ]
+  },
+  {
+   "name": "Static Bloom",
+   "files": [
+    "dk29_kick",
+    "dk29_snare",
+    "dk29_chat",
+    "dk29_ohat",
+    "dk29_perc",
+    "dk29_tom",
+    "dk29_cym",
+    "dk29_metal"
+   ]
+  },
+  {
+   "name": "Coral Drift",
+   "files": [
+    "dk33_kick",
+    "dk33_snare",
+    "dk33_chat",
+    "dk33_ohat",
+    "dk33_perc",
+    "dk33_tom",
+    "dk33_cym",
+    "dk33_metal"
+   ]
+  },
+  {
+   "name": "Dust Devil",
+   "files": [
+    "dk37_kick",
+    "dk37_snare",
+    "dk37_chat",
+    "dk37_ohat",
+    "dk37_perc",
+    "dk37_tom",
+    "dk37_cym",
+    "dk37_metal"
+   ]
+  },
+  {
+   "name": "Lantern Fog",
+   "files": [
+    "dk41_kick",
+    "dk41_snare",
+    "dk41_chat",
+    "dk41_ohat",
+    "dk41_perc",
+    "dk41_tom",
+    "dk41_cym",
+    "dk41_metal"
+   ]
+  },
+  {
+   "name": "Carbon Bloom",
+   "files": [
+    "dk45_kick",
+    "dk45_snare",
+    "dk45_chat",
+    "dk45_ohat",
+    "dk45_perc",
+    "dk45_tom",
+    "dk45_cym",
+    "dk45_metal"
+   ]
+  },
+  {
+   "name": "Pressure Cell",
+   "files": [
+    "dk49_kick",
+    "dk49_snare",
+    "dk49_chat",
+    "dk49_ohat",
+    "dk49_perc",
+    "dk49_tom",
+    "dk49_cym",
+    "dk49_metal"
+   ]
+  },
+  {
+   "name": "Clay Court",
+   "files": [
+    "dk53_kick",
+    "dk53_snare",
+    "dk53_chat",
+    "dk53_ohat",
+    "dk53_perc",
+    "dk53_tom",
+    "dk53_cym",
+    "dk53_metal"
+   ]
+  },
+  {
+   "name": "Fuse Box",
+   "files": [
+    "dk57_kick",
+    "dk57_snare",
+    "dk57_chat",
+    "dk57_ohat",
+    "dk57_perc",
+    "dk57_tom",
+    "dk57_cym",
+    "dk57_metal"
+   ]
+  },
+  {
+   "name": "Iron Tide",
+   "files": [
+    "dk65_kick",
+    "dk65_snare",
+    "dk65_chat",
+    "dk65_ohat",
+    "dk65_rim",
+    "dk65_tom",
+    "dk65_cym",
+    "dk65_clang"
+   ]
+  },
+  {
+   "name": "Pressure Glass",
+   "files": [
+    "dk66_kick",
+    "dk66_snare",
+    "dk66_chat",
+    "dk66_ohat",
+    "dk66_snap",
+    "dk66_tom",
+    "dk66_cym",
+    "dk66_glass"
+   ]
+  },
+  {
+   "name": "Low Tide Engine",
+   "files": [
+    "dk67_kick",
+    "dk67_snare",
+    "dk67_chat",
+    "dk67_ohat",
+    "dk67_clap",
+    "dk67_tom",
+    "dk67_cym",
+    "dk67_cowbell"
+   ]
+  },
+  {
+   "name": "Concrete Hum",
+   "files": [
+    "dk68_kick",
+    "dk68_snare",
+    "dk68_chat",
+    "dk68_ohat",
+    "dk68_perc",
+    "dk68_tom",
+    "dk68_cym",
+    "dk68_clang"
+   ]
+  },
+  {
+   "name": "Velvet Pump",
+   "files": [
+    "dk69_kick",
+    "dk69_snare",
+    "dk69_chat",
+    "dk69_ohat",
+    "dk69_bongo",
+    "dk69_tom",
+    "dk69_cym",
+    "dk69_cowbell"
+   ]
+  },
+  {
+   "name": "Sunday Parade",
+   "files": [
+    "dk70_kick",
+    "dk70_snare",
+    "dk70_chat",
+    "dk70_ohat",
+    "dk70_conga",
+    "dk70_tom",
+    "dk70_cym",
+    "dk70_agogo"
+   ]
+  },
+  {
+   "name": "Sub Cathedral",
+   "files": [
+    "dk71_kick",
+    "dk71_snare",
+    "dk71_chat",
+    "dk71_ohat",
+    "dk71_snap",
+    "dk71_tom",
+    "dk71_cym",
+    "dk71_glass"
+   ]
+  },
+  {
+   "name": "Thunder Ledger",
+   "files": [
+    "dk72_kick",
+    "dk72_snare",
+    "dk72_chat",
+    "dk72_ohat",
+    "dk72_perc",
+    "dk72_tom",
+    "dk72_cym",
+    "dk72_clang"
+   ]
+  },
+  {
+   "name": "Neon Bite",
+   "files": [
+    "dk73_kick",
+    "dk73_snare",
+    "dk73_chat",
+    "dk73_ohat",
+    "dk73_rim",
+    "dk73_tom",
+    "dk73_cym",
+    "dk73_clang"
+   ]
+  },
+  {
+   "name": "Mirror Room",
+   "files": [
+    "dk74_kick",
+    "dk74_snare",
+    "dk74_chat",
+    "dk74_ohat",
+    "dk74_glass",
+    "dk74_tom",
+    "dk74_cym",
+    "dk74_tambourine"
+   ]
+  },
+  {
+   "name": "Ghost Swell",
+   "files": [
+    "dk75_kick",
+    "dk75_snare",
+    "dk75_chat",
+    "dk75_ohat",
+    "dk75_wood",
+    "dk75_tom",
+    "dk75_cym",
+    "dk75_glass"
+   ]
+  },
+  {
+   "name": "Brass Signal",
+   "files": [
+    "dk76_kick",
+    "dk76_snare",
+    "dk76_chat",
+    "dk76_ohat",
+    "dk76_clap",
+    "dk76_tom",
+    "dk76_cym",
+    "dk76_cowbell"
+   ]
+  },
+  {
+   "name": "Paper Machine",
+   "files": [
+    "dk77_kick",
+    "dk77_snare",
+    "dk77_chat",
+    "dk77_ohat",
+    "dk77_rim",
+    "dk77_tom",
+    "dk77_cym",
+    "dk77_agogo"
+   ]
+  },
+  {
+   "name": "Molasses",
+   "files": [
+    "dk78_kick",
+    "dk78_snare",
+    "dk78_chat",
+    "dk78_ohat",
+    "dk78_wood",
+    "dk78_tom",
+    "dk78_cym",
+    "dk78_glass"
+   ]
+  },
+  {
+   "name": "Steel Weather",
+   "files": [
+    "dk79_kick",
+    "dk79_snare",
+    "dk79_chat",
+    "dk79_ohat",
+    "dk79_snap",
+    "dk79_tom",
+    "dk79_cym",
+    "dk79_clang"
+   ]
+  },
+  {
+   "name": "Soft Machinery",
+   "files": [
+    "dk80_kick",
+    "dk80_snare",
+    "dk80_chat",
+    "dk80_ohat",
+    "dk80_bongo",
+    "dk80_tom",
+    "dk80_cym",
+    "dk80_tambourine"
+   ]
+  },
+  {
+   "name": "Molten Core",
+   "files": [
+    "dk62_kick",
+    "dk62_snare",
+    "dk62_chat",
+    "dk62_ohat",
+    "dk62_perc",
+    "dk62_tom",
+    "dk62_cym",
+    "dk62_metal"
+   ]
   }
  ]
 }

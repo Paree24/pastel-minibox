@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Velvet Static",
+  "samples": [
+    "factory:dk05_kick",
+    "factory:dk05_snare",
+    "factory:dk05_chat",
+    "factory:dk05_ohat",
+    "factory:dk05_perc",
+    "factory:dk05_tom",
+    "factory:dk05_cym",
+    "factory:dk05_metal"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 1.27400004863739,
+    "pd1Decay": 0.6024,
+    "pd1Pan": 0.0,
+    "pd2Decay": 0.9827,
+    "pd2Pan": 0.0,
+    "pd3Decay": 0.1613,
+    "pd3Pan": -0.16,
+    "pd4Decay": 0.4998,
+    "pd4Pan": -0.16,
+    "pd5Decay": 0.9287,
+    "pd5Pan": 0.2,
+    "pd6Decay": 0.9898,
+    "pd6Pan": 0.0,
+    "pd7Decay": 4.8522,
+    "pd7Pan": 0.12,
+    "pd8Decay": 0.4146,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Static Bloom",
+  "samples": [
+    "factory:dk29_kick",
+    "factory:dk29_snare",
+    "factory:dk29_chat",
+    "factory:dk29_ohat",
+    "factory:dk29_perc",
+    "factory:dk29_tom",
+    "factory:dk29_cym",
+    "factory:dk29_metal"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 1.637799978256226,
+    "pd1Decay": 0.5811,
+    "pd1Pan": 0.0,
+    "pd2Decay": 0.7577,
+    "pd2Pan": 0.0,
+    "pd3Decay": 0.1599,
+    "pd3Pan": -0.16,
+    "pd4Decay": 0.3989,
+    "pd4Pan": -0.16,
+    "pd5Decay": 1.1882,
+    "pd5Pan": 0.2,
+    "pd6Decay": 0.8611,
+    "pd6Pan": 0.0,
+    "pd7Decay": 3.7387,
+    "pd7Pan": 0.12,
+    "pd8Decay": 1.0435,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

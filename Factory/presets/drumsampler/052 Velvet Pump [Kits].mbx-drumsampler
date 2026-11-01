@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Velvet Pump",
+  "samples": [
+    "factory:dk69_kick",
+    "factory:dk69_snare",
+    "factory:dk69_chat",
+    "factory:dk69_ohat",
+    "factory:dk69_bongo",
+    "factory:dk69_tom",
+    "factory:dk69_cym",
+    "factory:dk69_cowbell"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 0.886699974536896,
+    "pd1Decay": 0.3355,
+    "pd1Pan": 0.0,
+    "pd2Decay": 0.9874,
+    "pd2Pan": 0.0,
+    "pd3Decay": 0.2138,
+    "pd3Pan": -0.16,
+    "pd4Decay": 0.391,
+    "pd4Pan": -0.16,
+    "pd5Decay": 1.1795,
+    "pd5Pan": 0.2,
+    "pd6Decay": 0.9486,
+    "pd6Pan": 0.0,
+    "pd7Decay": 3.309,
+    "pd7Pan": 0.12,
+    "pd8Decay": 1.2209,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

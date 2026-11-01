@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Pressure Glass",
+  "samples": [
+    "factory:dk66_kick",
+    "factory:dk66_snare",
+    "factory:dk66_chat",
+    "factory:dk66_ohat",
+    "factory:dk66_snap",
+    "factory:dk66_tom",
+    "factory:dk66_cym",
+    "factory:dk66_glass"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 1.141899943351746,
+    "pd1Decay": 0.1909,
+    "pd1Pan": 0.0,
+    "pd2Decay": 0.9834,
+    "pd2Pan": 0.0,
+    "pd3Decay": 0.1257,
+    "pd3Pan": -0.16,
+    "pd4Decay": 0.3292,
+    "pd4Pan": -0.16,
+    "pd5Decay": 0.3506,
+    "pd5Pan": 0.2,
+    "pd6Decay": 0.8041,
+    "pd6Pan": 0.0,
+    "pd7Decay": 1.3676,
+    "pd7Pan": 0.12,
+    "pd8Decay": 0.5695,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

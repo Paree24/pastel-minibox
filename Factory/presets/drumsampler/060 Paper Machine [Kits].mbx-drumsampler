@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Paper Machine",
+  "samples": [
+    "factory:dk77_kick",
+    "factory:dk77_snare",
+    "factory:dk77_chat",
+    "factory:dk77_ohat",
+    "factory:dk77_rim",
+    "factory:dk77_tom",
+    "factory:dk77_cym",
+    "factory:dk77_agogo"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 0.88730001449585,
+    "pd1Decay": 0.3591,
+    "pd1Pan": 0.0,
+    "pd2Decay": 0.6264,
+    "pd2Pan": 0.0,
+    "pd3Decay": 0.1363,
+    "pd3Pan": -0.16,
+    "pd4Decay": 0.2351,
+    "pd4Pan": -0.16,
+    "pd5Decay": 0.4057,
+    "pd5Pan": 0.2,
+    "pd6Decay": 0.5993,
+    "pd6Pan": 0.0,
+    "pd7Decay": 2.0892,
+    "pd7Pan": 0.12,
+    "pd8Decay": 0.3497,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

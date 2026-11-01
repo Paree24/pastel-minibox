@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Steel Roller",
+  "samples": [
+    "factory:dk01_kick",
+    "factory:dk01_snare",
+    "factory:dk01_chat",
+    "factory:dk01_ohat",
+    "factory:dk01_perc",
+    "factory:dk01_tom",
+    "factory:dk01_cym",
+    "factory:dk01_metal"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 1.196699976921082,
+    "pd1Decay": 0.4476,
+    "pd1Pan": 0.0,
+    "pd2Decay": 0.3487,
+    "pd2Pan": 0.0,
+    "pd3Decay": 0.1012,
+    "pd3Pan": -0.16,
+    "pd4Decay": 0.5777,
+    "pd4Pan": -0.16,
+    "pd5Decay": 0.6137,
+    "pd5Pan": 0.2,
+    "pd6Decay": 0.7043,
+    "pd6Pan": 0.0,
+    "pd7Decay": 3.2691,
+    "pd7Pan": 0.12,
+    "pd8Decay": 0.4987,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

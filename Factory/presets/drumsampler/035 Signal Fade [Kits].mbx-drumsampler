@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Signal Fade",
+  "samples": [
+    "factory:dk09_kick",
+    "factory:dk09_snare",
+    "factory:dk09_chat",
+    "factory:dk09_ohat",
+    "factory:dk09_perc",
+    "factory:dk09_tom",
+    "factory:dk09_cym",
+    "factory:dk09_metal"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 1.129199981689453,
+    "pd1Decay": 0.5296,
+    "pd1Pan": 0.0,
+    "pd2Decay": 0.997,
+    "pd2Pan": 0.0,
+    "pd3Decay": 0.1597,
+    "pd3Pan": -0.16,
+    "pd4Decay": 0.2691,
+    "pd4Pan": -0.16,
+    "pd5Decay": 1.1919,
+    "pd5Pan": 0.2,
+    "pd6Decay": 0.8608,
+    "pd6Pan": 0.0,
+    "pd7Decay": 1.9798,
+    "pd7Pan": 0.12,
+    "pd8Decay": 1.2231,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

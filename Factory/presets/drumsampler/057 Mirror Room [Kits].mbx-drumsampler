@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Mirror Room",
+  "samples": [
+    "factory:dk74_kick",
+    "factory:dk74_snare",
+    "factory:dk74_chat",
+    "factory:dk74_ohat",
+    "factory:dk74_glass",
+    "factory:dk74_tom",
+    "factory:dk74_cym",
+    "factory:dk74_tambourine"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 1.142600059509277,
+    "pd1Decay": 0.3141,
+    "pd1Pan": 0.0,
+    "pd2Decay": 3.2216,
+    "pd2Pan": 0.0,
+    "pd3Decay": 0.7289,
+    "pd3Pan": -0.16,
+    "pd4Decay": 1.1365,
+    "pd4Pan": -0.16,
+    "pd5Decay": 3.5753,
+    "pd5Pan": 0.2,
+    "pd6Decay": 2.9113,
+    "pd6Pan": 0.0,
+    "pd7Decay": 1.7827,
+    "pd7Pan": 0.12,
+    "pd8Decay": 0.7167,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

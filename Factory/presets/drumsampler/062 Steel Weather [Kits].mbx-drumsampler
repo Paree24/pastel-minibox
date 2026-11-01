@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Steel Weather",
+  "samples": [
+    "factory:dk79_kick",
+    "factory:dk79_snare",
+    "factory:dk79_chat",
+    "factory:dk79_ohat",
+    "factory:dk79_snap",
+    "factory:dk79_tom",
+    "factory:dk79_cym",
+    "factory:dk79_clang"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 1.085100054740906,
+    "pd1Decay": 1.5845,
+    "pd1Pan": 0.0,
+    "pd2Decay": 1.1319,
+    "pd2Pan": 0.0,
+    "pd3Decay": 0.1849,
+    "pd3Pan": -0.16,
+    "pd4Decay": 0.4641,
+    "pd4Pan": -0.16,
+    "pd5Decay": 0.9395,
+    "pd5Pan": 0.2,
+    "pd6Decay": 0.8879,
+    "pd6Pan": 0.0,
+    "pd7Decay": 2.1409,
+    "pd7Pan": 0.12,
+    "pd8Decay": 1.4265,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

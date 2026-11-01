@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Rust Belt",
+  "samples": [
+    "factory:dk25_kick",
+    "factory:dk25_snare",
+    "factory:dk25_chat",
+    "factory:dk25_ohat",
+    "factory:dk25_perc",
+    "factory:dk25_tom",
+    "factory:dk25_cym",
+    "factory:dk25_metal"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 1.634299993515015,
+    "pd1Decay": 0.9033,
+    "pd1Pan": 0.0,
+    "pd2Decay": 1.6742,
+    "pd2Pan": 0.0,
+    "pd3Decay": 0.3168,
+    "pd3Pan": -0.16,
+    "pd4Decay": 0.4625,
+    "pd4Pan": -0.16,
+    "pd5Decay": 1.6373,
+    "pd5Pan": 0.2,
+    "pd6Decay": 1.5295,
+    "pd6Pan": 0.0,
+    "pd7Decay": 5.5845,
+    "pd7Pan": 0.12,
+    "pd8Decay": 0.4855,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

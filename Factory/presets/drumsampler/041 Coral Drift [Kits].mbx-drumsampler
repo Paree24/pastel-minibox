@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Coral Drift",
+  "samples": [
+    "factory:dk33_kick",
+    "factory:dk33_snare",
+    "factory:dk33_chat",
+    "factory:dk33_ohat",
+    "factory:dk33_perc",
+    "factory:dk33_tom",
+    "factory:dk33_cym",
+    "factory:dk33_metal"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 1.282999992370605,
+    "pd1Decay": 0.6146,
+    "pd1Pan": 0.0,
+    "pd2Decay": 1.596,
+    "pd2Pan": 0.0,
+    "pd3Decay": 0.4438,
+    "pd3Pan": -0.16,
+    "pd4Decay": 0.8932,
+    "pd4Pan": -0.16,
+    "pd5Decay": 1.9989,
+    "pd5Pan": 0.2,
+    "pd6Decay": 1.7021,
+    "pd6Pan": 0.0,
+    "pd7Decay": 3.2459,
+    "pd7Pan": 0.12,
+    "pd8Decay": 1.1718,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

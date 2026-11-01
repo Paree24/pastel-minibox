@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Dust Devil",
+  "samples": [
+    "factory:dk37_kick",
+    "factory:dk37_snare",
+    "factory:dk37_chat",
+    "factory:dk37_ohat",
+    "factory:dk37_perc",
+    "factory:dk37_tom",
+    "factory:dk37_cym",
+    "factory:dk37_metal"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 0.998399972915649,
+    "pd1Decay": 0.3863,
+    "pd1Pan": 0.0,
+    "pd2Decay": 0.9944,
+    "pd2Pan": 0.0,
+    "pd3Decay": 0.2756,
+    "pd3Pan": -0.16,
+    "pd4Decay": 0.5676,
+    "pd4Pan": -0.16,
+    "pd5Decay": 0.9991,
+    "pd5Pan": 0.2,
+    "pd6Decay": 0.9529,
+    "pd6Pan": 0.0,
+    "pd7Decay": 2.2505,
+    "pd7Pan": 0.12,
+    "pd8Decay": 0.5048,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

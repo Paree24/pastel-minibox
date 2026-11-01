@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Sunday Parade",
+  "samples": [
+    "factory:dk70_kick",
+    "factory:dk70_snare",
+    "factory:dk70_chat",
+    "factory:dk70_ohat",
+    "factory:dk70_conga",
+    "factory:dk70_tom",
+    "factory:dk70_cym",
+    "factory:dk70_agogo"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 0.741699993610382,
+    "pd1Decay": 0.3207,
+    "pd1Pan": 0.0,
+    "pd2Decay": 2.0459,
+    "pd2Pan": 0.0,
+    "pd3Decay": 0.4986,
+    "pd3Pan": -0.16,
+    "pd4Decay": 0.7456,
+    "pd4Pan": -0.16,
+    "pd5Decay": 1.7622,
+    "pd5Pan": 0.2,
+    "pd6Decay": 1.7933,
+    "pd6Pan": 0.0,
+    "pd7Decay": 3.5329,
+    "pd7Pan": 0.12,
+    "pd8Decay": 1.2226,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Low Tide Engine",
+  "samples": [
+    "factory:dk67_kick",
+    "factory:dk67_snare",
+    "factory:dk67_chat",
+    "factory:dk67_ohat",
+    "factory:dk67_clap",
+    "factory:dk67_tom",
+    "factory:dk67_cym",
+    "factory:dk67_cowbell"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 1.081500053405762,
+    "pd1Decay": 1.6446,
+    "pd1Pan": 0.0,
+    "pd2Decay": 0.5084,
+    "pd2Pan": 0.0,
+    "pd3Decay": 0.0903,
+    "pd3Pan": -0.16,
+    "pd4Decay": 0.4696,
+    "pd4Pan": -0.16,
+    "pd5Decay": 0.6425,
+    "pd5Pan": 0.2,
+    "pd6Decay": 0.5484,
+    "pd6Pan": 0.0,
+    "pd7Decay": 2.1621,
+    "pd7Pan": 0.12,
+    "pd8Decay": 0.3207,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

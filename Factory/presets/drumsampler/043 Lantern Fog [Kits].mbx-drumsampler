@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Lantern Fog",
+  "samples": [
+    "factory:dk41_kick",
+    "factory:dk41_snare",
+    "factory:dk41_chat",
+    "factory:dk41_ohat",
+    "factory:dk41_perc",
+    "factory:dk41_tom",
+    "factory:dk41_cym",
+    "factory:dk41_metal"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 1.026600003242493,
+    "pd1Decay": 1.2527,
+    "pd1Pan": 0.0,
+    "pd2Decay": 5.7189,
+    "pd2Pan": 0.0,
+    "pd3Decay": 2.0437,
+    "pd3Pan": -0.16,
+    "pd4Decay": 3.2686,
+    "pd4Pan": -0.16,
+    "pd5Decay": 5.9897,
+    "pd5Pan": 0.2,
+    "pd6Decay": 5.9402,
+    "pd6Pan": 0.0,
+    "pd7Decay": 5.1579,
+    "pd7Pan": 0.12,
+    "pd8Decay": 1.5357,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

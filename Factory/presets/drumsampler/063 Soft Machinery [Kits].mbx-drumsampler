@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Soft Machinery",
+  "samples": [
+    "factory:dk80_kick",
+    "factory:dk80_snare",
+    "factory:dk80_chat",
+    "factory:dk80_ohat",
+    "factory:dk80_bongo",
+    "factory:dk80_tom",
+    "factory:dk80_cym",
+    "factory:dk80_tambourine"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 0.892799973487854,
+    "pd1Decay": 0.3181,
+    "pd1Pan": 0.0,
+    "pd2Decay": 0.7192,
+    "pd2Pan": 0.0,
+    "pd3Decay": 0.2244,
+    "pd3Pan": -0.16,
+    "pd4Decay": 0.2432,
+    "pd4Pan": -0.16,
+    "pd5Decay": 0.9643,
+    "pd5Pan": 0.2,
+    "pd6Decay": 0.6286,
+    "pd6Pan": 0.0,
+    "pd7Decay": 2.084,
+    "pd7Pan": 0.12,
+    "pd8Decay": 0.7192,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Pressure Cell",
+  "samples": [
+    "factory:dk49_kick",
+    "factory:dk49_snare",
+    "factory:dk49_chat",
+    "factory:dk49_ohat",
+    "factory:dk49_perc",
+    "factory:dk49_tom",
+    "factory:dk49_cym",
+    "factory:dk49_metal"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 1.084499955177307,
+    "pd1Decay": 0.9032,
+    "pd1Pan": 0.0,
+    "pd2Decay": 0.8525,
+    "pd2Pan": 0.0,
+    "pd3Decay": 0.0732,
+    "pd3Pan": -0.16,
+    "pd4Decay": 0.3928,
+    "pd4Pan": -0.16,
+    "pd5Decay": 0.8559,
+    "pd5Pan": 0.2,
+    "pd6Decay": 0.7574,
+    "pd6Pan": 0.0,
+    "pd7Decay": 2.1394,
+    "pd7Pan": 0.12,
+    "pd8Decay": 0.5627,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

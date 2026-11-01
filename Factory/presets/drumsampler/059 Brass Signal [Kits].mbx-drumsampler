@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Brass Signal",
+  "samples": [
+    "factory:dk76_kick",
+    "factory:dk76_snare",
+    "factory:dk76_chat",
+    "factory:dk76_ohat",
+    "factory:dk76_clap",
+    "factory:dk76_tom",
+    "factory:dk76_cym",
+    "factory:dk76_cowbell"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 1.358100056648254,
+    "pd1Decay": 0.3026,
+    "pd1Pan": 0.0,
+    "pd2Decay": 2.8937,
+    "pd2Pan": 0.0,
+    "pd3Decay": 0.6724,
+    "pd3Pan": -0.16,
+    "pd4Decay": 1.1106,
+    "pd4Pan": -0.16,
+    "pd5Decay": 2.6371,
+    "pd5Pan": 0.2,
+    "pd6Decay": 2.8267,
+    "pd6Pan": 0.0,
+    "pd7Decay": 5.5494,
+    "pd7Pan": 0.12,
+    "pd8Decay": 0.322,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

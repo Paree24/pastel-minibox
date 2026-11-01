@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Fuse Box",
+  "samples": [
+    "factory:dk57_kick",
+    "factory:dk57_snare",
+    "factory:dk57_chat",
+    "factory:dk57_ohat",
+    "factory:dk57_perc",
+    "factory:dk57_tom",
+    "factory:dk57_cym",
+    "factory:dk57_metal"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 1.804399967193604,
+    "pd1Decay": 0.8139,
+    "pd1Pan": 0.0,
+    "pd2Decay": 0.8424,
+    "pd2Pan": 0.0,
+    "pd3Decay": 0.119,
+    "pd3Pan": -0.16,
+    "pd4Decay": 0.4021,
+    "pd4Pan": -0.16,
+    "pd5Decay": 0.9808,
+    "pd5Pan": 0.2,
+    "pd6Decay": 0.8109,
+    "pd6Pan": 0.0,
+    "pd7Decay": 3.534,
+    "pd7Pan": 0.12,
+    "pd8Decay": 1.0262,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

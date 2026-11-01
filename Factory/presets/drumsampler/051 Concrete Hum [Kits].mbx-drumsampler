@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Concrete Hum",
+  "samples": [
+    "factory:dk68_kick",
+    "factory:dk68_snare",
+    "factory:dk68_chat",
+    "factory:dk68_ohat",
+    "factory:dk68_perc",
+    "factory:dk68_tom",
+    "factory:dk68_cym",
+    "factory:dk68_clang"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 0.839999973773956,
+    "pd1Decay": 2.7636,
+    "pd1Pan": 0.0,
+    "pd2Decay": 2.4393,
+    "pd2Pan": 0.0,
+    "pd3Decay": 0.9508,
+    "pd3Pan": -0.16,
+    "pd4Decay": 1.2194,
+    "pd4Pan": -0.16,
+    "pd5Decay": 3.0341,
+    "pd5Pan": 0.2,
+    "pd6Decay": 2.7795,
+    "pd6Pan": 0.0,
+    "pd7Decay": 2.5617,
+    "pd7Pan": 0.12,
+    "pd8Decay": 1.4678,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

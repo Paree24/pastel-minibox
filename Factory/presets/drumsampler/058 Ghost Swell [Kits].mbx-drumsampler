@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Ghost Swell",
+  "samples": [
+    "factory:dk75_kick",
+    "factory:dk75_snare",
+    "factory:dk75_chat",
+    "factory:dk75_ohat",
+    "factory:dk75_wood",
+    "factory:dk75_tom",
+    "factory:dk75_cym",
+    "factory:dk75_glass"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 0.842700004577637,
+    "pd1Decay": 1.2528,
+    "pd1Pan": 0.0,
+    "pd2Decay": 5.8211,
+    "pd2Pan": 0.0,
+    "pd3Decay": 2.1368,
+    "pd3Pan": -0.16,
+    "pd4Decay": 3.2532,
+    "pd4Pan": -0.16,
+    "pd5Decay": 4.7336,
+    "pd5Pan": 0.2,
+    "pd6Decay": 5.9402,
+    "pd6Pan": 0.0,
+    "pd7Decay": 2.3017,
+    "pd7Pan": 0.12,
+    "pd8Decay": 2.0238,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

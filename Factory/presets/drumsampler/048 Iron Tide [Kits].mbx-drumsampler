@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Iron Tide",
+  "samples": [
+    "factory:dk65_kick",
+    "factory:dk65_snare",
+    "factory:dk65_chat",
+    "factory:dk65_ohat",
+    "factory:dk65_rim",
+    "factory:dk65_tom",
+    "factory:dk65_cym",
+    "factory:dk65_clang"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 1.36899995803833,
+    "pd1Decay": 0.2272,
+    "pd1Pan": 0.0,
+    "pd2Decay": 1.1363,
+    "pd2Pan": 0.0,
+    "pd3Decay": 0.0511,
+    "pd3Pan": -0.16,
+    "pd4Decay": 0.4178,
+    "pd4Pan": -0.16,
+    "pd5Decay": 0.0599,
+    "pd5Pan": 0.2,
+    "pd6Decay": 0.4241,
+    "pd6Pan": 0.0,
+    "pd7Decay": 1.7069,
+    "pd7Pan": 0.12,
+    "pd8Decay": 0.644,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Neon Bite",
+  "samples": [
+    "factory:dk73_kick",
+    "factory:dk73_snare",
+    "factory:dk73_chat",
+    "factory:dk73_ohat",
+    "factory:dk73_rim",
+    "factory:dk73_tom",
+    "factory:dk73_cym",
+    "factory:dk73_clang"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 1.105000019073486,
+    "pd1Decay": 0.2426,
+    "pd1Pan": 0.0,
+    "pd2Decay": 0.6897,
+    "pd2Pan": 0.0,
+    "pd3Decay": 0.0838,
+    "pd3Pan": -0.16,
+    "pd4Decay": 0.3833,
+    "pd4Pan": -0.16,
+    "pd5Decay": 0.9491,
+    "pd5Pan": 0.2,
+    "pd6Decay": 0.6193,
+    "pd6Pan": 0.0,
+    "pd7Decay": 1.824,
+    "pd7Pan": 0.12,
+    "pd8Decay": 1.2561,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

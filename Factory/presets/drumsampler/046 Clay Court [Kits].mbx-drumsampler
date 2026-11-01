@@ -1,0 +1,39 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Clay Court",
+  "samples": [
+    "factory:dk53_kick",
+    "factory:dk53_snare",
+    "factory:dk53_chat",
+    "factory:dk53_ohat",
+    "factory:dk53_perc",
+    "factory:dk53_tom",
+    "factory:dk53_cym",
+    "factory:dk53_metal"
+  ],
+  "type": "drumsampler",
+  "values": {
+    "kitLevel": 0.890999972820282,
+    "pd1Decay": 0.5873,
+    "pd1Pan": 0.0,
+    "pd2Decay": 0.9582,
+    "pd2Pan": 0.0,
+    "pd3Decay": 0.1446,
+    "pd3Pan": -0.16,
+    "pd4Decay": 0.5348,
+    "pd4Pan": -0.16,
+    "pd5Decay": 0.9357,
+    "pd5Pan": 0.2,
+    "pd6Decay": 0.8436,
+    "pd6Pan": 0.0,
+    "pd7Decay": 3.531,
+    "pd7Pan": 0.12,
+    "pd8Decay": 0.4494,
+    "pd8Pan": -0.2,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}
