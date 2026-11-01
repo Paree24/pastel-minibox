@@ -665,6 +665,61 @@ MB_TEST (tool_va_pad_clicks)
     oversampleVoices() = true;
 }
 
+/** Swapping a drum track between the drum synth and the Drum Sampler keeps each part's steps on the same sound
+    (their lanes are in different orders: a closed hat must not turn into a clap). */
+MB_TEST (drum_swap_keeps_parts)
+{
+    Engine e;
+    e.prepare (48000.0, 256);
+    e.setDevice (0, 0, createDevice (DeviceType::Drums));
+    auto& tr = e.project().patterns[0].slots[0].track;
+    auto laneOf = [&] (int note) { return e.device (0, 0)->laneForNote (note); };
+    tr.lanes[(size_t) laneOf (42)][2].on = true;   // closed hat on step 3
+    tr.lanes[(size_t) laneOf (39)][4].on = true;   // clap on step 5
+    e.replaceDevice (0, 0, createDevice (DeviceType::DrumSampler)).reset();
+    ctx.check (tr.lanes[(size_t) laneOf (42)][2].on && tr.lanes[(size_t) laneOf (39)][4].on, "on the Drum Sampler the hat and the clap keep their steps");
+    ctx.check (! tr.lanes[(size_t) laneOf (39)][2].on, "the hat's step did not land on the clap");
+    e.replaceDevice (0, 0, createDevice (DeviceType::Drums)).reset();
+    ctx.check (tr.lanes[(size_t) laneOf (42)][2].on && tr.lanes[(size_t) laneOf (39)][4].on, "and back on the drum synth");
+}
+
+/** The metronome switched on while a pattern plays clicks on the beats (every 4 steps at 1/16 in 4/4), accented
+    on each bar's first, not from the moment it was switched on. */
+MB_TEST (metronome_on_mid_pattern_is_on_the_beat)
+{
+    Rig rig (1);
+    rig.e.project().metronome = false;
+    rig.e.play();
+    rig.runTo (5.37);   // a third of the way into step 6
+    rig.e.project().metronome = true;
+    // the clicks show in the output: find their onsets (the click is the only sound)
+    std::vector<float> l (128), r (128);
+    std::vector<double> onsets;
+    float prev = 0.0f;
+    double pos = rig.pos;
+    while (pos < 20.0 * Rig::stepLen)
+    {
+        std::fill (l.begin(), l.end(), 0.0f); std::fill (r.begin(), r.end(), 0.0f);
+        rig.e.process (l.data(), r.data(), 128, nullptr);
+        for (int i = 0; i < 128; ++i)
+        {
+            const float a = std::abs (l[(size_t) i]);
+            if (a > 0.02f && prev <= 0.02f && (onsets.empty() || pos + i - onsets.back() > Rig::stepLen)) onsets.push_back (pos + i);
+            prev = a > 0.02f ? a : prev * 0.999f;
+        }
+        pos += 128;
+    }
+    juce::String at;
+    bool onBeat = ! onsets.empty();
+    for (double o : onsets)
+    {
+        const double steps = o / Rig::stepLen;
+        at << juce::String (steps, 2) << " ";
+        onBeat = onBeat && std::abs (steps / 4.0 - std::round (steps / 4.0)) * 4.0 < 0.05;
+    }
+    ctx.check (onBeat && onsets.front() / Rig::stepLen > 7.9, "clicks on steps 8, 12, 16 …, none at the switch: " + at);
+}
+
 /** Step recording: each key (or chord) is written at the cursor, which moves on by the step length when the
     keys are released; Rest leaves a gap, Back clears, To start returns the cursor. */
 MB_TEST (record_step_mode)

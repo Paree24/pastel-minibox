@@ -397,7 +397,7 @@ void MainComponent::showDevicePicker (int track, juce::Component* anchor)
         }
         auto* old = engine.device (ctx.focusPattern(), track);
         if (old != nullptr) { ctx.reference.erase (old); ctx.comparing.erase (old); }
-        auto freed = engine.setDevice (ctx.focusPattern(), track, std::move (d));
+        auto freed = engine.replaceDevice (ctx.focusPattern(), track, std::move (d));
         freed.reset();   // released here, outside the audio lock
         if (engine.device (ctx.focusPattern(), track) != nullptr) engine.focusTrack = track;   // the new instrument is selected
         ctx.markDirty();

@@ -81,6 +81,9 @@ public:
     DeviceProcessor* device (int pattern, int track) const { return devices[(size_t) pattern][(size_t) track].get(); }
     /** Replace a slot's device (message thread). Returns the previous device so it is freed outside the lock. */
     std::unique_ptr<DeviceProcessor> setDevice (int pattern, int track, std::unique_ptr<DeviceProcessor> d);
+    /** The user swapping a track's device (a picker): as setDevice, and a drum pattern follows its parts by note, so
+        switching between the drum synth and the Drum Sampler keeps a hat a hat (their lanes are in different orders). */
+    std::unique_ptr<DeviceProcessor> replaceDevice (int pattern, int track, std::unique_ptr<DeviceProcessor> d);
     /** Load a whole new project (devices are prepared outside the lock). */
     void replaceProject (std::unique_ptr<Project> p, std::array<std::array<std::unique_ptr<DeviceProcessor>, kTracks>, kPatterns> devs);
     void newProject();

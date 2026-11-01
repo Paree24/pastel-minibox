@@ -74,7 +74,8 @@ void Sequencer::generate (Project& p, DeviceLookup& devs, int n, std::vector<Seq
         clickPhase = 1.0e12; clickBeat = 0;
     }
 
-    clicks (start, n, false);
+    // while playing, the metronome clicks on the step grid (boundary): a free-running click counter drifted off the
+    // beat when the metronome was switched on mid-pattern (it clicked at once, then every beat from there)
 
     double pos = start;
     double stepLen = p.stepQuarters (activePattern) * spq;
@@ -115,7 +116,6 @@ void Sequencer::generate (Project& p, DeviceLookup& devs, int n, std::vector<Seq
 
 void Sequencer::boundary (Project& p, DeviceLookup& devs, int offset, std::vector<SeqEvent>& out)
 {
-    juce::ignoreUnused (out);
     entered = needBoundary;   // nothing was scheduled ahead of this step (play, seek, pattern switch)
     bool wrapped = false;
     if (needBoundary) { step = std::clamp (seekTarget, 0, std::max (0, p.patternSteps (activePattern) - 1)); seekTarget = 0; needBoundary = false; }
@@ -150,6 +150,17 @@ void Sequencer::boundary (Project& p, DeviceLookup& devs, int offset, std::vecto
             pass = 0;
             switchedThisBlock = true;
             entered = true;
+        }
+    }
+    if (p.metronome && countInSamplesLeft <= 0)
+    {
+        // a step that starts a beat clicks (accented on the bar's first); a beat shorter than a step clicks every step
+        const double stepsPerBeat = (4.0 / std::max (1, p.unit)) / p.stepQuarters (activePattern);
+        const double inBeat = std::fmod ((double) step, std::max (1.0, stepsPerBeat));
+        if (stepsPerBeat < 1.0 || inBeat < 1.0e-6 || std::max (1.0, stepsPerBeat) - inBeat < 1.0e-6)
+        {
+            SeqEvent e; e.kind = SeqEvent::Click; e.offset = offset; e.value = step % spb == 0 ? 1.0f : 0.0f;
+            pushEvent (out, e);
         }
     }
     const double spq = sampleRate * 60.0 / std::max (20.0, p.bpm);

@@ -42,6 +42,24 @@ void Engine::setMasterInsert (MasterInsert* m)
     masterInsert = m;
 }
 
+std::unique_ptr<DeviceProcessor> Engine::replaceDevice (int pattern, int track, std::unique_ptr<DeviceProcessor> d)
+{
+    const auto* old = device (pattern, track);
+    if (old != nullptr && d != nullptr && old->laneCount() > 0 && d->laneCount() > 0)
+    {
+        const ScopedEdit edit (*this);
+        auto& tr = proj.patterns[(size_t) pattern].slots[(size_t) track].track;
+        const auto before = tr.lanes;
+        for (auto& lane : tr.lanes) std::fill (lane.begin(), lane.end(), DrumStep());
+        for (int l = 0; l < old->laneCount() && l < kLanes; ++l)
+        {
+            const int to = d->laneForNote (old->laneNote (l));
+            tr.lanes[(size_t) (to >= 0 && to < kLanes ? to : l)] = before[(size_t) l];
+        }
+    }
+    return setDevice (pattern, track, std::move (d));
+}
+
 std::unique_ptr<DeviceProcessor> Engine::setDevice (int pattern, int track, std::unique_ptr<DeviceProcessor> d)
 {
     if (d) d->prepare (sampleRate, maxBlock);   // allocation happens here, outside the lock
