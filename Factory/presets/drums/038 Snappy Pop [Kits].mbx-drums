@@ -1,0 +1,29 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Snappy Pop",
+  "samples": [],
+  "type": "drums",
+  "values": {
+    "kitLevel": 0.590699970722198,
+    "p1Click": 0.7,
+    "p1Decay": 0.4,
+    "p1Eng": 1,
+    "p2Click": 0.85,
+    "p2Eng": 1,
+    "p2Pitch": 220,
+    "p2SendReverb": 0.25,
+    "p2Tone": 0.55,
+    "p3Eng": 1,
+    "p3SendReverb": 0.3,
+    "p4Eng": 1,
+    "p5Eng": 0,
+    "p6Eng": 0,
+    "p7Eng": 0,
+    "p8Eng": 1,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

@@ -1,0 +1,33 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Standard Tight",
+  "samples": [],
+  "type": "drums",
+  "values": {
+    "kitComp": 0.55,
+    "kitLevel": 0.785799980163574,
+    "p1Click": 0.75,
+    "p1Decay": 0.2,
+    "p1Eng": 1,
+    "p2Click": 0.75,
+    "p2Decay": 0.1,
+    "p2Eng": 1,
+    "p2Tone": 0.6,
+    "p3Decay": 0.15,
+    "p3Eng": 1,
+    "p4Eng": 1,
+    "p5Decay": 0.03,
+    "p5Eng": 1,
+    "p5Tone": 0.7,
+    "p6Decay": 0.2,
+    "p6Eng": 1,
+    "p7Decay": 1.2,
+    "p7Eng": 1,
+    "p8Eng": 2,
+    "revPre": 0.004,
+    "revSize": 0.25,
+    "revTone": 0.55
+  },
+  "version": 1
+}

@@ -1,0 +1,32 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Standard Punchy",
+  "samples": [],
+  "type": "drums",
+  "values": {
+    "kitLevel": 0.563000023365021,
+    "p1Bend": 0.4,
+    "p1Click": 0.5,
+    "p1Decay": 0.5,
+    "p1Eng": 1,
+    "p2Click": 0.6,
+    "p2Eng": 1,
+    "p2SendReverb": 0.15,
+    "p2Tone": 0.5,
+    "p3Eng": 0,
+    "p3SendReverb": 0.2,
+    "p4Eng": 1,
+    "p5Decay": 0.06,
+    "p5Eng": 1,
+    "p6Decay": 0.45,
+    "p6Eng": 1,
+    "p7Decay": 2.2,
+    "p7Eng": 1,
+    "p8Eng": 1,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

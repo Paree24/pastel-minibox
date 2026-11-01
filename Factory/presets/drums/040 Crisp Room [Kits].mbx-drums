@@ -1,0 +1,30 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Crisp Room",
+  "samples": [],
+  "type": "drums",
+  "values": {
+    "kitLevel": 0.585099995136261,
+    "p1Eng": 1,
+    "p1SendReverb": 0.15,
+    "p2Click": 0.7,
+    "p2Eng": 1,
+    "p2SendReverb": 0.45,
+    "p3Eng": 1,
+    "p3SendReverb": 0.5,
+    "p4Eng": 1,
+    "p4SendReverb": 0.35,
+    "p5Eng": 0,
+    "p5SendReverb": 0.2,
+    "p6Eng": 0,
+    "p7Decay": 2.8,
+    "p7Eng": 0,
+    "p7SendReverb": 0.3,
+    "p8Eng": 1,
+    "revPre": 0.015,
+    "revSize": 0.6,
+    "revTone": 0.65
+  },
+  "version": 1
+}

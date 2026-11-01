@@ -1,0 +1,29 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Standard Bright",
+  "samples": [],
+  "type": "drums",
+  "values": {
+    "kitLevel": 0.54610002040863,
+    "p1Eng": 0,
+    "p2Click": 0.8,
+    "p2Eng": 1,
+    "p2SendReverb": 0.15,
+    "p2Tone": 0.65,
+    "p3Eng": 1,
+    "p3SendReverb": 0.2,
+    "p4Eng": 0,
+    "p5Eng": 1,
+    "p5Tone": 0.8,
+    "p6Eng": 1,
+    "p6Tone": 0.8,
+    "p7Eng": 1,
+    "p7Tone": 0.7,
+    "p8Eng": 1,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

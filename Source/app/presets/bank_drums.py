@@ -29,7 +29,7 @@ ROOMS = {
     "Echo Space": (0.85, 0.4, 0.04), "Big Reverb Snare": (0.8, 0.6, 0.03), "Driven Big Reverb": (0.75, 0.6, 0.025),
     "Long Boom": (0.65, 0.45, 0.02), "Dark Driven": (0.6, 0.3, 0.02), "Rumble Kick": (0.55, 0.35, 0.015),
     "Lo-Fi Box": (0.2, 0.25, 0.004), "Short Click": (0.25, 0.7, 0.002), "Tight Compressed": (0.25, 0.5, 0.005),
-    "Beat Box": (0.2, 0.5, 0.004), "Dry Machine": (0.3, 0.55, 0.008), "Hand Percussion": (0.35, 0.65, 0.01),
+    "Beat Box": (0.2, 0.5, 0.004), "Crisp Room": (0.6, 0.65, 0.015), "Soft Dry": (0.2, 0.5, 0.003), "Standard Tight": (0.25, 0.55, 0.004), "Dry Machine": (0.3, 0.55, 0.008), "Hand Percussion": (0.35, 0.65, 0.01),
 }
 
 
@@ -100,4 +100,20 @@ DRUMS = [
         chat=K(LayA=2, LayB=2), ohat=K(LayA=2, LayB=4), cym=K(LayA=2, LayB=4, Decay=2.0), perc=K(LayA=4, LayB=3, Pitch=1500)),
     kit("Crushed Drive", [1, 1, 1, 1, 1, 1, 1, 2], dict(kitDrive=0.6, kitComp=0.6), kick=K(Drive=0.8, DriveType=2, Decay=0.5), snare=K(Drive=0.6),
         clap=K(Drive=0.5, **RV(0.3))),
+    # ---------------------------------------------------------------- standard kits (2026-11-01): plain, all-round sounds
+    kit("Standard Punchy", [1, 1, 0, 1, 1, 1, 1, 1], kick=K(Decay=0.5, Click=0.5, Bend=0.4), snare=K(Click=0.6, Tone=0.5, **RV(0.15)),
+        clap=RV(0.2), chat=K(Decay=0.06), ohat=K(Decay=0.45), cym=K(Decay=2.2)),
+    kit("Standard Tight", [1, 1, 1, 1, 1, 1, 1, 2], dict(kitComp=0.55), kick=K(Decay=0.2, Click=0.75), snare=K(Decay=0.1, Click=0.75, Tone=0.6),
+        chat=K(Decay=0.03, Tone=0.7), ohat=K(Decay=0.2), cym=K(Decay=1.2), clap=K(Decay=0.15)),
+    kit("Standard Deep", [0, 0, 0, 0, 1, 1, 1, 0], kick=K(Decay=1.5, Bend=0.5, Tone=0.15), snare=K(Pitch=150, Decay=0.35, Tone=0.3, **RV(0.35)),
+        tom=K(Decay=0.7, Tone=0.3), clap=RV(0.35), chat=K(Tone=0.35), ohat=K(Tone=0.35)),
+    kit("Standard Bright", [0, 1, 1, 0, 1, 1, 1, 1], snare=K(Tone=0.65, Click=0.8, **RV(0.15)), chat=K(Tone=0.8), ohat=K(Tone=0.8), cym=K(Tone=0.7),
+        clap=RV(0.2)),
+    kit("Soft Dry", [0, 0, 0, 0, 2, 2, 0, 0], kick=K(Click=0.0, Tone=0.15, Decay=0.4), snare=K(Tone=0.2, Click=0.1, Decay=0.25), clap=K(Tone=0.3),
+        chat=K(Tone=0.2, Decay=0.05), ohat=K(Tone=0.2, Decay=0.3), cym=K(Tone=0.2)),
+    kit("Snappy Pop", [1, 1, 1, 1, 0, 0, 0, 1], kick=K(Decay=0.4, Click=0.7), snare=K(Pitch=220, Click=0.85, Tone=0.55, **RV(0.25)), clap=RV(0.3)),
+    kit("Round Warm", [0, 0, 0, 0, 0, 0, 0, 0], dict(kitDrive=0.15), kick=K(Decay=0.7, Tone=0.3), snare=K(Tone=0.4, **RV(0.15)), chat=K(Tone=0.4),
+        ohat=K(Tone=0.4)),
+    kit("Crisp Room", [1, 1, 1, 1, 0, 0, 0, 1], kick=K(**RV(0.15)), snare=K(**RV(0.45), Click=0.7), clap=K(**RV(0.5)), tom=K(**RV(0.35)),
+        chat=K(**RV(0.2)), cym=K(Decay=2.8, **RV(0.3))),
 ]

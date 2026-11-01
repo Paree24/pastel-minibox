@@ -73,7 +73,8 @@ def add_new(dev, items):
     have = {json.load(open(f))["name"] for f in glob.glob(os.path.join(d, f"*.mbx-{dev}"))}
     n = len(glob.glob(os.path.join(d, f"*.mbx-{dev}")))
     added = 0
-    for name, fam, vals in items:
+    for it in items:
+        name, fam, vals = it if len(it) == 3 else (it[0], "Kits", it[1])   # drum kits are (name, values)
         if name in have:
             continue
         bad = FORBIDDEN & set(vals)
@@ -81,7 +82,7 @@ def add_new(dev, items):
         vals = dict(vals)
         if is_bass(dev, fam, name):
             vals = {k: v for k, v in vals.items() if k not in REVERB_KEYS}
-        vals.setdefault("level", 0.7)
+        vals.setdefault("kitLevel" if dev in ("drums", "drumsampler") else "level", 0.8 if dev in ("drums", "drumsampler") else 0.7)
         n += 1
         doc = dict(type=dev, version=1, name=name, family=fam, values=vals, macros="", samples=[])
         with open(os.path.join(d, f"{n:03d} {name} [{fam}].mbx-{dev}"), "w") as f:
@@ -266,5 +267,5 @@ def samplers():
 if __name__ == "__main__":
     if sys.argv[1] == "write": write(sys.argv[2] if len(sys.argv) > 2 else None)
     elif sys.argv[1] == "add":   # add poly | fm: the bank's new presets only (then tool_balance_presets)
-        add_new(sys.argv[2], {"poly": POLY, "fm": FM, "mono": MONO, "acid": ACID}[sys.argv[2]])
+        add_new(sys.argv[2], {"poly": POLY, "fm": FM, "mono": MONO, "acid": ACID, "drums": DRUMS}[sys.argv[2]])
     else: {"jobs": jobs, "samplers": samplers}[sys.argv[1]]()
