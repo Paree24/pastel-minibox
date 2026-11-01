@@ -36,6 +36,10 @@ ENV = {
     "bass": (0.99, 0.48, 0.4, 0.75, 1.0, 0.7, 0.6),
     "bassmod": (0.99, 0.62, 0.5, 0.7, 1.0, 0.35, 0.15),
     "swell": (0.4, 0.4, 0.35, 0.45, 1.0, 1.0, 0.95),
+    # leads: carriers speak at once and hold; modulators bite at the start, then settle a little
+    "lead": (0.95, 0.5, 0.4, 0.65, 1.0, 0.9, 0.85),
+    "leadmod": (0.9, 0.45, 0.35, 0.65, 1.0, 0.75, 0.6),
+    "breath": (0.6, 0.45, 0.4, 0.6, 1.0, 0.9, 0.85),
 }
 
 
@@ -216,4 +220,21 @@ FM = [
     F("Sheet Metal", "Metal", 7, 0.95, [op(1, 0.9, "bell"), op(5.3, 0.8, "bell"), op(1.41, 0.7, "bell"), op(7.1, 0.75, "bell"), op(9.7, 0.7, "bell"), op(13.1, 0.6, "bell")], **RV(0.4)),
     F("Alien Chirp", "Metal", 5, 0.8, [op(1, 0.85, "pluck"), op(9.7, 0.85, "fall"), op(2.39, 0.6, "pluck"), op(13.1, 0.7, "fall"), None, None], **RV(0.4)),
     F("Gong Swell", "Metal", 1, 0.5, [op(0.5, 0.85, "swell"), op(1.41, 0.6, "swell"), op(1, 0.6, "slowpad"), op(2.39, 0.5, "slowpad"), op(3.73, 0.4, "slowpad"), None], **RV(0.6)),
+    # ---------------------------------------------------------------- Lead (2026-11-01: lines on top of a mix; algo 1 / 5 / 7)
+    F("FM Saw Lead", "Lead", 1, 0.7, [op(1, 0.95, "lead"), op(1, 0.75, "leadmod"), op(1, 0.4, "lead"), op(1, 0.5, "leadmod"), op(2, 0.3, "leadmod"), op(1, 0.4, "leadmod")], **RV(0.15)),
+    F("FM Square Lead", "Lead", 1, 0.2, [op(1, 0.95, "lead"), op(2, 0.6, "leadmod"), None, None, None, None], **RV(0.15)),
+    F("Flute Lead", "Lead", 5, 0.0, [op(1, 0.95, "breath"), op(1, 0.2, "breath"), op(2, 0.25, "breath"), op(1, 0.15, "breath"), None, None], **TREM(5.0, 0.08), **RV(0.3)),
+    F("Brass Lead", "Lead", 1, 0.5, [op(1, 0.95, "brass"), op(1, 0.7, "brassmod"), op(1, 0.35, "brass"), op(1, 0.45, "brassmod"), None, None], **RV(0.2)),
+    F("Bell Lead", "Lead", 5, 0.0, [op(1, 0.95, "lead"), op(3.5, 0.45, "fall"), op(2, 0.35, "lead"), op(1, 0.3, "leadmod"), None, None], **CH(1, 0.3), **RV(0.25)),
+    F("Sine Whistle Lead", "Lead", 1, 0.0, [op(1, 0.95, "lead"), op(1, 0.1, "leadmod"), None, None, None, None], **TREM(5.5, 0.06), **RV(0.3)),
+    F("Reed Lead", "Lead", 1, 0.4, [op(1, 0.95, "lead"), op(1, 0.55, "leadmod", 1), op(3, 0.25, "lead"), op(1, 0.3, "leadmod"), None, None], **RV(0.2)),
+    F("Harmonica Lead", "Lead", 1, 0.3, [op(1, 0.95, "breath"), op(1, 0.5, "leadmod", 2), None, None, None, None], **TREM(6.0, 0.12), **RV(0.2)),
+    F("Digital Pluck Lead", "Lead", 1, 0.3, [op(1, 0.95, "fall"), op(3, 0.6, "pluck"), op(1, 0.4, "fall"), op(2, 0.4, "pluck"), None, None], **CH(0, 0.3), **RV(0.2)),
+    F("Vox Lead", "Lead", 5, 0.1, [op(1, 0.9, "lead"), op(1, 0.35, "leadmod"), op(3, 0.4, "lead"), op(1, 0.3, "leadmod"), op(5, 0.2, "lead"), op(1, 0.2, "leadmod")], **CH(1, 0.4), **RV(0.3)),
+    F("Growl Lead", "Lead", 1, 0.95, [op(1, 0.95, "lead"), op(1, 0.85, "leadmod"), op(1, 0.3, "lead"), op(1, 0.6, "leadmod"), op(1, 0.5, "leadmod"), op(1, 0.6, "leadmod")], **RV(0.12)),
+    F("Thin Bright Lead", "Lead", 1, 0.3, [op(1, 0.9, "lead"), op(4, 0.5, "leadmod"), None, None, None, None], **CH(0, 0.3), **RV(0.2)),
+    F("Hollow Lead", "Lead", 1, 0.2, [op(1, 0.95, "lead"), op(0.5, 0.5, "leadmod"), op(2, 0.3, "lead"), op(1, 0.3, "leadmod"), None, None], **RV(0.2)),
+    F("Soft Chorus Lead", "Lead", 5, 0.1, [op(1, 0.95, "lead"), op(1, 0.4, "leadmod"), op(1, 0.4, "lead"), op(2, 0.3, "leadmod"), None, None], **CH(2, 0.55), **RV(0.3)),
+    F("Metallic Lead", "Lead", 1, 0.4, [op(1, 0.95, "lead"), op(1.5, 0.55, "leadmod"), op(1, 0.3, "lead"), op(3.5, 0.3, "fall"), None, None], **RV(0.2)),
+    F("Stacked Lead", "Lead", 7, 0.5, [op(1, 0.95, "lead"), op(1, 0.6, "leadmod"), op(2, 0.55, "lead"), op(1, 0.4, "leadmod"), op(1, 0.35, "leadmod"), op(3, 0.25, "leadmod")], **CH(1, 0.35), **RV(0.2)),
 ]

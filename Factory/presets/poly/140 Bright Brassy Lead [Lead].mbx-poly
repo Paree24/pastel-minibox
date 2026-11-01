@@ -1,0 +1,32 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Bright Brassy Lead",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.02,
+    "aDecay": 0.6,
+    "aRelease": 0.45,
+    "aSustain": 0.9,
+    "chorusMix": 0.4,
+    "chorusMode": 1,
+    "cutoff": 1400,
+    "dcoWave": 1,
+    "engine": 0,
+    "envAmt": 0.6,
+    "fAttack": 0.04,
+    "fDecay": 0.5,
+    "fRelease": 0.45,
+    "fSustain": 0.5,
+    "hpf": 2,
+    "key": 0.6,
+    "level": 1.860200047492981,
+    "reso": 0.2,
+    "revPre": 0.018,
+    "revSize": 0.47,
+    "revTone": 0.55,
+    "reverb": 0.2
+  },
+  "version": 1
+}

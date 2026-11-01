@@ -1,0 +1,33 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Wah Lead",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.005,
+    "aDecay": 0.5,
+    "aRelease": 0.375,
+    "aSustain": 0.9,
+    "cutoff": 1100,
+    "dcoWave": 1,
+    "engine": 0,
+    "envAmt": 0.35,
+    "fAttack": 0.005,
+    "fDecay": 0.4,
+    "fRelease": 0.45,
+    "fSustain": 0.6,
+    "key": 0.6,
+    "level": 0.85180002450943,
+    "lfoCut": 0.45,
+    "lfoDelay": 0.0,
+    "lfoRate": 2.5,
+    "lfoShape": 0,
+    "reso": 0.45,
+    "revPre": 0.0155,
+    "revSize": 0.415,
+    "revTone": 0.55,
+    "reverb": 0.15
+  },
+  "version": 1
+}

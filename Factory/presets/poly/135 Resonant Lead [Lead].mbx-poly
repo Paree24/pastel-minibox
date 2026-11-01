@@ -1,0 +1,33 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Resonant Lead",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.005,
+    "aDecay": 0.5,
+    "aRelease": 0.375,
+    "aSustain": 0.9,
+    "cutoff": 900,
+    "dcoWave": 1,
+    "delayDiv": 6,
+    "delayFb": 0.4,
+    "delayMix": 0.2,
+    "delayTone": 0.5,
+    "engine": 0,
+    "envAmt": 0.65,
+    "fAttack": 0.005,
+    "fDecay": 0.3,
+    "fRelease": 0.375,
+    "fSustain": 0.35,
+    "key": 0.6,
+    "level": 0.894900023937225,
+    "reso": 0.6,
+    "revPre": 0.0155,
+    "revSize": 0.415,
+    "revTone": 0.55,
+    "reverb": 0.15
+  },
+  "version": 1
+}

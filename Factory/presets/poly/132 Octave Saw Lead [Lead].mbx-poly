@@ -1,0 +1,31 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Octave Saw Lead",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.005,
+    "aDecay": 0.5,
+    "aRelease": 0.375,
+    "aSustain": 0.9,
+    "cutoff": 2600,
+    "engine": 1,
+    "envAmt": 0.4,
+    "fAttack": 0.005,
+    "fDecay": 0.4,
+    "fRelease": 0.45,
+    "fSustain": 0.65,
+    "filterMode": 1,
+    "key": 0.6,
+    "level": 0.648400008678436,
+    "reso": 0.25,
+    "revPre": 0.0155,
+    "revSize": 0.415,
+    "revTone": 0.55,
+    "reverb": 0.15,
+    "vaWave": 0,
+    "voiceMode": 3
+  },
+  "version": 1
+}

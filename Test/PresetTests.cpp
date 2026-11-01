@@ -31,7 +31,7 @@ MB_TEST (presets_counts)
     {
         int n = 0;
         for (auto& p : presets::list ((DeviceType) t)) n += p.factory ? 1 : 0;
-        const int want = isDrumDevice ((DeviceType) t) ? 32 : 128;
+        const int want = isDrumDevice ((DeviceType) t) ? 32 : (t == (int) DeviceType::Poly || t == (int) DeviceType::FM ? 144 : 128);   // VA and FM: + 16 leads
         ctx.check (n == want, deviceTypeName ((DeviceType) t) + " has " + juce::String (n) + " factory presets");
     }
 }

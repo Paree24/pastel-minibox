@@ -1,0 +1,30 @@
+{
+  "family": "Lead",
+  "macros": "",
+  "name": "Fat Sub Lead",
+  "samples": [],
+  "type": "poly",
+  "values": {
+    "aAttack": 0.005,
+    "aDecay": 0.5,
+    "aRelease": 0.375,
+    "aSustain": 0.9,
+    "cutoff": 1700,
+    "dcoWave": 1,
+    "engine": 0,
+    "envAmt": 0.45,
+    "fAttack": 0.005,
+    "fDecay": 0.4,
+    "fRelease": 0.45,
+    "fSustain": 0.55,
+    "key": 0.5,
+    "level": 0.570699989795685,
+    "reso": 0.25,
+    "revPre": 0.014,
+    "revSize": 0.382,
+    "revTone": 0.55,
+    "reverb": 0.12,
+    "sub": 0.6
+  },
+  "version": 1
+}
