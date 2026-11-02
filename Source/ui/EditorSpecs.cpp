@@ -154,9 +154,13 @@ EditorSpec drums (const DeviceProcessor& d, int part)
     const juce::String p = "p" + juce::String (part + 1);
     const auto& dd = static_cast<const DrumsDevice&> (d);
     const bool layered = dd.partEngine (part) == drums::Layer;
-    std::vector<KnobSpec> engineKnobs { K (p + "Pitch", "Pitch"), K (p + "Bend", "Bend"), K (p + "BendTime", "Bend Time"), K (p + "Decay", "Decay") };
-    if (layered) { engineKnobs.push_back (K (p + "LayMix", "Mix")); engineKnobs.push_back (K (p + "LayRatio", "B Pitch")); }
-    else { engineKnobs.push_back (K (p + "Tone", "Tone")); engineKnobs.push_back (K (p + "Click", "Click")); }
+    std::vector<KnobSpec> engineKnobs;
+    if (layered)
+        engineKnobs = { K (p + "Pitch", "Pitch"), K (p + "Bend", "Bend"), K (p + "BendTime", "Bend Time"), K (p + "Decay", "Decay"),
+                        K (p + "LayMix", "Mix"), K (p + "LayRatio", "B Pitch") };
+    else   // only the knobs this engine reads (a knob that changes nothing is not shown)
+        for (const auto& [f, label] : dd.engineKnobs (part))
+            engineKnobs.push_back (K (d.params()[dd.partParam (part, f)].id, label));
     std::vector<KnobSpec> shape { K (p + "Accent", "Accent"), K (p + "Drive", "Drive") };
     if (layered) for (auto [f, l] : { std::pair { "LayA", "Source A" }, { "LayB", "Source B" }, { "LayMod", "Mod" }, { "LayEnv", "Envelope" } }) shape.push_back (K (p + f, l));
     e.rows = {

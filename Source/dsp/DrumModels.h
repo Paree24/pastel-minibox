@@ -161,7 +161,8 @@ struct Kick808
 };
 
 /** 1983 kick: triangle VCO rounded by diodes, an envelope pushes it up at note start (Tune = its decay
-    time), body holds near full level before decaying, attack = a short pulse plus low-passed noise. */
+    time), body holds near full level before decaying, attack = a short pulse plus low-passed noise (Click = its level,
+    Tone = its decay). */
 struct Kick909
 {
     ExpCache ec0;   // per-sample decay factors from fixed times: exp only when they change
@@ -183,7 +184,9 @@ struct Kick909
         const float hold = std::min (0.06f, 0.12f * c.decay);
         const float env = tm < hold ? 1.0f : std::exp (-6.9f * (tm - hold) / std::max (0.02f, c.decay));
         const float pulse = t < (int) (0.0004f * sr) ? 1.0f : 0.0f;
-        const float nz = clickLp.lp (lfsr.next(), 5000.0f, sr) * std::exp (-tm / 0.006f);
+        // Tone = the click's decay: 6 ms at 0.4 (the fixed time it had), ≈ 1.6 ms at 0 to ≈ 43 ms at 1
+        const float clickTau = 0.006f * std::pow (27.0f, c.tone - 0.4f);
+        const float nz = clickLp.lp (lfsr.next(), 5000.0f, sr) * std::exp (-tm / clickTau);
         const float clk = c.click * (0.9f * pulse + 0.7f * nz);
         ++t;
         return outHp.hp ((body * env + clk) * amp, 20.0f, sr);

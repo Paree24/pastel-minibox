@@ -180,3 +180,46 @@ MB_TEST (tool_drum_resonator)
         std::cout << "    " << what << ": difference " << juce::String (10 * std::log10 ((d2 + 1e-15) / (r2 + 1e-15)), 1) << " dB" << std::endl;
     }
 }
+
+// MB_KNOBS=1: for every part and engine, how much each engine knob changes the hit (difference between the knob at
+// 25 % and 75 % of its range, dB relative to the hit): a knob near -100 dB does nothing on that engine
+MB_TEST (tool_drum_engine_knobs)
+{
+    if (juce::SystemStats::getEnvironmentVariable ("MB_KNOBS", {}).isEmpty()) return;
+    const int notes[8] = { 36, 38, 39, 45, 42, 46, 49, 37 };
+    for (int part = 0; part < 8; ++part)
+    {
+        const juce::String p = "p" + juce::String (part + 1);
+        auto probe = createDevice (DeviceType::Drums);
+        const auto& L = probe->params();
+        const auto& eng = L[L.indexOf (p + "Eng")];
+        for (int e = 0; e < eng.choices.size(); ++e)
+        {
+            juce::String line = "    part " + juce::String (part + 1) + " " + eng.choices[e].paddedRight (' ', 8);
+            for (auto k : { "Pitch", "Bend", "BendTime", "Decay", "Tone", "Click", "LayMix", "LayRatio" })
+            {
+                auto render = [&] (float at)
+                {
+                    auto d = createDevice (DeviceType::Drums);
+                    d->prepare (48000.0, 512);
+                    d->set (p + "Eng", (float) e);
+                    d->setNorm (d->params().indexOf (p + k), at);
+                    NoteEvent ev; ev.type = NoteEvent::NoteOn; ev.note = notes[part]; ev.velocity = 1.0f; d->handleEvent (ev);
+                    std::vector<float> l (512), r (512), out;
+                    for (int b = 0; b < 94; ++b)
+                    {
+                        std::fill (l.begin(), l.end(), 0.0f); std::fill (r.begin(), r.end(), 0.0f);
+                        d->render (l.data(), r.data(), 512);
+                        out.insert (out.end(), l.begin(), l.end());
+                    }
+                    return out;
+                };
+                const auto a = render (0.25f), b = render (0.75f);
+                double d2 = 0, r2 = 0;
+                for (size_t i = 0; i < a.size(); ++i) { const double dd = b[i] - a[i]; d2 += dd * dd; r2 += (double) a[i] * a[i]; }
+                line << " " << juce::String (k) << " " << juce::String (10 * std::log10 ((d2 + 1e-15) / (r2 + 1e-15)), 0);
+            }
+            std::cout << line << std::endl;
+        }
+    }
+}

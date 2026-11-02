@@ -39,6 +39,9 @@ public:
                  SendReverb, VelSens, Choke, ResSend, LayA, LayB, LayMod, LayEnv, LayMix, LayRatio, kFields };
     int partParam (int part, Field f) const { return part * kFields + (int) f; }
     drums::Engine partEngine (int part) const;
+    /** The engine knobs the part's current engine (non-layered) reads, with their names there: Pitch and Decay always,
+        Bend, Bend Time, Tone and Click only where its model uses them. */
+    std::vector<std::pair<Field, juce::String>> engineKnobs (int part) const;
     int partForNote (int note) const;
     int laneForNote (int note) const override { return partForNote (note); }
 

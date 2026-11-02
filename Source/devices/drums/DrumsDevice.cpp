@@ -129,6 +129,24 @@ Model modelFor (int part, drums::Engine e)
     }
 }
 
+/** The knobs each model reads (DrumModels.h; measured with tool_drum_engine_knobs): the others change nothing. */
+std::vector<std::pair<DrumsDevice::Field, juce::String>> knobsFor (Model m)
+{
+    using F = DrumsDevice::Field;
+    const bool bend = m == K808 || m == K909 || m == KBox || m == KRing || m == S909 || m == TomPing || m == Tom909
+                      || m == TomBox || m == PercPing || m == Rim909;
+    const bool bendTime = m == K909 || m == KRing || m == Tom909;
+    const bool click = ! (m == Pcm || m == TomBox || m == Metal808 || m == HatBox || m == Cowbell);
+    const bool tone = m != Pcm;
+    std::vector<std::pair<F, juce::String>> k { { F::Pitch, "Pitch" } };
+    if (bend) k.push_back ({ F::Bend, "Bend" });
+    if (bendTime) k.push_back ({ F::BendTime, "Bend Time" });
+    k.push_back ({ F::Decay, "Decay" });
+    if (tone) k.push_back ({ F::Tone, m == K909 ? "Click Decay" : "Tone" });
+    if (click) k.push_back ({ F::Click, "Click" });
+    return k;
+}
+
 /** Ringing circuits: a new hit excites the same state instead of fading the old one out. */
 bool rings (int m) { return m == K808 || m == S808 || m == TomPing || m == PercPing || m == Rim909 || m == KBox || m == SBox || m == TomBox; }
 
@@ -138,6 +156,11 @@ void lowpassInPlace (std::vector<float>& b, float hz, float sr)
     for (auto& v : b) v = c.lp (a.lp (v, hz, sr), hz, sr);
 }
 } // namespace
+
+std::vector<std::pair<DrumsDevice::Field, juce::String>> DrumsDevice::engineKnobs (int part) const
+{
+    return knobsFor (modelFor (std::clamp (part, 0, kParts - 1), partEngine (part)));
+}
 
 void DrumsDevice::prepare (double sr, int maxBlock)
 {
