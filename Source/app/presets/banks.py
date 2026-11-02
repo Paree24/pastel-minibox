@@ -237,28 +237,10 @@ def samplers():
         names.add(name)
         items.append((name, fam, v, ["factory:" + s["file"]]))
     write_dev("sampler", items)
-    # drum sampler: the 32 kits, each with its own sampler treatment
-    treat = [
-        ("", {}), ("Tape", dict(HiCut=9000, Drive=0.3)), ("Crushed", dict(Bits=8, HiCut=7000)), ("Dusty", dict(Bits=12, HiCut=6000)),
-        ("Driven", dict(Drive=0.5)), ("Gated", None), ("Lo-Fi", dict(Bits=6, HiCut=4000)), ("Bright", dict(HiCut=20000)),
-    ]
-    ditems = []
-    for i, (name, vals) in enumerate(DRUMS):
-        files = kit_files(i)
-        man["kits"].append(dict(name=name, files=[files[p] for p in PAD_ORDER]))
-        prefix, t = treat[i % len(treat)]
-        v = {}
-        for pad, part in enumerate(PAD_ORDER):
-            n = pad + 1
-            v[f"pd{n}Decay"] = min(4.0, wav_seconds(files[part]) + 0.05) if t is not None else (0.12 if part in ("kick", "snare", "clap", "tom") else 0.08)
-            v[f"pd{n}Pan"] = {"kick": 0, "snare": 0.05, "chat": 0.25, "ohat": 0.25, "clap": -0.15, "tom": -0.3, "cym": -0.2, "perc": 0.35}[part]
-            for key, val in (t or {}).items():
-                v[f"pd{n}{key}"] = val
-            if part in ("snare", "clap"): v[f"pd{n}SendReverb"] = 0.2
-        for key in ("revSize", "revTone", "revPre"):   # the kit's room carries over from the synth kit
-            if key in vals: v[key] = vals[key]
-        ditems.append(((prefix + " " if prefix else "") + name, "Kits", v, ["factory:" + files[p] for p in PAD_ORDER]))
-    write_dev("drumsampler", ditems)
+    # drum sampler (2026-11-02): its kits come from Pastel Drum Synth (import_drumsynth.py), not from renders of the
+    # Drums device (redundant with it); they and their manifest entries are kept as they are
+    with open(os.path.join(SAMPLES, "manifest.json")) as f:
+        man["kits"] = json.load(f)["kits"]
     with open(os.path.join(SAMPLES, "manifest.json"), "w") as f:
         json.dump(man, f, indent=1)
     print("manifest written")
