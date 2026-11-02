@@ -33,7 +33,14 @@
     "resTune": 147,
     "revPre": 0.012,
     "revSize": 0.4,
-    "revTone": 0.55
+    "revTone": 0.55,
+    "p1ResSend": 0.0,
+    "p2ResSend": 0.0,
+    "p3ResSend": 0.0,
+    "p4ResSend": 0.0,
+    "p5ResSend": 0.0,
+    "p6ResSend": 0.0,
+    "p7ResSend": 0.0
   },
   "version": 1
 }

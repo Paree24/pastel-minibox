@@ -56,7 +56,14 @@
     "p8Pitch": 640.0,
     "p8Decay": 0.180000007152557,
     "p8Tone": 0.5,
-    "p8Click": 0.300000011920929
+    "p8Click": 0.300000011920929,
+    "p2ResSend": 0.0,
+    "p3ResSend": 0.0,
+    "p4ResSend": 0.0,
+    "p5ResSend": 0.0,
+    "p6ResSend": 0.0,
+    "p7ResSend": 0.0,
+    "p8ResSend": 0.0
   },
   "version": 1
 }

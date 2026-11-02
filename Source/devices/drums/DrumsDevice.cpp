@@ -58,7 +58,8 @@ DrumsDevice::DrumsDevice() : DeviceProcessor (DeviceType::Drums)
         L.cont (id + "SendReverb", "Reverb", 0, 1, 0, Unit::Percent);
         L.cont (id + "VelSens", "Vel Sens", 0, 1, 0.6f, Unit::Percent);
         L.integer (id + "Choke", "Choke", 0, 2, (p == 4 || p == 5) ? 1 : 0);
-        L.cont (id + "ResSend", "Send", 0, 1, 0, Unit::Percent);
+        // each part feeds the kit resonator by default: raising its Mix is heard on any kit (at 0 it rang on nothing)
+        L.cont (id + "ResSend", "Send", 0, 1, 0.5f, Unit::Percent);
         L.choice (id + "LayA", "Source A", { "Sine", "Saw", "HP Noise", "LP Noise", "BP Noise" }, p >= 4 ? 2 : 0);
         L.choice (id + "LayB", "Source B", { "Sine", "Saw", "HP Noise", "LP Noise", "BP Noise" }, p == 0 ? 3 : 4);
         L.choice (id + "LayMod", "Mod", { "Decay", "Rise", "LFO" }, 0);

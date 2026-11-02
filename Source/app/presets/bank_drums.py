@@ -19,6 +19,9 @@ def kit(name, engines, kitvals=None, **parts):
         for k, val in fields.items():
             v[f"p{idx}{k}"] = val
     v.update(kitvals or {})
+    # a kit that sends some parts to the resonator sends only those (the others' default is 50 %)
+    if any(k.endswith("ResSend") for k in v):
+        for i in range(1, 9): v.setdefault(f"p{i}ResSend", 0.0)
     # the kit's own room: big spaces for the dub / synthwave / stadium styles, tight rooms for the dry ones
     size, tone, pre = ROOMS.get(name, (0.4, 0.55, 0.012))
     v.setdefault("revSize", size); v.setdefault("revTone", tone); v.setdefault("revPre", pre)

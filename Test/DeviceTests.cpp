@@ -1,6 +1,8 @@
 #include "Tests.h"
 #include "devices/DeviceProcessor.h"
 #include "devices/fm/FmDevice.h"
+#include "app/presets/PresetBank.h"
+#include <iostream>
 #include <cmath>
 #include <tuple>
 
@@ -145,5 +147,36 @@ MB_TEST (poly_arp_locks_to_transport)
         ctx.check (on.size() >= 7, tag + "arp steps sounded: " + juce::String ((int) on.size()));
         ctx.check (bad == 0, tag + juce::String (bad) + " onsets off the even step grid");
         ctx.check (! on.empty() && on[0] < 150, tag + "first step on the key, onset " + juce::String (on.empty() ? -1 : on[0]));
+    }
+}
+
+/** Tool (MB_RES=1): the Drums kit resonator: the default kit's hits with the resonator's Mix at full against off. */
+MB_TEST (tool_drum_resonator)
+{
+    if (juce::SystemStats::getEnvironmentVariable ("MB_RES", {}).isEmpty()) return;
+    auto render = [] (float mix, float send)
+    {
+        auto d = createDevice (DeviceType::Drums);
+        presets::loadDefault (*d, true);
+        d->prepare (48000.0, 512);
+        d->set ("resMix", mix);
+        if (send >= 0.0f) for (int p = 1; p <= 8; ++p) d->set ("p" + juce::String (p) + "ResSend", send);
+        std::vector<float> l (512), r (512), out;
+        for (int b = 0; b < 200; ++b)
+        {
+            if (b % 25 == 0) { NoteEvent e; e.type = NoteEvent::NoteOn; e.note = (b / 25) % 2 ? 38 : 36; e.velocity = 1.0f; d->handleEvent (e); }
+            std::fill (l.begin(), l.end(), 0.0f); std::fill (r.begin(), r.end(), 0.0f);
+            d->render (l.data(), r.data(), 512);
+            out.insert (out.end(), l.begin(), l.end());
+        }
+        return out;
+    };
+    const auto off = render (0.0f, -1.0f);
+    for (auto [mix, send, what] : { std::tuple { 1.0f, -1.0f, "Mix full, sends as the kit has them" }, std::tuple { 1.0f, 0.5f, "Mix full, every part sending 50 %" } })
+    {
+        const auto on = render (mix, send);
+        double d2 = 0, r2 = 0;
+        for (size_t i = 0; i < off.size(); ++i) { const double dd = on[i] - off[i]; d2 += dd * dd; r2 += (double) off[i] * off[i]; }
+        std::cout << "    " << what << ": difference " << juce::String (10 * std::log10 ((d2 + 1e-15) / (r2 + 1e-15)), 1) << " dB" << std::endl;
     }
 }
