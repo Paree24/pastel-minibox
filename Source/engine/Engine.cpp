@@ -503,6 +503,7 @@ void Engine::touchParam (int pattern, int track, int param, float value)
 {
     if (! (recording.load() && playingFlag.load()) || countingIn.load()) return;
     recordKnob (pattern, track, param, value);
+    if (auto* d = device (pattern, track)) d->setHeld (param, true);   // heard as turned, not as the take's locks
     const double now = juce::Time::getMillisecondCounterHiRes();
     for (auto& t : touched) if (t.pattern == pattern && t.track == track && t.param == param) { t.value = value; t.ms = now; return; }
     touched.push_back ({ pattern, track, param, value, now });
@@ -528,6 +529,13 @@ void Engine::recordMacro (const DeviceProcessor* dev, int macro, float value)
                     tr.setPoint (100 + macro, 0, takeMacroBefore[(size_t) t][(size_t) macro]);
                 tr.setPoint (100 + macro, tick, value);
                 if (takeOpen.load() && p == takePattern) takeAuto.push_back ({ t, 100 + macro, tick, value, true });
+                // heard as turned: the lane's playback steps aside while the hand is on it
+                auto* dv = devices[(size_t) p][(size_t) t].get();
+                dv->macroHeld[(size_t) macro].store (true, std::memory_order_relaxed);
+                const double now = juce::Time::getMillisecondCounterHiRes();
+                bool found = false;
+                for (auto& m : touchedMacros) if (m.dev == dv && m.macro == macro) { m.ms = now; found = true; }
+                if (! found) touchedMacros.push_back ({ dv, macro, now });
             }
             else
             {
@@ -582,13 +590,29 @@ void Engine::clearMacroAutomation (const DeviceProcessor* dev, int macro)
         }
 }
 
+void Engine::releaseTouched (bool all)
+{
+    const double now = juce::Time::getMillisecondCounterHiRes();
+    auto gone = [&] (double ms) { return all || now - ms > 300.0; };
+    for (auto& t : touched)
+        if (gone (t.ms)) if (auto* d = device (t.pattern, t.track)) d->setHeld (t.param, false);
+    touched.erase (std::remove_if (touched.begin(), touched.end(), [&] (const Touched& t) { return gone (t.ms); }), touched.end());
+    auto alive = [this] (const DeviceProcessor* d)   // a device replaced since is gone: never touch it
+    {
+        for (auto& row : devices) for (auto& x : row) if (x.get() == d) return true;
+        return false;
+    };
+    for (auto& m : touchedMacros) if (gone (m.ms) && alive (m.dev)) m.dev->macroHeld[(size_t) m.macro].store (false, std::memory_order_relaxed);
+    touchedMacros.erase (std::remove_if (touchedMacros.begin(), touchedMacros.end(), [&] (const TouchedMacro& m) { return gone (m.ms); }), touchedMacros.end());
+}
+
 void Engine::recordTouched()
 {
-    // a control still being turned writes its value on each step the playhead reaches (no gaps in a slow sweep)
-    if (touched.empty()) return;
-    const double now = juce::Time::getMillisecondCounterHiRes();
-    touched.erase (std::remove_if (touched.begin(), touched.end(), [now] (const Touched& t) { return now - t.ms > 300.0; }), touched.end());
-    if (! (recording.load() && playingFlag.load()) || countingIn.load()) { touched.clear(); return; }
+    // a control still being turned writes its value on each step the playhead reaches (no gaps in a slow sweep);
+    // one let go of (300 ms still) hears its automation again
+    const bool rec = recording.load() && playingFlag.load() && ! countingIn.load();
+    releaseTouched (! rec);
+    if (touched.empty() || ! rec) return;
     for (auto& t : touched) recordKnob (t.pattern, t.track, t.param, t.value);
 }
 
@@ -1052,7 +1076,10 @@ void Engine::applyEvent (const SeqEvent& e)
             if (e.note.type == NoteEvent::Control)
             {
                 // a controller (MIDI input, a clip's lane): expression, or a macro (100 + m) the lane automates
-                if (e.note.note >= 100 && e.note.note < 108) d->setMacro (e.note.note - 100, e.note.velocity);
+                if (e.note.note >= 100 && e.note.note < 108)
+                {
+                    if (! d->macroHeld[(size_t) (e.note.note - 100)].load (std::memory_order_relaxed)) d->setMacro (e.note.note - 100, e.note.velocity);
+                }
                 else d->setExpression (e.note.note, e.note.velocity);
             }
             else

@@ -128,6 +128,7 @@ void DeviceProcessor::finishLayout()
 {
     values = std::vector<std::atomic<float>> ((size_t) layout.size());
     locks.assign ((size_t) layout.size(), std::numeric_limits<float>::quiet_NaN());
+    held = std::vector<std::atomic<bool>> ((size_t) layout.size());
     resetToDefaults();
 }
 

@@ -145,8 +145,16 @@ public:
     bool outerArp = false;
     void setLock (int param, float value) { if (param >= 0 && param < layout.size()) locks[(size_t) param] = layout[param].snap (value); }   // in range, on the steps
     void clearLocks() { std::fill (locks.begin(), locks.end(), std::numeric_limits<float>::quiet_NaN()); }
-    /** Value the DSP uses: a lock overrides the stored value for one step. */
-    float pv (int i) const { const float l = locks[(size_t) i]; return std::isnan (l) ? get (i) : l; }
+    /** Value the DSP uses: a lock overrides the stored value for one step, unless the control is held (being turned
+        while recording: the hand wins over what the take wrote, so the sound follows it). */
+    float pv (int i) const
+    {
+        const float l = locks[(size_t) i];
+        return std::isnan (l) || held[(size_t) i].load (std::memory_order_relaxed) ? get (i) : l;
+    }
+    void setHeld (int i, bool h) { if (i >= 0 && i < (int) held.size()) held[(size_t) i].store (h, std::memory_order_relaxed); }
+    /** A macro being turned while recording: its clip lane's playback leaves it alone. */
+    std::array<std::atomic<bool>, 8> macroHeld {};
     /** What a control shows: the value playing now (a step's lock while it plays), else the stored one. */
     float shownNorm (int i) const { return layout[i].toNorm (pv (i)); }
     float shownMacro (int m) const;
@@ -195,6 +203,7 @@ protected:
     ParamLayout layout;
     std::vector<std::atomic<float>> values;
     std::vector<float> locks;
+    std::vector<std::atomic<bool>> held;
     std::array<MacroMap, 8> macroMaps, defaultMacroMaps;
     TransportInfo transport;
     double sampleRate = 48000.0;

@@ -1449,6 +1449,70 @@ MB_TEST (record_automation_keeps_start_value)
     ctx.check (! e.hasAutomation (0, 1, cut) && tr.lockFor (cut, false) == nullptr, "cleared: the lock lane is gone");
 }
 
+/** While a knob is being turned during recording, the sound follows the hand: the locks a take has written (or
+    filled) never pull the parameter back under it, on any step or pass. */
+MB_TEST (record_knob_heard_live)
+{
+    Engine e;
+    e.prepare (48000.0, 512);
+    auto dev = createDevice (DeviceType::Mono);
+    presets::loadDefault (*dev, true);
+    auto* d = dev.get();
+    e.setDevice (0, 1, std::move (dev));
+    e.project().countIn = false;
+    auto& tr = e.project().patterns[0].slots[1].track;
+    for (int s = 0; s < 16; s += 2) tr.steps[(size_t) s].addNote (36, 100, 200);
+    const int cut = d->params().indexOf ("cutoff");
+    d->set (cut, d->params()[cut].fromNorm (0.2f));
+    e.setRecord (true);
+    e.play();
+    std::vector<float> l (512), r (512);
+    const double stepLen = 6000.0;
+    double samples = 0;
+    int blocks = 0, off = 0;
+    juce::String first;
+    // a slow sweep over two passes (32 steps), the knob moving every block
+    while (samples < 32 * stepLen)
+    {
+        const float n = 0.2f + 0.6f * (float) (samples / (32 * stepLen));
+        const float v = d->params()[cut].fromNorm (n);
+        d->set (cut, v); e.touchParam (0, 1, cut, v);
+        e.process (l.data(), r.data(), 512, nullptr); samples += 512;
+        e.recordTouched();
+        ++blocks;
+        const float heard = d->params()[cut].toNorm (d->pv (cut));
+        if (std::abs (heard - n) > 0.03f) { if (off++ == 0) first << "step " << (int) (samples / stepLen) << ": heard " << juce::String (heard, 2) << ", knob " << juce::String (n, 2); }
+    }
+    e.setRecord (false);
+    ctx.check (off == 0, juce::String (off) + " of " + juce::String (blocks) + " blocks did not follow the knob (first: " + first + ")");
+    // let go: the take's automation plays again (the knob left at 95 % is not what plays)
+    e.recordTouched();
+    d->set (cut, d->params()[cut].fromNorm (0.95f));
+    const double until = samples + 3 * stepLen;
+    while (samples < until) { e.process (l.data(), r.data(), 512, nullptr); samples += 512; }
+    const float back = d->params()[cut].toNorm (d->pv (cut));
+    ctx.check (back < 0.9f, "let go, the automation plays: " + juce::String (back, 2));
+
+    // a macro on a piano-roll track: its lane's playback leaves the turned macro alone
+    tr.locks.clear();
+    tr.convertToPianoRoll (e.project().stepTicks (0), e.project().patternSteps (0));
+    e.setRecord (true);
+    int moff = 0, mblocks = 0;
+    const double mEnd = samples + 32 * stepLen;
+    const double m0 = samples;
+    while (samples < mEnd)
+    {
+        const float n = 0.1f + 0.8f * (float) ((samples - m0) / (32 * stepLen));
+        d->setMacro (0, n); e.recordMacro (d, 0, n);
+        e.process (l.data(), r.data(), 512, nullptr); samples += 512;
+        e.recordTouched();
+        ++mblocks;
+        if (std::abs (d->getMacro (0) - n) > 0.03f) ++moff;
+    }
+    e.setRecord (false);
+    ctx.check (moff == 0, "macro: " + juce::String (moff) + " of " + juce::String (mblocks) + " blocks did not follow it");
+}
+
 /** Doubling during a take copies the recorded track's earlier content into the new bars, never the take; when
     the take stops, the bars past its last note go, copies included. */
 MB_TEST (record_doubling_copies_pre_take_content)

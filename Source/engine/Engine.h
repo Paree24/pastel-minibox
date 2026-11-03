@@ -288,6 +288,9 @@ private:
     int blockLen = 0;
     struct Touched { int pattern, track, param; float value; double ms; };
     std::vector<Touched> touched;   // message thread
+    struct TouchedMacro { DeviceProcessor* dev; int macro; double ms; };
+    std::vector<TouchedMacro> touchedMacros;   // message thread: macros turned on a clip track (their lane steps aside)
+    void releaseTouched (bool all);            // controls no longer turned hear their automation again
     double blockStartPos = 0.0;   // the playhead (steps) and the count-in left (samples) when this block began
     int blockCountIn = 0;
     double blockAbs = 0.0, absSteps = 0.0;   // steps played since Play, never wrapping (a held note's length)
