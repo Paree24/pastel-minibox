@@ -318,6 +318,7 @@ struct MasterSettings
     int delayDiv = 9;                // 3/16
     float reverbReturn = 0.8f, reverbDecay = 0.55f, reverbDamp = 0.45f;
     float glue = 0.3f, limitDb = -0.3f, volume = 0.8f;
+    float duck = 0.0f;       // sidechain: the drums' kick ducks every other track by up to this much (0-1)
     bool lookAhead = true;   // 1.5 ms: the limiter ramps down before a peak instead of clamping it
 };
 

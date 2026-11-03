@@ -1809,6 +1809,45 @@ MB_TEST (arp_swings)
     }
 }
 
+/** Sidechain (master.duck): a kick on a drum track ducks the other tracks by the amount, in 2 ms, back over an
+    1/8 note; the drums themselves are not ducked; at 0 nothing changes. */
+MB_TEST (sidechain_ducks_other_tracks_on_the_kick)
+{
+    struct Sine : DeviceProcessor
+    {
+        Sine() : DeviceProcessor (DeviceType::Poly) { layout.cont ("x", "X", 0, 1, 0); finishLayout(); }
+        void prepare (double sr, int) override { sampleRate = sr; }
+        void reset() override {}
+        void handleEvent (const NoteEvent&) override {}
+        void render (float* L, float* R, int n) override
+        { for (int i = 0; i < n; ++i) { const float v = 0.25f * (float) std::sin (ph); ph += 2 * juce::MathConstants<double>::pi * 1000.0 / sampleRate; L[i] += v; R[i] += v; } }
+        bool anyVoiceActive() const override { return true; }
+        bool isSilent() const override { return false; }
+        double ph = 0;
+    };
+    auto run = [] (float duck)
+    {
+        Engine e;
+        e.prepare (48000.0, 128);
+        e.setDevice (0, 0, std::make_unique<ProbeDevice> (8));   // drums: silent, the kick on lane 0
+        e.setDevice (0, 1, std::make_unique<Sine>());
+        auto& p = e.project();
+        p.countIn = false; p.master.glue = 0.0f; p.master.duck = duck;
+        for (int s = 0; s < 16; s += 4) p.patterns[0].slots[0].track.lanes[0][(size_t) s].on = true;   // a kick a beat
+        e.play();
+        std::vector<float> l (128), r (128), out;
+        for (int b = 0; b < 48000 / 128; ++b) { e.process (l.data(), r.data(), 128, nullptr); out.insert (out.end(), l.begin(), l.end()); }
+        // RMS in 2 ms windows: just after the kick on beat 2 (0.5 s), and 0.3 s later (past an 1/8 note at 120)
+        auto rms = [&] (double t) { double a = 0; const int i0 = (int) (t * 48000), n = 96; for (int i = i0; i < i0 + n; ++i) a += out[(size_t) i] * out[(size_t) i]; return std::sqrt (a / n); };
+        return std::make_tuple (rms (0.5 + 0.004), rms (0.5 + 0.3), rms (0.45));
+    };
+    const auto [dip0, back0, before0] = run (0.0f);
+    const auto [dip, back, before] = run (0.5f);
+    ctx.check (std::abs (dip0 / before0 - 1.0) < 0.05, "at 0 nothing changes: " + juce::String (dip0 / before0, 2));
+    ctx.check (std::abs (dip / before - 0.5) < 0.08, "50 %: the synth dips to half on the kick: " + juce::String (dip / before, 2));
+    ctx.check (std::abs (back / before - 1.0) < 0.05, "back after an 1/8 note: " + juce::String (back / before, 2));
+}
+
 /** Steps ↔ piano roll both ways: steps → clip → steps comes back the same (a chord, a long note, an offset, a mute);
     an off-grid recorded note goes to its nearest step with its offset; what steps can't hold is refused, unchanged. */
 MB_TEST (clip_converts_back_to_steps)

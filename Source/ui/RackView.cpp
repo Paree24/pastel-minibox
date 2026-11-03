@@ -241,6 +241,7 @@ MasterRow::MasterRow (AppContext& c) : ctx (c)
     add (&m.delayReturn, 0, 1, 0.8f, pct, "Delay");
     add (&m.reverbReturn, 0, 1, 0.8f, pct, "Reverb");
     add (&m.glue, 0, 1, 0.3f, pct, "Glue");
+    add (&m.duck, 0, 1, 0.0f, pct, "Sidechain");   // the drums' kick ducks the other tracks
     add (&m.limitDb, -12, 0, -0.3f, [] (float v) { return juce::String (v, 1) + " dB"; }, "Limit");
     auto vol = std::make_unique<FloatBinding> (&m.volume, 0, 1.2f, 0.8f, pct, false, &ctx);
     vol->learnId = "master:volume";
@@ -253,11 +254,11 @@ void MasterRow::resized()
     // mockup 19_master_fx: Effects, the returns and bus, Delay / Reverb settings, the 8 performance pads, meter, volume
     const float h = (float) getHeight();
     for (size_t i = 0; i < knobs.size(); ++i)
-        knobs[i]->setBounds (juce::Rectangle<float> (230 + i * 104 - 43, h / 2 - 8 - 28, 86, 104).toNearestInt());
+        knobs[i]->setBounds (juce::Rectangle<float> (230 + i * 86 - 40, h / 2 - 8 - 28, 80, 104).toNearestInt());
     volume->setBounds (juce::Rectangle<float> ((float) getWidth() - 71, 10, 40, h - 20).toNearestInt());
     effectsR = { 16, h - 46, 150, 30 };
-    delayR = { 590, 30, 62, 28 };
-    reverbR = { 590, 70, 62, 28 };
+    delayR = { 630, 30, 62, 28 };
+    reverbR = { 630, 70, 62, 28 };
     // a wider window spreads the pads and the meter (mockup 01_rack at 16:9)
     extra = std::max (0.0f, (float) getWidth() - 1552.0f);
     const float pw = 112 + extra * 0.5f / 4;

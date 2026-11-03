@@ -14,7 +14,7 @@ void Engine::prepare (double sr, int block)
     const ScopedEdit edit (*this);
     sampleRate = sr;
     maxBlock = std::max (block, 16);
-    for (auto* v : { &slotL, &slotR, &auxAL, &auxAR, &auxBL, &auxBR, &clickBuf }) v->assign ((size_t) maxBlock, 0.0f);
+    for (auto* v : { &slotL, &slotR, &auxAL, &auxAR, &auxBL, &auxBR, &clickBuf, &duckGain }) v->assign ((size_t) maxBlock, 0.0f);
     clickRing.assign (16384, 0.0f); clickRingPos = 0;
     for (auto& row : devices) for (auto& d : row) if (d) d->prepare (sr, maxBlock);
     seq.prepare (sr);
@@ -1055,7 +1055,12 @@ void Engine::applyEvent (const SeqEvent& e)
                 if (e.note.note >= 100 && e.note.note < 108) d->setMacro (e.note.note - 100, e.note.velocity);
                 else d->setExpression (e.note.note, e.note.velocity);
             }
-            else d->handleEvent (e.note);
+            else
+            {
+                // the sidechain's trigger: a kick (a drum device's first part) struck, by the sequencer or a pad
+                if (e.note.type == NoteEvent::NoteOn && e.note.velocity > 0.0f && d->laneCount() > 0 && e.note.note == d->laneNote (0)) duckAge = 0.0;
+                d->handleEvent (e.note);
+            }
             break;
         case SeqEvent::ClearLocks: d->clearLocks(); break;
         case SeqEvent::Lock: d->setLock (e.param, e.value); break;
@@ -1082,6 +1087,22 @@ void Engine::renderSub (float* L, float* R, int start, int len)
     addPat (active);
     if (! plugin) { for (int p = 0; p < kPatterns; ++p) if (tailing[(size_t) p]) addPat (p); addPat (focus); }
 
+    // the sidechain: every track but the drums dips on each kick, by up to master.duck: in over 2 ms, back over an
+    // 1/8 note (a smooth curve), so it pumps with the tempo
+    const float duck = plugin ? 0.0f : juce::jlimit (0.0f, 1.0f, proj.master.duck);
+    if (duck > 0.0f)
+    {
+        const double att = 0.002 * sampleRate, rel = 0.5 * 60.0 / std::max (20.0, proj.bpm) * sampleRate;
+        for (int i = 0; i < len; ++i)
+        {
+            const double age = duckAge + i;
+            double env = 0.0;
+            if (age < att) env = age / att;
+            else if (age < att + rel) env = 0.5 * (1.0 + std::cos (juce::MathConstants<double>::pi * (age - att) / rel));
+            duckGain[(size_t) (start + i)] = 1.0f - duck * (float) env;
+        }
+    }
+    duckAge += len;
     for (int pi = 0; pi < nPats; ++pi)
     {
         const int p = pats[(size_t) pi];
@@ -1120,13 +1141,14 @@ void Engine::renderSub (float* L, float* R, int start, int len)
             // the 4 s limit panics it (it used to be cut hard)
             const bool tail = ! plugin && tailing[(size_t) p] && p != active;
             const double tailEnd = tailSecs() * sampleRate, tailFade = 0.05 * sampleRate;
+            const bool ducked = duck > 0.0f && d->laneCount() == 0;   // not the drums themselves
             for (int i = 0; i < len; ++i)
             {
-                float tg = 1.0f;
+                float tg = ducked ? duckGain[(size_t) (start + i)] : 1.0f;
                 if (tail)
                 {
                     const double left = tailEnd - (double) (tailSamples[(size_t) p] + start + i);
-                    tg = left >= tailFade ? 1.0f : (float) std::max (0.0, left / tailFade);
+                    tg *= left >= tailFade ? 1.0f : (float) std::max (0.0, left / tailFade);
                 }
                 const float l = slotL[(size_t) (start + i)] * gl * tg, r = slotR[(size_t) (start + i)] * gr * tg;
                 const float ga = g * tg;

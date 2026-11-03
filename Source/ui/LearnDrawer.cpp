@@ -132,6 +132,7 @@ std::unique_ptr<Binding> learnBinding (AppContext& ctx, const juce::String& targ
         if (rest == "delay") return std::make_unique<FloatBinding> (&m.delayReturn, 0, 1, 0.8f, pct, false, &ctx);
         if (rest == "reverb") return std::make_unique<FloatBinding> (&m.reverbReturn, 0, 1, 0.8f, pct, false, &ctx);
         if (rest == "glue") return std::make_unique<FloatBinding> (&m.glue, 0, 1, 0.3f, pct, false, &ctx);
+        if (rest == "sidechain") return std::make_unique<FloatBinding> (&m.duck, 0, 1, 0.0f, pct, false, &ctx);
         if (rest == "limit") return std::make_unique<FloatBinding> (&m.limitDb, -12, 0, -0.3f, pct, false, &ctx);
         return {};
     }
@@ -464,7 +465,7 @@ juce::PopupMenu learnTargetMenu (AppContext& ctx, std::vector<juce::String>& ids
         for (int k = 0; k < 8; ++k) item (tm, "macro:" + juce::String (t) + ":" + juce::String (k), "Macro " + juce::String (k + 1));
         m.addSubMenu ("Track " + juce::String (t + 1), tm);
     }
-    for (auto name : { "volume", "delay", "reverb", "glue", "limit" }) item (master, "master:" + juce::String (name), learnTargetName (ctx, "master:" + juce::String (name)));
+    for (auto name : { "volume", "delay", "reverb", "glue", "sidechain", "limit" }) item (master, "master:" + juce::String (name), learnTargetName (ctx, "master:" + juce::String (name)));
     m.addSubMenu ("Master", master);
     item (m, "tempo", "Tempo");
     item (m, "swing", "Swing");

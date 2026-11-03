@@ -216,6 +216,9 @@ private:
     double sampleRate = 48000.0;
     int maxBlock = 512;
     std::vector<float> slotL, slotR, auxAL, auxAR, auxBL, auxBR;
+    // sidechain (master.duck): samples since the last kick on a drum track, and the other tracks' gain this sub-block
+    double duckAge = 1.0e12;
+    std::vector<float> duckGain;
     // the metronome's click: mixed after the master bus (its effects, the performance pads and the limiter never touch
     // it), delayed by the bus's look-ahead so it stays on the beat with the music
     std::vector<float> clickBuf, clickRing;

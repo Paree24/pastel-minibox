@@ -367,7 +367,7 @@ juce::var projectToJson (const Project& p)
     m->setProperty ("delayReturn", ms.delayReturn); m->setProperty ("delayFeedback", ms.delayFeedback);
     m->setProperty ("delayTone", ms.delayTone); m->setProperty ("delayDiv", ms.delayDiv);
     m->setProperty ("reverbReturn", ms.reverbReturn); m->setProperty ("reverbDecay", ms.reverbDecay);
-    m->setProperty ("reverbDamp", ms.reverbDamp); m->setProperty ("glue", ms.glue);
+    m->setProperty ("reverbDamp", ms.reverbDamp); m->setProperty ("glue", ms.glue); m->setProperty ("duck", ms.duck);
     m->setProperty ("limitDb", ms.limitDb); m->setProperty ("volume", ms.volume); m->setProperty ("lookAhead", ms.lookAhead);
     o->setProperty ("master", juce::var (m));
     auto slots = [] (const auto& arr)
@@ -450,6 +450,7 @@ void projectFromJson (Project& p, const juce::var& v)
     ms.reverbDecay = num (m, "reverbDecay", ms.reverbDecay, 0.0f, 1.0f);
     ms.reverbDamp = num (m, "reverbDamp", ms.reverbDamp, 0.0f, 1.0f);
     ms.glue = num (m, "glue", ms.glue, 0.0f, 1.0f);
+    ms.duck = num (m, "duck", 0.0f, 0.0f, 1.0f);
     ms.limitDb = num (m, "limitDb", ms.limitDb, -12.0f, 0.0f);
     ms.volume = num (m, "volume", ms.volume, 0.0f, 1.2f);
     ms.lookAhead = (bool) m.getProperty ("lookAhead", true);
