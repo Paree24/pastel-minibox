@@ -134,6 +134,10 @@ public:
     int stepForRecording() const;
     /** Step recording: where the next note or chord is written (per pattern). */
     std::atomic<int> stepRecordCursor { 0 };
+    /** The notes a track's last key played (its chord in Chords mode, the in-key note otherwise; the audio thread
+        writes, the UI reads): a tap on an empty step writes them (the phone's step editor). */
+    std::array<std::array<std::atomic<int>, 8>, kTracks> lastKeyNotes {};
+    std::array<std::atomic<int>, kTracks> lastKeyCount {};
     /** Step recording controls (message thread; applied by the audio thread). Rest leaves a gap of one
         step length, Back steps the cursor back and clears that step. */
     void stepRest() { cmdStep = 1; }

@@ -12,7 +12,14 @@ Each track of a pattern holds **one** kind of sequence:
 - **Piano roll** (a clip): free notes at any position (960 ticks a quarter), any length, any number per pitch.
   **Live (playback) recording writes here.**
 - A step sequence can be **viewed and edited as a piano roll** (constrained to its steps) and **converted** to a
-  piano-roll clip (one undo step). A clip never converts back to steps.
+  piano-roll clip (one undo step). A clip converts back to steps (**Convert to steps**; the phone's Steps button):
+  each note to its nearest step, its offset kept to 1/48 step, its own length, velocity and mute; notes starting
+  together become a chord. Refused, with the reason, when steps can't hold it: more than 6 notes or one pitch twice
+  in a step, notes of one step differing in accent / slide / chance, or controller lanes.
+- Swing (the project's) warps clip notes and drum rolls on the step grid too: a note on an odd step plays as late
+  as a step there, one between in proportion (Project::swungSteps).
+- **Arpeggiate** (Chords menu; the phone's Arp button): each chord of the selection becomes its notes in turn with
+  the track's Arp settings (rate, mode, octaves, gate) for as long as it lasts (seq/Arpeggiate.h).
 - Live recording on a Steps track converts it first (one undo step), then records into the clip.
 - Step recording on a Piano-roll track writes into the clip at the step cursor (on the grid).
 - Seq page (mockups 02_seq, 02b, 02c): a step track shows **Steps | Piano roll** and **Convert to piano roll**;

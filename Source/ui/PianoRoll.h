@@ -97,6 +97,7 @@ public:
     void chop();
     void glue();
     void strum();
+    void arpeggiate();   // the chords with the track's Arp settings
     void velocityRandomize (float amount = 0.16f);   // each velocity moves up to that fraction up or down
     void velocityRamp (bool up);
     void velocitySet (int v);

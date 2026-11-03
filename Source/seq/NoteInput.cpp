@@ -1,4 +1,5 @@
 #include "NoteInput.h"
+#include "Arpeggiate.h"
 #include <algorithm>
 
 namespace mb
@@ -11,12 +12,7 @@ const std::vector<int>& intervalsFor (const ScaleSettings& s)
     return f[(size_t) std::clamp (s.scale, 0, (int) f.size() - 1)].intervals;
 }
 
-double rateBeats (int r)
-{
-    static constexpr double beats[15] = { 1.0, 1.5, 2.0 / 3.0, 0.5, 0.75, 1.0 / 3.0, 0.25, 0.375, 1.0 / 6.0,
-                                          0.125, 0.1875, 1.0 / 12.0, 0.0625, 0.09375, 1.0 / 24.0 };
-    return beats[std::clamp (r, 0, 14)];
-}
+double rateBeats (int r) { return arp::rateBeats (r); }   // one table with the written-notes arpeggiator
 } // namespace
 
 void NoteInput::prepare (double sampleRate)

@@ -190,6 +190,46 @@ struct Track
         for (auto& s : steps) s.clear();
         pianoRoll = true;
     }
+    /** Clip → steps (the way back): each note to its nearest step, its offset from it kept to 1/48 step, its length,
+        velocity, mute and lock its own; notes starting together become a chord. Returns why it can't (nothing
+        changes then): more than 6 notes or one pitch twice in a step, notes of one step differing in accent, slide,
+        chance or condition, or controller lanes (steps have none). An empty clip always goes back. */
+    juce::String convertToSteps (int stepTicks, int totalSteps)
+    {
+        if (! pianoRoll) return {};
+        if (! cc.empty()) return "it has controller lanes (pitch bend, mod wheel …), which steps can't hold";
+        const int stT = std::max (1, stepTicks), total = std::max (1, std::min (totalSteps, (int) steps.size()));
+        std::vector<Step> out ((size_t) total);
+        std::vector<bool> set ((size_t) total, false);
+        auto sorted = clip;
+        std::sort (sorted.begin(), sorted.end(), [] (const ClipNote& a, const ClipNote& b) { return a.start != b.start ? a.start < b.start : a.note < b.note; });
+        for (const auto& n : sorted)
+        {
+            if (n.start >= total * stT) continue;   // past the pattern's end: never plays
+            const int si = (int) std::floor ((n.start + stT * 0.5) / stT);
+            const int off = (int) std::lround ((n.start - si * stT) * (double) kTicksPerStep / stT);
+            auto& st = out[(size_t) (si % total)];
+            const juce::String where = "step " + juce::String (si % total + 1);
+            if (st.noteCount >= 6) return where + " would hold more than 6 notes";
+            if (st.hasNote (n.note)) return where + " would hold the same note twice (a finer step resolution may fit it)";
+            if (! set[(size_t) (si % total)])
+            {
+                set[(size_t) (si % total)] = true;
+                st.flags = (uint8_t) (n.flags & (kAccentFlag | kSlideFlag | kTieFlag)); st.probability = n.probability; st.cond = n.cond;
+            }
+            else if (st.flags != (n.flags & (kAccentFlag | kSlideFlag | kTieFlag)) || st.probability != n.probability || st.cond != n.cond)
+                return "the notes of " + where + " differ in accent, slide or chance";
+            const int i = st.noteCount++;
+            st.notes[i] = n.note; st.vel[i] = n.vel; st.off[i] = (int8_t) std::clamp (off, -24, 24);
+            st.len[i] = (uint16_t) std::clamp ((int) std::lround (n.length * 128.0 / stT), 1, kMaxNoteLen);
+            st.setMuted (i, n.muted); st.setLocked (i, n.locked);
+        }
+        for (auto& x : steps) x.clear();
+        for (int i = 0; i < total; ++i) steps[(size_t) i] = out[(size_t) i];
+        clip.clear();
+        pianoRoll = false;
+        return {};
+    }
     Track()
     {
         steps.resize ((size_t) kMaxSteps);

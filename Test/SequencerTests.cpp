@@ -2,6 +2,7 @@
 #include <map>
 #include <iostream>
 #include "engine/Engine.h"
+#include "seq/Arpeggiate.h"
 #include "model/Serializer.h"
 #include "app/presets/PresetBank.h"
 
@@ -1611,4 +1612,70 @@ MB_TEST (swing_moves_clip_notes_and_rolls)
         }
         ctx.check (ok, "roll gaps swing 1.32 / 0.68: " + got);
     }
+}
+
+/** Steps ↔ piano roll both ways: steps → clip → steps comes back the same (a chord, a long note, an offset, a mute);
+    an off-grid recorded note goes to its nearest step with its offset; what steps can't hold is refused, unchanged. */
+MB_TEST (clip_converts_back_to_steps)
+{
+    const int stT = 480, total = 16;
+    Track tr;
+    tr.steps[0].addNote (60, 100, 96); tr.steps[0].addNote (64, 90, 96); tr.steps[0].addNote (67, 80, 96);   // a chord
+    tr.steps[4].addNote (62, 110, 128 * 6);                // rings 6 steps
+    tr.steps[9].addNote (65, 70, 64); tr.steps[9].off[0] = -12; tr.steps[9].setMuted (0, true);
+    tr.steps[12].addNote (55); tr.steps[12].flags = kAccentFlag;
+    const auto before = tr.steps;
+    tr.convertToPianoRoll (stT, total);
+    ctx.check (tr.pianoRoll && tr.clip.size() == 6, "to the roll: 6 notes");
+    const auto why = tr.convertToSteps (stT, total);
+    ctx.check (why.isEmpty() && ! tr.pianoRoll && tr.clip.empty(), "back to steps: " + why);
+    bool same = true;
+    for (int i = 0; i < total; ++i)
+    {
+        const auto& a = before[(size_t) i]; const auto& b = tr.steps[(size_t) i];
+        same = same && a.noteCount == b.noteCount && a.flags == b.flags && a.muted == b.muted;
+        for (int k = 0; k < a.noteCount; ++k)
+        {
+            const int j = b.indexOf (a.notes[k]);
+            same = same && j >= 0 && b.vel[j] == a.vel[k] && b.len[j] == a.len[k] && b.off[j] == a.off[k] + a.microTiming;
+        }
+    }
+    ctx.check (same, "every step as it was");
+
+    Track rec; rec.pianoRoll = true;
+    ClipNote n; n.note = 60; n.start = 3 * stT + 130; n.length = 900; rec.addClipNote (n);   // a played note, late into step 4
+    ctx.check (rec.convertToSteps (stT, total).isEmpty() && rec.steps[3].noteCount == 1 && rec.steps[3].off[0] == 13
+               && rec.steps[3].len[0] == 240, "an off-grid note: step 4, 13/48 late, 1.875 steps long");
+
+    Track two; two.pianoRoll = true;
+    n.start = 0; n.length = 100; two.addClipNote (n); n.start = 200; two.addClipNote (n);   // one pitch twice in a step
+    const auto no = two.convertToSteps (stT, total);
+    ctx.check (no.isNotEmpty() && two.pianoRoll && two.clip.size() == 2, "the same pitch twice in a step: refused, unchanged (" + no + ")");
+
+    Track empty; empty.pianoRoll = true;
+    ctx.check (empty.convertToSteps (stT, total).isEmpty() && ! empty.pianoRoll, "an empty clip goes back to steps");
+}
+
+/** Written notes arpeggiated with the track's Arp settings: a 1-bar C major triad, 1/16 Up, 1 octave, gate 50 % →
+    16 notes C E G C E G …, each 1/32 long; Down reverses; 2 octaves goes on up; a lone note stays. */
+MB_TEST (arpeggiate_written_notes)
+{
+    std::vector<ClipNote> chord;
+    for (int n : { 64, 60, 67 }) { ClipNote c; c.start = 0; c.length = kPPQ * 4; c.note = (uint8_t) n; c.vel = (uint8_t) (n == 60 ? 110 : 90); chord.push_back (c); }
+    ClipNote lone; lone.start = kPPQ * 4; lone.length = kPPQ; lone.note = 72;
+    auto in = chord; in.push_back (lone);
+    PlaySettings ps; ps.arpRate = 6; ps.arpMode = 0; ps.arpOct = 0; ps.arpGate = 50.0f;
+    auto out = arp::arpeggiate (in, ps, kPPQ, kPPQ / 16);
+    bool up = out.size() == 17;
+    for (int k = 0; up && k < 16; ++k)
+        up = out[(size_t) k].start == k * kPPQ / 4 && out[(size_t) k].length == kPPQ / 8 && out[(size_t) k].note == std::array<int, 3> { 60, 64, 67 }[(size_t) (k % 3)]
+             && out[(size_t) k].vel == (out[(size_t) k].note == 60 ? 110 : 90);
+    ctx.check (up, "Up: 16 sixteenths C E G …, gate 50 %, velocities kept");
+    ctx.check (out.back().note == 72 && out.back().start == kPPQ * 4 && out.back().length == kPPQ, "a lone note stays");
+    ps.arpMode = 1;
+    out = arp::arpeggiate (chord, ps, kPPQ, kPPQ / 16);
+    ctx.check (out.size() == 16 && out[0].note == 67 && out[1].note == 64 && out[2].note == 60, "Down: G E C");
+    ps.arpMode = 0; ps.arpOct = 1;
+    out = arp::arpeggiate (chord, ps, kPPQ, kPPQ / 16);
+    ctx.check (out.size() == 16 && out[3].note == 72 && out[5].note == 79 && out[6].note == 60, "2 octaves: C E G C' E' G' C");
 }

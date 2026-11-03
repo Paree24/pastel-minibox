@@ -1,4 +1,5 @@
 #include "PianoRoll.h"
+#include "seq/Arpeggiate.h"
 #include "seq/Scales.h"
 #include "Shortcuts.h"
 #include <climits>
@@ -1483,6 +1484,27 @@ void PianoRoll::strum()
         x.vel = std::max (1, x.vel - k * 6);
     }
     put (n);
+}
+
+void PianoRoll::arpeggiate()
+{
+    // each chord played in turn with the track's Arp settings (rate, mode, octaves, gate), as the live arpeggiator
+    auto n = takeTargets();
+    std::vector<ClipNote> in;
+    std::vector<NoteData> keep;
+    for (auto& x : n)
+    {
+        if (x.muted) { keep.push_back (x); continue; }
+        ClipNote c; c.start = x.tick; c.length = x.len; c.note = (uint8_t) x.note; c.vel = (uint8_t) x.vel;
+        in.push_back (c);
+    }
+    const auto& ps = ctx.engine.project().patterns[(size_t) pattern()].slots[(size_t) ctx.focusTrack()].play;
+    for (const auto& c : arp::arpeggiate (in, ps, kPPQ, stepT() / 4))
+    {
+        NoteData d {}; d.tick = c.start; d.len = c.length; d.note = c.note; d.vel = c.vel; d.muted = false;
+        keep.push_back (d);
+    }
+    put (keep);
 }
 
 void PianoRoll::velocityRandomize (float amount)

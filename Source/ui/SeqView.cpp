@@ -213,10 +213,30 @@ bool SeqView::rollView() const
 
 void SeqView::convertToPianoRoll()
 {
-    // steps → clip, one way (docs/sequencer.md); one undo step
+    // steps → clip, or a clip back to steps (docs/sequencer.md); one undo step
     const int pat = ctx.focusPattern();
     auto& tr = track (ctx.focusTrack());
-    if (tr.pianoRoll) return;
+    if (tr.pianoRoll)
+    {
+        auto copy = tr;   // tried on a copy: a clip steps can't hold stays as it is
+        const auto why = copy.convertToSteps (ctx.engine.project().stepTicks (pat), ctx.engine.project().patternSteps (pat));
+        if (why.isNotEmpty())
+        {
+            juce::AlertWindow::showMessageBoxAsync (juce::MessageBoxIconType::InfoIcon, "Can't convert to steps", "This clip can't become steps: " + why + ".");
+            return;
+        }
+        ctx.snapshot (pat);
+        {
+            const Engine::ScopedEdit ed (ctx.engine);
+            tr.convertToSteps (ctx.engine.project().stepTicks (pat), ctx.engine.project().patternSteps (pat));
+        }
+        stepsView = true;
+        roll.clearSelection();
+        ctx.markDirty();
+        resized();
+        repaint();
+        return;
+    }
     ctx.snapshot (pat);
     {
         const Engine::ScopedEdit ed (ctx.engine);
@@ -481,7 +501,11 @@ void SeqView::paint (juce::Graphics& g)
     convertR = {};
     if (tr.pianoRoll)
     {
-        paint::pill (g, x + 130, kDetailY + 13, "Piano roll", 12, colour, col::bg, 30, 12, Weight::Black);
+        const float lw = paint::pill (g, x + 130, kDetailY + 13, "Piano roll", 12, colour, col::bg, 30, 12, Weight::Black);
+        // and back: each note to its nearest step (a clip steps can't hold says why)
+        const float pw = paint::pill (g, x + 138 + lw, kDetailY + 13, "Convert to steps", 11, col::control, col::quiet, 30, 12, Weight::Bold);
+        convertR = { x + 138 + lw, kDetailY + 13, pw, 30 };
+        fb.hot (convertR, 15);
     }
     else
     {
@@ -1339,6 +1363,7 @@ void SeqView::toolAction (int id)
             chords.addSeparator();
             chords.addItem (61, "Invert up (lowest note up an octave)"); chords.addItem (62, "Invert down (highest note down an octave)");
             chords.addItem (63, "Spread (open voicing)"); chords.addItem (64, "Close voicing"); chords.addItem (65, "Add the bass an octave below");
+            chords.addItem (66, "Arpeggiate (with the track's Arp settings)");
             m.addSubMenu ("Chords", chords);
             timing.addItem (30, "Legato"); timing.addItem (31, "Set length to the new-note length");
             timing.addItem (32, "Stretch x2"); timing.addItem (33, "Stretch /2"); timing.addItem (34, "Reverse");
@@ -1367,6 +1392,7 @@ void SeqView::toolAction (int id)
                     case 60: roll.selectChords(); break;        case 61: roll.chordInvert (true); break;
                     case 62: roll.chordInvert (false); break;   case 63: roll.chordSpread(); break;
                     case 64: roll.chordClose(); break;          case 65: roll.chordAddBass(); break;
+                    case 66: roll.arpeggiate(); break;
                     case 30: roll.legato(); break;              case 31: roll.setLengthToNew(); break;
                     case 32: roll.stretch (2.0f); break;        case 33: roll.stretch (0.5f); break;
                     case 34: roll.reverse(); break;             case 35: roll.chop(); break;

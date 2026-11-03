@@ -610,6 +610,12 @@ void Engine::inputKey (int pattern, int track, int note, float vel, bool on, int
     inputPattern[(size_t) track] = pattern;
     int chord[NoteInput::kMaxEmit];
     const int n = inputs[(size_t) track].key (note, vel, on, offset, proj.scale, proj.patterns[(size_t) pattern].slots[(size_t) track].play, chord);
+    if (on && n > 0)
+    {
+        const int k = std::min (n, 8);
+        for (int i = 0; i < k; ++i) lastKeyNotes[(size_t) track][(size_t) i].store (chord[i], std::memory_order_relaxed);
+        lastKeyCount[(size_t) track].store (k, std::memory_order_release);
+    }
     if (stepMode) stepRecord (track, chord, on ? n : 0, vel, on);
 }
 
