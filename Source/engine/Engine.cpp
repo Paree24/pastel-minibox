@@ -425,9 +425,8 @@ void Engine::runRoll (Roll& r, double b0, double b1, double perSample, int n, st
     }
     if (r.nextBeat < b0 - step || r.nextBeat > b1 + 2.0 * step)   // the grid jumped (Play, a seek): realign
         r.nextBeat = std::ceil (b0 / step - 1.0e-9) * step;
-    // playing, the repeats swing with the pattern (the project's swing on its step grid)
-    const double stepQ = synced ? proj.stepQuarters (seq.activePattern) : 0.0;
-    auto swung = [&] (double beat) { return stepQ > 0.0 ? proj.swungSteps (beat / stepQ) * stepQ : beat; };
+    // playing, the repeats swing with the pattern (the project's swing)
+    auto swung = [&] (double beat) { return synced ? proj.swungQuarters (beat) : beat; };
     while (true)
     {
         const double hb = swung (r.nextBeat);

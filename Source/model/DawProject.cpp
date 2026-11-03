@@ -134,7 +134,6 @@ std::vector<Note> notesOf (Engine& engine, int pattern, int track)
     const auto& p = engine.project();
     const auto& tr = p.patterns[(size_t) pattern].slots[(size_t) track].track;
     const int stT = p.stepTicks (pattern), steps = p.patternSteps (pattern);
-    const double swing = (p.swing - 0.5) * 2.0 * stT;   // ticks the odd steps play late
     const bool acid = dev->type() == DeviceType::Acid, drums = dev->laneCount() > 0;
     // as the sequencer plays it: an accent is a full-velocity hit (drums and the acid line read it so); an acid
     // slide or tie holds the Slide keyswitch over the next note's start (docs/dawproject.md)
@@ -157,7 +156,7 @@ std::vector<Note> notesOf (Engine& engine, int pattern, int track)
             out.push_back (ks);
         }
     };
-    auto stepStart = [&] (int si) { return si * (double) stT + ((si & 1) ? swing : 0.0); };
+    auto stepStart = [&] (int si) { return p.swungSteps (si, pattern) * stT; };
     if (drums)
     {
         for (int l = 0; l < std::min (dev->laneCount(), kLanes); ++l)
@@ -177,8 +176,7 @@ std::vector<Note> notesOf (Engine& engine, int pattern, int track)
         for (auto& c : tr.clip)
         {
             if (c.muted || c.start >= total) continue;
-            const bool onOddStep = c.start % stT == 0 && ((c.start / stT) & 1);
-            add (c.start + (onOddStep ? swing : 0.0), c.length, c.note, c.vel, c.flags);
+            add (p.swungQuarters (c.start / (double) kPPQ) * kPPQ, c.length, c.note, c.vel, c.flags);
         }
     }
     else

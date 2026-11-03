@@ -183,7 +183,7 @@ void Sequencer::scheduleStep (Project& p, DeviceLookup& devs, int si, int offset
     const int pat = activePattern;
     auto& pattern = p.patterns[(size_t) pat];
     const int64_t t0 = now + offset;
-    const double swingDelay = (si & 1) ? (p.swing - 0.5) * 2.0 * stepLen : 0.0;
+    const double swingDelay = (p.swungSteps (si, pat) - si) * stepLen;
     for (int t = 0; t < kTracks; ++t)
     {
         auto* dev = devs.deviceAt (pat, t);
@@ -261,7 +261,7 @@ void Sequencer::scheduleStep (Project& p, DeviceLookup& devs, int si, int offset
                 if (cn.cond != 0 && ! trigConditionPasses (cn.cond, pass)) continue;
                 if (cn.probability < 100 && chance (pat, t, (int) (cn.id & 0x7fffffff), pass) >= cn.probability) continue;
                 // swing warps the clip's time (a recorded note is rarely exactly on a step): start and end
-                const double x0 = p.swungSteps (cn.start / (double) stT), x1 = p.swungSteps (cn.end() / (double) stT);
+                const double x0 = p.swungSteps (cn.start / (double) stT, pat), x1 = p.swungSteps (cn.end() / (double) stT, pat);
                 const double delay = (x0 - si) * stepLen;
                 double len = std::max (1.0, (x1 - x0) * stepLen);
                 if (cn.flags & (kSlide | kTie))
@@ -270,7 +270,7 @@ void Sequencer::scheduleStep (Project& p, DeviceLookup& devs, int si, int offset
                     int next = -1;
                     for (const auto& o : track.clip) if (! o.muted && o.start > cn.start && (next < 0 || o.start < next)) next = o.start;
                     if (next < 0) for (const auto& o : track.clip) if (! o.muted && (next < 0 || o.start < next)) next = o.start + p.patternTicks (pat);   // wraps
-                    if (next > cn.start) len = std::max (len, (p.swungSteps (next / (double) stT) - x0) * stepLen + 0.004 * sampleRate);
+                    if (next > cn.start) len = std::max (len, (p.swungSteps (next / (double) stT, pat) - x0) * stepLen + 0.004 * sampleRate);
                 }
                 note (cn.note, cn.vel / 127.0f, cn.flags, delay, len);
             }
@@ -304,7 +304,7 @@ void Sequencer::scheduleStep (Project& p, DeviceLookup& devs, int si, int offset
         const auto& ns = track.steps[(size_t) ni];
         if (plays (ns, ni, np))
         {
-            const double base = stepLen + ((ni & 1) ? (p.swing - 0.5) * 2.0 * stepLen : 0.0);
+            const double base = stepLen + (p.swungSteps (ni, pat) - ni) * stepLen;
             // the next step's early notes play with its own locks: they take effect at the earliest of them
             double earliest = base;
             for (int i = 0; i < ns.noteCount; ++i)

@@ -16,8 +16,9 @@ Each track of a pattern holds **one** kind of sequence:
   each note to its nearest step, its offset kept to 1/48 step, its own length, velocity and mute; notes starting
   together become a chord. Refused, with the reason, when steps can't hold it: more than 6 notes or one pitch twice
   in a step, notes of one step differing in accent / slide / chance, or controller lanes.
-- Swing (the project's) warps clip notes and drum rolls on the step grid too: a note on an odd step plays as late
-  as a step there, one between in proportion (Project::swungSteps).
+- Swing (the project's) is on **1/16 or 1/8 notes** (Swing menu; the phone's Tempo sheet), not on the pattern's
+  steps: in each pair the off-beat note plays late, one between in proportion, whatever the step resolution. 1/8
+  hats only swing on 1/8. Steps, clip notes, drum rolls and the DAWproject export all use it (Project::swungQuarters).
 - **Arpeggiate** (Chords menu; the phone's Arp button): each chord of the selection becomes its notes in turn with
   the track's Arp settings (rate, mode, octaves, gate) for as long as it lasts (seq/Arpeggiate.h).
 - Live recording on a Steps track converts it first (one undo step), then records into the clip.
@@ -64,7 +65,7 @@ Status: **done**, **partial** (what is missing is said), **planned**. Each item 
 | Quantize | done |
 | Transpose by semitones and octaves | done |
 | Humanize timing and velocity | done |
-| Swing and groove | swing done: the Seq bar strip's **Swing** control (50% straight to 75%; drag, Shift fine, right-click for the usual amounts, double-click straight, ↑/↓ when focused; MIDI-learnable). The off-beat steps of the pattern's grid play late; the DAWproject export bakes it in. Groove templates are P2 |
+| Swing and groove | swing done: the Seq bar strip's **Swing** control (50% straight to 75%; drag, Shift fine, right-click for the usual amounts, double-click straight, ↑/↓ when focused; MIDI-learnable). The off-beat 1/16s (or 1/8s: right-click → Swing on) play late; the DAWproject export bakes it in. Groove templates are P2 |
 | Note mute and lock | done: mute (0), lock (Ctrl+L, Functions): locked notes are kept from moves, resizes, deletes, erasing and functions |
 | Chord selection and editing | done: Functions ▸ Chords: select the chords of the selection, invert up / down, spread (open voicing), close voicing, add the bass an octave below |
 | Scale highlighting and scale snapping | done (rows follow scale lock) |

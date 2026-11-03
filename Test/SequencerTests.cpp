@@ -1614,6 +1614,46 @@ MB_TEST (swing_moves_clip_notes_and_rolls)
     }
 }
 
+/** The beat that "didn't swing": four-on-the-floor kick, snare on 2 and 4, 1/8 hats. On the 1/16 grid nothing moves
+    (every hit is on an even 1/16); on the 1/8 grid the off-beat hats play late by s × 2 steps (75%: a whole step,
+    the dotted feel) and the kicks and snares stay. A 1/8-resolution pattern swings the same as a 1/16 one. */
+MB_TEST (swing_on_eighths_moves_eighth_hats)
+{
+    for (int res : { 1, 0 })
+        for (float swing : { 0.5f, 0.66f, 0.75f })
+            for (int grid : { 0, 1 })
+            {
+                Rig rig (0, 8);
+                auto& p = rig.e.project();
+                p.swing = swing; p.swingGrid = grid;
+                p.patterns[0].stepRes = res;
+                const int per = res == 1 ? 1 : 2;   // 1/16 steps per pattern step
+                auto& tr = rig.track (0);
+                for (int s16 = 0; s16 < 16; s16 += 2)
+                {
+                    const int si = s16 / per;
+                    if (s16 % 4 == 0) tr.lanes[0][(size_t) si].on = true;                  // kick
+                    if (s16 == 4 || s16 == 12) tr.lanes[1][(size_t) si].on = true;          // snare
+                    tr.lanes[2][(size_t) si].on = true;                                     // hat
+                }
+                rig.e.play();
+                rig.runTo (15.9);
+                const double s = (swing - 0.5) * 2.0;
+                std::vector<double> hats, rest;
+                for (auto& [t, note] : rig.probe->ons) (note == 38 ? hats : rest).push_back (t / Rig::stepLen);   // in 1/16s
+                bool ok = hats.size() == 8 && rest.size() == 4 + 2;
+                juce::String got;
+                for (size_t k = 0; k < hats.size(); ++k)
+                {
+                    const double want = 2.0 * k + (grid == 1 && (k & 1) ? 2.0 * s : 0.0);
+                    ok = ok && std::abs (hats[k] - want) < 0.02;
+                    got << juce::String (hats[k], 2) << " ";
+                }
+                for (double at : rest) ok = ok && std::abs (at - 4.0 * std::round (at / 4.0)) < 0.02;   // kicks and snares stay
+                ctx.check (ok, "res " + juce::String (res) + " swing " + juce::String (swing) + " grid " + juce::String (grid) + ": " + got);
+            }
+}
+
 /** Steps ↔ piano roll both ways: steps → clip → steps comes back the same (a chord, a long note, an offset, a mute);
     an off-grid recorded note goes to its nearest step with its offset; what steps can't hold is refused, unchanged. */
 MB_TEST (clip_converts_back_to_steps)

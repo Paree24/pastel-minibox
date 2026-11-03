@@ -45,14 +45,19 @@ void SeqView::showSwingMenu()
 {
     auto& proj = ctx.engine.project();
     juce::PopupMenu m;
-    m.addSectionHeader ("Swing: the off-beat steps play late");
+    m.addSectionHeader ("Swing: the off-beat notes play late");
     const int amounts[] = { 50, 54, 58, 62, 66, 71, 75 };
     const char* names[] = { "50% (straight)", "54%", "58%", "62%", "66% (triplet feel)", "71%", "75% (hard)" };
     for (int i = 0; i < 7; ++i) m.addItem (1 + i, names[i], true, juce::roundToInt (proj.swing * 100) == amounts[i]);
+    m.addSectionHeader ("Swing on");
+    m.addItem (20, "1/16 notes", true, proj.swingGrid == 0);
+    m.addItem (21, "1/8 notes", true, proj.swingGrid == 1);
     m.showMenuAsync (menuAt (*this, menuArea), [this, amounts] (int id)
     {
         if (id <= 0) return;
-        ctx.engine.project().swing = amounts[id - 1] / 100.0f;
+        auto& p = ctx.engine.project();
+        if (id >= 20) p.swingGrid = id - 20;
+        else p.swing = amounts[id - 1] / 100.0f;
         ctx.markDirty(); repaint();
     });
 }
@@ -276,7 +281,7 @@ void SeqView::refresh()
     roll.appendSignature (s);
     s << (int) ctx.followPlayhead << (int) ctx.undoStack.size() << (int) ctx.redoStack.size() << drumLaneView;
     s << pat << ctx.focusTrack() << ctx.viewBar << (int) stepsView << kind << lockParam << drumLaneView << proj.patterns[(size_t) pat].lengthBars
-      << proj.patterns[(size_t) pat].stepRes << (ctx.engine.isPlaying() ? ctx.engine.currentStep() : -1) << proj.recordQuantize << (int) proj.overdub << proj.swing
+      << proj.patterns[(size_t) pat].stepRes << (ctx.engine.isPlaying() ? ctx.engine.currentStep() : -1) << proj.recordQuantize << (int) proj.overdub << proj.swing << proj.swingGrid
       << (ctx.engine.isRecording() && proj.recordMode == 1 ? ctx.engine.stepRecordCursor.load() : -1);
     const int first = ctx.viewBar * spb();
     for (int t = 0; t < kTracks; ++t)
@@ -323,14 +328,15 @@ void SeqView::paint (juce::Graphics& g)
     paint::chevron (g, x + 118, kBarY + 28, 8, col::quiet, 'r');
     fb.hot ({ x + 14, kBarY + 12, 36, 32 }, 16); fb.hot ({ x + 98, kBarY + 12, 36, 32 }, 16);
     for (auto& r : paint::segmented (g, { x + 148, kBarY + 12, 170, 32 }, { "1/8", "1/16", "1/32" }, pattern.stepRes, col::text, 12)) fb.hot (r.reduced (2));
-    // swing: the late off-beats of the step grid (50% straight … 75% hard), project-wide
+    // swing: the late off-beat 1/16s or 1/8s (50% straight … 75% hard), project-wide
     {
-        const R sr (x + 332, kBarY + 12, 104, 32);
+        const R sr (x + 332, kBarY + 12, 112, 32);
         g.setColour (col::control); g.fillRoundedRectangle (sr, 16);
         const float amt = juce::jlimit (0.0f, 1.0f, (proj.swing - 0.5f) / 0.25f);
         g.setColour (col::divider); g.fillRoundedRectangle (sr.getX() + 14, kBarY + 37, 76, 3, 1.5f);
         g.setColour (col::pattern); g.fillRoundedRectangle (sr.getX() + 14, kBarY + 37, 76 * amt, 3, 1.5f);
         paint::text (g, "Swing", sr.getX() + 14, kBarY + 31, 11, Weight::Bold, col::quiet);
+        paint::text (g, proj.swingGrid == 1 ? "1/8" : "1/16", sr.getX() + 50, kBarY + 31, 9, Weight::Bold, col::quiet);
         paint::text (g, juce::String (juce::roundToInt (proj.swing * 100)) + "%", sr.getRight() - 12, kBarY + 31, 13, Weight::Black,
                      amt > 0.0f ? col::text : col::quiet, juce::Justification::right);
         fb.hot (sr, 16);
@@ -772,7 +778,7 @@ SeqView::Target SeqView::locate (juce::Point<float> p) const
         if (p.x >= x + 14 && p.x < x + 50) t.kind = Target::BarLess;
         else if (p.x >= x + 98 && p.x < x + 134) t.kind = Target::BarMore;
         else if (p.x >= x + 148 && p.x < x + 318) { t.kind = Target::Res; t.a = juce::jlimit (0, 2, (int) ((p.x - x - 148) / (170.0f / 3))); }
-        else if (p.x >= x + 332 && p.x < x + 436) t.kind = Target::Swing;
+        else if (p.x >= x + 332 && p.x < x + 444) t.kind = Target::Swing;
         else if (p.x >= x + kChips) { t.kind = Target::Bar; t.a = juce::jlimit (0, 15, (int) ((p.x - x - kChips) / ((w - kChips - 16) / 16.0f))); }
         return t;
     }

@@ -349,7 +349,7 @@ juce::var projectToJson (const Project& p)
     o->setProperty ("name", p.name);
     o->setProperty ("bpm", p.bpm);
     o->setProperty ("beats", p.beats); o->setProperty ("unit", p.unit);
-    o->setProperty ("swing", p.swing); o->setProperty ("countIn", p.countIn);
+    o->setProperty ("swing", p.swing); o->setProperty ("swingGrid", p.swingGrid); o->setProperty ("countIn", p.countIn);
     o->setProperty ("metronome", p.metronome); o->setProperty ("clickLevel", p.clickLevel);
     o->setProperty ("switchQuantize", p.switchQuantize);
     o->setProperty ("recordQuantize", p.recordQuantize); o->setProperty ("overdub", p.overdub);
@@ -421,6 +421,7 @@ void projectFromJson (Project& p, const juce::var& v)
     p.unit = (int) v.getProperty ("unit", 4);
     if (p.unit != 4 && p.unit != 8 && p.unit != 16) p.unit = 4;
     p.swing = num (v, "swing", 0.5f, 0.5f, 0.75f);
+    p.swingGrid = std::clamp ((int) v.getProperty ("swingGrid", 0), 0, 1);
     p.countIn = (bool) v.getProperty ("countIn", true);
     p.metronome = (bool) v.getProperty ("metronome", false);
     p.clickLevel = num (v, "clickLevel", 0.5f, 0.0f, 1.0f);

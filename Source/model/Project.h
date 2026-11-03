@@ -327,16 +327,27 @@ struct Project
     double bpm = 120.0;
     int beats = 4, unit = 4;          // time signature
     float swing = 0.5f;              // 0.5–0.75
-    /** Swing as a time warp on the step grid (x in steps): in each pair of steps the first stretches by s and the
-        second shrinks by it, so a note on the second step plays s steps late (as the steps do, s = (swing − 0.5) × 2),
-        one between moves in proportion and the pair's edges stay. Used for clip notes and drum rolls, which are
-        anywhere, not only on steps. */
-    double swungSteps (double x) const
+    int swingGrid = 0;               // what swings: 0 = 1/16 notes, 1 = 1/8 notes (whatever the steps' resolution)
+    /** Swing as a time warp (q in quarter notes from the pattern's start): in each pair of swing notes (1/16 or 1/8)
+        within a bar the first stretches by s and the second shrinks by it, so the off-beat note plays s of a note late
+        (s = (swing − 0.5) × 2), one between moves in proportion and the pair's edges stay. A pair cut off by the
+        bar's end (7/8 on 1/8) stays straight. Steps, clip notes and drum rolls all play through it. */
+    double swungQuarters (double q) const
     {
         const double s = (swing - 0.5) * 2.0;
-        if (s <= 0.0) return x;
-        const double k = std::floor (x / 2.0) * 2.0, f = x - k;
-        return k + (f < 1.0 ? f * (1.0 + s) : 1.0 + s + (f - 1.0) * (1.0 - s));
+        if (s <= 0.0) return q;
+        const double u = swingGrid == 1 ? 0.5 : 0.25, bar = barQuarters();
+        const double b = std::floor (q / bar + 1.0e-9) * bar, inBar = q - b;
+        const double k = std::floor (inBar / (2.0 * u) + 1.0e-9) * 2.0 * u;
+        if (k + 2.0 * u > bar + 1.0e-9) return q;
+        const double f = (inBar - k) / u;
+        return b + k + u * (f < 1.0 ? f * (1.0 + s) : 1.0 + s + (f - 1.0) * (1.0 - s));
+    }
+    /** The same on a pattern's step grid (x in steps). */
+    double swungSteps (double x, int pattern) const
+    {
+        const double sq = stepQuarters (pattern);
+        return swungQuarters (x * sq) / sq;
     }
     bool countIn = true;             // a bar of clicks before recording starts
     bool metronome = false;
