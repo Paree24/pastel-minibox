@@ -6,7 +6,10 @@
   "type": "drums",
   "values": {
     "kitLevel": 0.505100011825562,
-    "p1Bend": 0.45,
+    "p1Bend": 0.6,
+    "p1Click": 0.8,
+    "p1Drive": 0.5,
+    "p1Tone": 0.6,
     "p1Decay": 0.9,
     "p1Eng": 0,
     "p2Click": 0.6,

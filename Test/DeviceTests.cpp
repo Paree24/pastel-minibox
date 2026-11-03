@@ -223,3 +223,49 @@ MB_TEST (tool_drum_engine_knobs)
         }
     }
 }
+
+// MB_KITS=1: every Drums kit's kick, snare and closed hat at velocity 0.8: peak, RMS over 300 ms and the low end
+// (one-pole low-pass at 150 Hz) in dBFS, to compare the kits' levels
+MB_TEST (tool_drum_kit_levels)
+{
+    if (juce::SystemStats::getEnvironmentVariable ("MB_KITS", {}).isEmpty()) return;
+    const double sr = 48000.0;
+    for (auto& p : presets::list (DeviceType::Drums))
+    {
+        juce::String line; line << juce::String (p.name).paddedRight (' ', 22);
+        for (int note : { 36, 38, 42 })
+        {
+            auto d = createDevice (DeviceType::Drums);
+            presets::apply (*d, p, true);
+            d->prepare (sr, 512);
+            std::vector<float> l (512), r (512), out;
+            for (int b = 0; b < 30; ++b)
+            {
+                if (b == 0) { NoteEvent e; e.type = NoteEvent::NoteOn; e.note = note; e.velocity = 0.8f; d->handleEvent (e); }
+                std::fill (l.begin(), l.end(), 0.0f); std::fill (r.begin(), r.end(), 0.0f);
+                d->render (l.data(), r.data(), 512);
+                out.insert (out.end(), l.begin(), l.end());
+            }
+            double pk = 0, s2 = 0, lp = 0, lo2 = 0; const double a = std::exp (-2.0 * juce::MathConstants<double>::pi * 150.0 / sr);
+            const size_t n = (size_t) (0.3 * sr);
+            for (size_t i = 0; i < n; ++i) { pk = std::max (pk, (double) std::abs (out[i])); s2 += out[i] * out[i]; lp = a * lp + (1 - a) * out[i]; lo2 += lp * lp; }
+            auto db = [] (double v) { return juce::String (20 * std::log10 (v + 1e-9), 1).paddedLeft (' ', 6); };
+            juce::String extra;
+            if (note == 36)
+            {
+                // above 150 Hz (what a phone speaker plays) and the pitch 40-120 ms in (zero crossings)
+                double lp2 = 0, hi2 = 0; int zc = 0;
+                for (size_t i = 0; i < n; ++i) { lp2 = a * lp2 + (1 - a) * out[i]; const double h = out[i] - lp2; hi2 += h * h; }
+                const size_t z0 = (size_t) (0.04 * sr), z1 = (size_t) (0.12 * sr);
+                for (size_t i = z0 + 1; i < z1; ++i) if ((out[i - 1] < 0) != (out[i] < 0)) ++zc;
+                // the attack above 300 Hz (a phone speaker's range): first 50 ms through two one-pole high-passes
+                const double b3 = std::exp (-2.0 * juce::MathConstants<double>::pi * 300.0 / sr);
+                double l1 = 0, l2 = 0, at2 = 0; const size_t na = (size_t) (0.05 * sr);
+                for (size_t i = 0; i < na; ++i) { l1 = b3 * l1 + (1 - b3) * out[i]; const double h1 = out[i] - l1; l2 = b3 * l2 + (1 - b3) * h1; const double h2 = h1 - l2; at2 += h2 * h2; }
+                extra << db (std::sqrt (lo2 / n)) << " hi" << db (std::sqrt (hi2 / n)) << " atk300" << db (std::sqrt (at2 / na)) << "  " << juce::String (zc / 2.0 / 0.08, 0) << " Hz";
+            }
+            line << (note == 36 ? "  kick " : note == 38 ? "  snare " : "  hat ") << db (pk) << db (std::sqrt (s2 / n)) << extra;
+        }
+        std::cout << "    " << line << std::endl;
+    }
+}
