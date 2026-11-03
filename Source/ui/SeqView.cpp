@@ -130,7 +130,7 @@ bool SeqView::keyOnTarget (const Target& t, const juce::KeyPress& k)
             return edit ([&]
             {
                 if (lane == 0) st.setVelocity (juce::jlimit (1, 127, (int) st.velocity() + dir * (fine ? 1 : 8)));
-                else if (lane == 1) st.setLength (juce::jlimit (8, 256, (int) st.maxLen() + dir * (fine ? 4 : 16)));
+                else if (lane == 1) st.setLength (juce::jlimit (8, 64 * 128, (int) st.maxLen() + dir * (fine ? 4 : (st.maxLen() + (dir > 0 ? 0 : -1) >= 128 ? 128 : 16))));
                 else if (lane == 2) st.probability = (uint8_t) juce::jlimit (0, 100, (int) st.probability + dir * (fine ? 1 : 10));
                 else st.ratchet = (uint8_t) juce::jlimit (1, 4, (int) st.ratchet + dir);
             });
@@ -740,7 +740,7 @@ void SeqView::paintStepsView (juce::Graphics& g, Track& tr, DeviceProcessor& dev
             switch (l)
             {
                 case 0: { const float v = st.velocity() / 127.0f; g.fillRoundedRectangle (c.getX(), c.getBottom() - c.getHeight() * v, c.getWidth(), c.getHeight() * v, 6); break; }
-                case 1: { const float v = std::min (1.0f, st.maxLen() / 256.0f); g.setColour (colour.withAlpha (0.85f)); g.fillRoundedRectangle (c.getX(), c.getY() + 6, std::max (4.0f, c.getWidth() * v), c.getHeight() - 12, 5); break; }
+                case 1: break;   // drawn below, over the cells: a long note's bar runs across the steps it rings over
                 case 2: case 3:
                     if (acid)
                     {
@@ -760,6 +760,25 @@ void SeqView::paintStepsView (juce::Graphics& g, Track& tr, DeviceProcessor& dev
                                                         st.cond != 0 ? col::bg : col::faint, juce::Justification::horizontallyCentred);
                     break;
                 default: break;
+            }
+        }
+        if (l == 1)
+        {
+            // the gate lane as a piano roll's strip: each note's bar is as long as it sounds (1/128 step), across the
+            // following steps; a note longer than a step shows its length in steps
+            const float pitch = steps > 1 ? stepCell (la, 1, steps, 6).getX() - stepCell (la, 0, steps, 6).getX() : la.getWidth();
+            for (int i = 0; i < steps; ++i)
+            {
+                const auto& st = tr.steps[(size_t) (first + i)];
+                if (st.noteCount == 0) continue;
+                const auto c = stepCell (la, i, steps, 6);
+                const float end = std::min (la.getRight(), c.getX() + pitch * st.maxLen() / 128.0f - (st.maxLen() >= 128 ? 6.0f : 0.0f));
+                const float own = std::max (4.0f, std::min (c.getWidth(), end - c.getX()));
+                g.setColour (colour.withAlpha (0.85f)); g.fillRoundedRectangle (c.getX(), c.getY() + 6, own, c.getHeight() - 12, 5);
+                if (end > c.getRight())   // ringing over the next steps: a thin tail along the lane's foot
+                    g.fillRoundedRectangle (c.getRight() - 4, c.getBottom() - 9, end - c.getRight() + 4, 3, 1.5f);
+                if (st.maxLen() > 128)
+                    paint::text (g, juce::String (st.maxLen() / 128.0f, st.maxLen() % 128 == 0 ? 0 : 1), c.getX() + 6, c.getCentreY() + 4, 10, Weight::Black, col::bg);
             }
         }
     }
@@ -899,9 +918,14 @@ void SeqView::applyDrag (const Target& t, juce::Point<float> p, bool right)
             if (t.a == 0 && st.noteCount > 0) { const int vel = juce::jlimit (1, 127, juce::roundToInt (v * 127)); st.setVelocity (vel); ctx.lastVel[(size_t) sel] = vel; }
             else if (t.a == 1 && st.noteCount > 0)
             {
-                // gate: across the cell (a full cell = 2 steps)
+                // gate: the note's end where the mouse is, across the following steps (a piano roll's note end); past
+                // a step snaps to whole steps (Shift: free)
                 const auto c = stepCell (stepLaneArea (1), t.b, spb(), 6);
-                const int len = juce::jlimit (8, 256, juce::roundToInt ((p.x - c.getX()) / c.getWidth() * 256));
+                const auto c1 = stepCell (stepLaneArea (1), t.b + 1, spb(), 6);
+                const float pitch = std::max (1.0f, c1.getX() - c.getX());
+                double steps = (p.x - c.getX()) / pitch;
+                if (steps > 1.0 && ! juce::ModifierKeys::currentModifiers.isShiftDown()) steps = std::ceil (steps);
+                const int len = juce::jlimit (8, 64 * 128, juce::roundToInt (steps * 128));
                 st.setLength (len);
                 ctx.lastGate[(size_t) sel] = len;
             }

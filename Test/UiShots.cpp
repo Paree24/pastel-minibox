@@ -109,6 +109,15 @@ MB_TEST (tool_ui_shots)
         for (int i = 4; i >= 0; --i) fx.removeSlot (i);
     }
     shot (1, 1, "02_seq");
+    {
+        // a long note in the Steps view: its gate bar runs over the 4 steps it rings (as the piano roll shows it)
+        auto& st = e.project().patterns[0].slots[1].track.steps[0];
+        const auto saved = st;
+        if (st.noteCount == 0) st.addNote (48, 100);
+        st.setLength (4 * 128);
+        shot (1, 1, "02g_seq_long_note");
+        st = saved;
+    }
     for (int mode = 0; mode < 2; ++mode)
     {
         // the recording popover's content (mockup 18_recording / 18b_recording_step)
