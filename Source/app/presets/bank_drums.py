@@ -40,8 +40,8 @@ K = lambda **f: f
 RV = lambda x: {"SendReverb": x}
 
 DRUMS = [
-    # the kick's drive and click give it harmonics above 150 Hz: a pure 56 Hz boom vanished on a phone's speaker
-    kit("Classic Analog", [0, 0, 0, 0, 0, 0, 0, 0], kick=K(Decay=0.9, Bend=0.6, Drive=0.5, Click=0.8, Tone=0.6), snare=K(Click=0.6), clap=RV(0.25), cym=K(Decay=2.6)),
+    # an 808 kick (not an 808 bass): a short body with the circuit's click, bright through Tone
+    kit("Classic Analog", [0, 0, 0, 0, 0, 0, 0, 0], kick=K(Decay=0.4, Bend=0.5, Click=0.9, Tone=0.8), snare=K(Click=0.6), clap=RV(0.25), cym=K(Decay=2.6)),
     kit("Warehouse", [1, 1, 1, 1, 1, 1, 1, 2], dict(kitComp=0.35), kick=K(Decay=0.45, Bend=0.45, Click=0.5), snare=K(Click=0.7, Tone=0.45, **RV(0.2)),
         clap=RV(0.3), cym=K(Decay=2.0)),
     kit("Beat Box", [2, 2, 2, 2, 2, 2, 2, 3], kick=K(Decay=0.4, Click=0.6), snare=K(Click=0.6, **RV(0.15)), clap=RV(0.2)),

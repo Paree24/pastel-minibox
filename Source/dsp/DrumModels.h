@@ -148,11 +148,15 @@ struct Kick808
     void trigger (const Ctl& c) { bt.trigger (0.55f + 0.45f * c.accent); }
     float process (const Ctl& c)
     {
+        const int t0 = bt.t;
         float y = bt.process (c.pitch, c.decay, 0.4f + 1.4f * c.click, 0.45f * c.bend);
         // op-amp rounding fitted to the measured harmonics: H2 ≈ −19 dB, H3 ≈ −29 dB at a normal hit
         // (an accented hit drives it harder: more harmonics, as on the circuit)
         const float u = y / 0.85f;
         y = (fastTanh (0.6f * u + 0.175f * u * u) - fastTanh (0.0f)) * 1.5f;
+        // the trigger pulse also reaches the output past the body (the circuit's click), through the Tone low-pass:
+        // Click above 50 % brings it in (below, the click is only what the pulse rings in the body, as it was)
+        if (c.click > 0.5f && t0 < (int) (0.0006f * sr)) y += 4.0f * (c.click - 0.5f) * (0.55f + 0.45f * c.accent);
         y = toneLp.lp (y, 180.0f * std::pow (60.0f, c.tone), sr);
         return outHp.hp (y, 22.0f, sr);
     }

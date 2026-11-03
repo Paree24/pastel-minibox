@@ -26,6 +26,9 @@ const char* kPartNames[8] = { "Kick", "Snare", "Clap", "Tom", "C Hat", "O Hat", 
 const int kPartNotes[8] = { 36, 38, 39, 45, 42, 46, 49, 37 };
 //                                 kick  snare clap  tom   ch    oh    cym   perc
 const float kDefPitch[8] = { 50, 180, 1150, 120, 420, 420, 420, 640 };
+// each part's Pitch range: what that drum can be tuned to (it was 20 Hz-12 kHz for all, most of a kick's knob useless)
+const float kPitchLo[8] = { 25, 80, 400, 50, 150, 150, 150, 100 };
+const float kPitchHi[8] = { 200, 1200, 4000, 600, 4000, 4000, 4000, 5000 };
 const float kDefDecay[8] = { 0.45f, 0.22f, 0.3f, 0.4f, 0.1f, 0.8f, 2.8f, 0.18f };
 const float kDefBend[8] = { 0.45f, 0.15f, 0.0f, 0.3f, 0.0f, 0.0f, 0.0f, 0.1f };
 const float kDefTone[8] = { 0.4f, 0.5f, 0.5f, 0.4f, 0.6f, 0.6f, 0.5f, 0.5f };
@@ -43,7 +46,7 @@ DrumsDevice::DrumsDevice() : DeviceProcessor (DeviceType::Drums)
         juce::StringArray engs;
         for (auto e : drums::enginesForPart (p)) engs.add (drums::engineName (e));
         L.choice (id + "Eng", "Engine", engs, 0);
-        L.cont (id + "Pitch", "Pitch", 20, 12000, kDefPitch[p], Unit::Hz, true);
+        L.cont (id + "Pitch", "Pitch", kPitchLo[p], kPitchHi[p], kDefPitch[p], Unit::Hz, true);
         L.cont (id + "Bend", "Bend", 0, 1, kDefBend[p], Unit::Percent);
         L.cont (id + "BendTime", "Bend Time", 0.002f, 0.6f, kDefBendTime[p], Unit::Seconds, true);
         L.cont (id + "Decay", "Decay", 0.01f, 4, kDefDecay[p], Unit::Seconds, true);

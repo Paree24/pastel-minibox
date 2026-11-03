@@ -230,8 +230,10 @@ MB_TEST (tool_drum_kit_levels)
 {
     if (juce::SystemStats::getEnvironmentVariable ("MB_KITS", {}).isEmpty()) return;
     const double sr = 48000.0;
+    const auto only = juce::SystemStats::getEnvironmentVariable ("MB_KIT", {});
     for (auto& p : presets::list (DeviceType::Drums))
     {
+        if (only.isNotEmpty() && ! juce::String (p.name).containsIgnoreCase (only)) continue;
         juce::String line; line << juce::String (p.name).paddedRight (' ', 22);
         for (int note : { 36, 38, 42 })
         {
@@ -262,7 +264,14 @@ MB_TEST (tool_drum_kit_levels)
                 const double b3 = std::exp (-2.0 * juce::MathConstants<double>::pi * 300.0 / sr);
                 double l1 = 0, l2 = 0, at2 = 0; const size_t na = (size_t) (0.05 * sr);
                 for (size_t i = 0; i < na; ++i) { l1 = b3 * l1 + (1 - b3) * out[i]; const double h1 = out[i] - l1; l2 = b3 * l2 + (1 - b3) * h1; const double h2 = h1 - l2; at2 += h2 * h2; }
-                extra << db (std::sqrt (lo2 / n)) << " hi" << db (std::sqrt (hi2 / n)) << " atk300" << db (std::sqrt (at2 / na)) << "  " << juce::String (zc / 2.0 / 0.08, 0) << " Hz";
+                // the click: above 2 kHz in the first 10 ms; the sub's tail: below 150 Hz from 100 to 300 ms
+                const double b2 = std::exp (-2.0 * juce::MathConstants<double>::pi * 2000.0 / sr);
+                double c1 = 0, c2 = 0, ck = 0; const size_t nc = (size_t) (0.01 * sr);
+                for (size_t i = 0; i < nc; ++i) { c1 = b2 * c1 + (1 - b2) * out[i]; const double h1 = out[i] - c1; c2 = b2 * c2 + (1 - b2) * h1; const double h2 = h1 - c2; ck += h2 * h2; }
+                double sl = 0, st = 0; const size_t t0 = (size_t) (0.1 * sr);
+                for (size_t i = 0; i < n; ++i) { sl = a * sl + (1 - a) * out[i]; if (i >= t0) st += sl * sl; }
+                extra << db (std::sqrt (lo2 / n)) << " hi" << db (std::sqrt (hi2 / n)) << " atk300" << db (std::sqrt (at2 / na))
+                      << " click" << db (std::sqrt (ck / nc)) << " subtail" << db (std::sqrt (st / (n - t0))) << "  " << juce::String (zc / 2.0 / 0.08, 0) << " Hz";
             }
             line << (note == 36 ? "  kick " : note == 38 ? "  snare " : "  hat ") << db (pk) << db (std::sqrt (s2 / n)) << extra;
         }
