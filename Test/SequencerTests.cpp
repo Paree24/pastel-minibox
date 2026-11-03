@@ -4,6 +4,7 @@
 #include "engine/Engine.h"
 #include "seq/Arpeggiate.h"
 #include "model/Serializer.h"
+#include "model/DawProject.h"
 #include "app/presets/PresetBank.h"
 
 using namespace mb;
@@ -1652,6 +1653,45 @@ MB_TEST (swing_on_eighths_moves_eighth_hats)
                 for (double at : rest) ok = ok && std::abs (at - 4.0 * std::round (at / 4.0)) < 0.02;   // kicks and snares stay
                 ctx.check (ok, "res " + juce::String (res) + " swing " + juce::String (swing) + " grid " + juce::String (grid) + ": " + got);
             }
+}
+
+/** Arp for playback: a written chord plays through the track's arpeggiator while the clip stays as written, and a
+    change to the Arp settings is heard at once (mode Up → Down mid-pattern). Steps arp too; off, the chord plays. */
+MB_TEST (arp_playback_live_settings)
+{
+    Rig rig (1);
+    auto& p = rig.e.project();
+    auto& tr = rig.track();
+    auto& ps = p.patterns[0].slots[1].play;
+    ps.arpRate = 6; ps.arpMode = 0; ps.arpOct = 0; ps.arpGate = 50.0f;   // 1/16, Up, one octave
+    tr.pianoRoll = true;
+    tr.arp = true;
+    const int st = rig.stepT();
+    for (int n : { 60, 64, 67 }) { ClipNote c; c.start = 0; c.length = 16 * st; c.note = (uint8_t) n; tr.addClipNote (c); }
+    rig.e.play();
+    rig.runTo (5.9);
+    ps.arpMode = 1;   // Down, while it plays
+    rig.runTo (11.9);
+    juce::String got;
+    for (auto& o : rig.probe->ons) got << o.second << "@" << juce::String (o.first / Rig::stepLen, 2) << " ";
+    const auto h = rig.heard();
+    const std::vector<int> want { 60, 64, 67, 60, 64, 67,   67, 64, 60, 67, 64, 60 };
+    bool ok = h.size() == want.size();
+    for (size_t i = 0; ok && i < h.size(); ++i)
+        ok = h[i] == want[i] && std::abs (rig.probe->ons[i].first / Rig::stepLen - (double) i) < 0.02;
+    ctx.check (ok, "Up then Down, one per 1/16: " + got);
+    ctx.check (tr.clip.size() == 3, "the clip is still the chord: " + juce::String ((int) tr.clip.size()));
+    // exported as it plays
+    const auto notes = dawproject::notesOf (rig.e, 0, 1);
+    juce::String ex;
+    for (auto& x : notes) ex << x.key << "@" << juce::String (x.time * 4.0, 2) << " ";
+    ctx.check (notes.size() == 16 && notes[0].key == 67 && notes[1].key == 64 && notes[2].key == 60 && std::abs (notes[5].time - 1.25) < 1.0e-6,
+               "export plays the arp (Down now): " + ex);
+    // off: the chord as written
+    rig.e.stop(); rig.runTo (12.5);
+    tr.arp = false; rig.probe->ons.clear();
+    rig.e.play(); rig.runTo (12.5 + 2.0);
+    ctx.check (rig.heard().size() == 3, "arp off: the chord, " + juce::String ((int) rig.heard().size()) + " notes");
 }
 
 /** Steps ↔ piano roll both ways: steps → clip → steps comes back the same (a chord, a long note, an offset, a mute);

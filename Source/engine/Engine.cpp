@@ -22,6 +22,9 @@ void Engine::prepare (double sr, int block)
     if (masterInsert != nullptr) masterInsert->prepare (sr, maxBlock);
     chunkMidi.ensureSize (4096);
     for (auto& in : inputs) in.prepare (sr);
+    for (auto& in : playArps) in.prepare (sr);
+    arpIn.reserve (512);
+    playArpPattern.fill (-1);
 }
 
 void Engine::setLookAhead (bool on)
@@ -618,6 +621,70 @@ void Engine::inputKey (int pattern, int track, int note, float vel, bool on, int
     if (stepMode) stepRecord (track, chord, on ? n : 0, vel, on);
 }
 
+void Engine::runPlaybackArps (int n, double beat0, std::vector<SeqEvent>& out)
+{
+    const int pat = seq.activePattern;
+    const bool playing = seq.isPlaying();
+    std::array<bool, kTracks> on {};
+    bool any = false;
+    for (int t = 0; t < kTracks; ++t)
+    {
+        auto* dev = device (pat, t);
+        on[(size_t) t] = playing && dev != nullptr && dev->laneCount() == 0 && proj.patterns[(size_t) pat].slots[(size_t) t].track.arp;
+        auto& a = playArps[(size_t) t];
+        const int was = playArpPattern[(size_t) t];
+        if (was >= 0 && (! on[(size_t) t] || was != pat))
+        {
+            // switched off, stopped, or another pattern: what it was playing stops
+            a.releaseAll (0);
+            for (auto& o : a.out) { SeqEvent e; e.offset = o.offset; e.pattern = was; e.track = t; e.note.type = NoteEvent::NoteOff; e.note.note = o.note; pushEvent (out, e); }
+            a.reset();
+            playArpPattern[(size_t) t] = -1;
+        }
+        if (on[(size_t) t]) { playArpPattern[(size_t) t] = pat; any = true; }
+    }
+    if (! any) return;
+    // take this block's sequenced notes of those tracks out, in time order (offs first at the same instant)
+    arpIn.clear();
+    size_t keep = 0;
+    for (size_t i = 0; i < out.size(); ++i)
+    {
+        const auto& e = out[i];
+        const bool mine = e.kind == SeqEvent::Note && e.pattern == pat && e.track >= 0 && e.track < kTracks && on[(size_t) e.track]
+                          && (e.note.type == NoteEvent::NoteOn || e.note.type == NoteEvent::NoteOff);
+        if (mine) { if (arpIn.size() < arpIn.capacity()) arpIn.push_back (e); }
+        else out[keep++] = e;
+    }
+    out.resize (keep);
+    std::stable_sort (arpIn.begin(), arpIn.end(), [] (const SeqEvent& a, const SeqEvent& b)
+    {
+        if (a.offset != b.offset) return a.offset < b.offset;
+        return (a.note.type == NoteEvent::NoteOff) && (b.note.type != NoteEvent::NoteOff);
+    });
+    ScaleSettings plain;   // the written notes as they are: no scale snapping
+    for (const auto& e : arpIn)
+    {
+        auto ps = proj.patterns[(size_t) pat].slots[(size_t) e.track].play;
+        ps.arpOn = true; ps.chordOn = false; ps.arpLatch = false;
+        playArps[(size_t) e.track].key (e.note.note, e.note.velocity, e.note.type == NoteEvent::NoteOn, e.offset, plain, ps, nullptr);
+    }
+    for (int t = 0; t < kTracks; ++t)
+    {
+        if (! on[(size_t) t]) continue;
+        auto ps = proj.patterns[(size_t) pat].slots[(size_t) t].play;
+        ps.arpOn = true; ps.chordOn = false; ps.arpLatch = false;
+        auto& a = playArps[(size_t) t];
+        a.tick (n, ps, true, beat0, proj.bpm);
+        for (auto& o : a.out)
+        {
+            SeqEvent e; e.offset = o.offset; e.pattern = pat; e.track = t;
+            e.note.type = o.on ? NoteEvent::NoteOn : NoteEvent::NoteOff; e.note.note = o.note; e.note.velocity = o.vel;
+            pushEvent (out, e);
+        }
+        a.out.clear();
+    }
+}
+
 void Engine::flushInput (int track, std::vector<SeqEvent>& out)
 {
     auto& in = inputs[(size_t) track];
@@ -1020,16 +1087,18 @@ void Engine::processBlock (float* L, float* R, int n, const juce::MidiBuffer* mi
         if (s == 1 && seq.isPlaying()) { seq.stop(); seq.resetPosition(); curStep = 0; progress = 0.0f; stopAllDevices (false); }
         else { seq.stop(); seq.resetPosition(); stopAllDevices (true); stepRecordCursor = 0; }
         playingFlag = false; countingIn = false;
+        resetPlaybackArps();
     }
     if (cmdPlay.exchange (0) && ! plugin && ! seq.isPlaying())
     {
         seq.recordArmed = recording.load();
         seq.start (proj, false);
         playingFlag = true;
+        resetPlaybackArps();
     }
     if (const int s = cmdSeek.exchange (-1); s >= 0 && ! plugin)
     {
-        if (seq.isPlaying()) stopAllDevices (false);
+        if (seq.isPlaying()) { stopAllDevices (false); resetPlaybackArps(); }
         const int to = std::clamp (s, 0, std::max (0, proj.patternSteps (seq.activePattern) - 1));
         seq.seek (to, to * proj.stepQuarters (seq.activePattern));
         curStep = seq.currentStep();
@@ -1042,6 +1111,7 @@ void Engine::processBlock (float* L, float* R, int n, const juce::MidiBuffer* mi
         if (seq.isPlaying() && ! plugin)
         {
             stopAllDevices (false);
+            resetPlaybackArps();
             const bool armed = seq.recordArmed;
             seq.recordArmed = false;   // no count-in when jumping back
             seq.start (proj, true);
@@ -1094,7 +1164,9 @@ void Engine::processBlock (float* L, float* R, int n, const juce::MidiBuffer* mi
     masterBus.clearSends (n);
     if (! plugin)
     {
+        const double beat0 = seq.beatPosition();
         seq.generate (proj, *this, n, events);
+        runPlaybackArps (n, beat0, events);
         if (seq.switchedThisBlock)
         {
             const int from = seq.lastSwitchedFrom;

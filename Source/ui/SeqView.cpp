@@ -1369,7 +1369,12 @@ void SeqView::toolAction (int id)
             chords.addSeparator();
             chords.addItem (61, "Invert up (lowest note up an octave)"); chords.addItem (62, "Invert down (highest note down an octave)");
             chords.addItem (63, "Spread (open voicing)"); chords.addItem (64, "Close voicing"); chords.addItem (65, "Add the bass an octave below");
-            chords.addItem (66, "Arpeggiate (with the track's Arp settings)");
+            {
+                const bool arpOn = ctx.engine.project().patterns[(size_t) ctx.focusPattern()].slots[(size_t) ctx.focusTrack()].track.arp;
+                chords.addSeparator();
+                chords.addItem (67, "Arp: play the notes through the arpeggiator (the track's Arp settings, live)", true, arpOn);
+                chords.addItem (66, "Write the arp into the notes");
+            }
             m.addSubMenu ("Chords", chords);
             timing.addItem (30, "Legato"); timing.addItem (31, "Set length to the new-note length");
             timing.addItem (32, "Stretch x2"); timing.addItem (33, "Stretch /2"); timing.addItem (34, "Reverse");
@@ -1399,6 +1404,13 @@ void SeqView::toolAction (int id)
                     case 62: roll.chordInvert (false); break;   case 63: roll.chordSpread(); break;
                     case 64: roll.chordClose(); break;          case 65: roll.chordAddBass(); break;
                     case 66: roll.arpeggiate(); break;
+                    case 67:
+                    {
+                        auto& tr = ctx.engine.project().patterns[(size_t) ctx.focusPattern()].slots[(size_t) ctx.focusTrack()].track;
+                        tr.arp = ! tr.arp;
+                        ctx.markDirty(); repaint();
+                        break;
+                    }
                     case 30: roll.legato(); break;              case 31: roll.setLengthToNew(); break;
                     case 32: roll.stretch (2.0f); break;        case 33: roll.stretch (0.5f); break;
                     case 34: roll.reverse(); break;             case 35: roll.chop(); break;

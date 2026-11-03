@@ -19,8 +19,10 @@ Each track of a pattern holds **one** kind of sequence:
 - Swing (the project's) is on **1/16 or 1/8 notes** (Swing menu; the phone's Tempo sheet), not on the pattern's
   steps: in each pair the off-beat note plays late, one between in proportion, whatever the step resolution. 1/8
   hats only swing on 1/8. Steps, clip notes, drum rolls and the DAWproject export all use it (Project::swungQuarters).
-- **Arpeggiate** (Chords menu; the phone's Arp button): each chord of the selection becomes its notes in turn with
-  the track's Arp settings (rate, mode, octaves, gate) for as long as it lasts (seq/Arpeggiate.h).
+- **Arp the sequence** (Track::arp; Chords menu → Arp; the phone's piano-roll Arp button opens the Arp sheet with
+  the switch): the track's notes, steps or clip, play through its arpeggiator as held keys, with the Arp settings as
+  they are now (a change is heard at once); the notes stay as written. The DAWproject export bakes it in.
+  **Write the arp into the notes** (Chords menu) still rewrites them (seq/Arpeggiate.h).
 - Live recording on a Steps track converts it first (one undo step), then records into the clip.
 - Step recording on a Piano-roll track writes into the clip at the step cursor (on the grid).
 - Seq page (mockups 02_seq, 02b, 02c): a step track shows **Steps | Piano roll** and **Convert to piano roll**;

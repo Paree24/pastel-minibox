@@ -141,6 +141,7 @@ struct Track
     std::array<std::vector<DrumStep>, kLanes> lanes;
     std::vector<LockLane> locks;
     bool pianoRoll = false;          // the notes are the clip, not the steps
+    bool arp = false;                // plays its notes through the arpeggiator (the track's Arp settings, live)
     std::vector<ClipNote> clip;
     std::vector<CCPoint> cc;         // the clip's controller lanes, sorted by tick
     uint32_t nextClipId = 1;
@@ -241,6 +242,7 @@ struct Track
         clip.clear();
         cc.clear();
         pianoRoll = false;
+        arp = false;
         for (auto& s : steps) s.clear();
         for (auto& l : lanes) for (auto& d : l) d.clear();
         locks.clear();

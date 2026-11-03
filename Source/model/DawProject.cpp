@@ -1,6 +1,7 @@
 #include "DawProject.h"
 #include "PluginState.h"
 #include "devices/acid/AcidDevice.h"
+#include "seq/NoteInput.h"
 
 namespace mb::dawproject
 {
@@ -197,6 +198,51 @@ std::vector<Note> notesOf (Engine& engine, int pattern, int track)
         }
     }
     std::stable_sort (out.begin(), out.end(), [] (const Note& a, const Note& b) { return a.time < b.time; });
+    if (tr.arp && ! drums && ! acid)
+    {
+        // Arp on for playback: the notes are held keys for the track's arpeggiator, run here as it plays (a sample is
+        // a tick at 60 bpm, so its grid is the beat's)
+        auto ps = p.patterns[(size_t) pattern].slots[(size_t) track].play;
+        ps.arpOn = true; ps.chordOn = false; ps.arpLatch = false;
+        const ScaleSettings plain;
+        NoteInput in;
+        in.prepare ((double) kPPQ);
+        struct Ev { int64_t tick; int key; float vel; bool on; };
+        std::vector<Ev> ev;
+        for (auto& x : out)
+        {
+            const auto t0 = (int64_t) std::llround (x.time * kPPQ);
+            ev.push_back ({ t0, x.key, x.vel, true });
+            ev.push_back ({ std::max (t0 + 1, (int64_t) std::llround ((x.time + x.duration) * kPPQ)), x.key, 0.0f, false });
+        }
+        std::stable_sort (ev.begin(), ev.end(), [] (const Ev& a, const Ev& b) { return a.tick != b.tick ? a.tick < b.tick : (! a.on && b.on); });
+        std::vector<Note> res;
+        std::array<int64_t, 128> startAt; startAt.fill (-1);
+        std::array<float, 128> velAt {};
+        constexpr int B = kPPQ / 8;
+        size_t i = 0;
+        for (int64_t pos = 0; i < ev.size() || in.heldKeys() > 0; pos += B)
+        {
+            for (; i < ev.size() && ev[i].tick < pos + B; ++i)
+                in.key (ev[i].key, ev[i].vel, ev[i].on, (int) (ev[i].tick - pos), plain, ps, nullptr);
+            in.tick (B, ps, true, pos / (double) kPPQ, 60.0);
+            for (auto& o : in.out)
+            {
+                const int64_t at = pos + o.offset;
+                if (o.on) { startAt[(size_t) o.note] = at; velAt[(size_t) o.note] = o.vel; }
+                else if (startAt[(size_t) o.note] >= 0)
+                {
+                    Note nn; nn.time = startAt[(size_t) o.note] / (double) kPPQ; nn.duration = std::max<int64_t> (1, at - startAt[(size_t) o.note]) / (double) kPPQ;
+                    nn.key = o.note; nn.vel = velAt[(size_t) o.note];
+                    res.push_back (nn);
+                    startAt[(size_t) o.note] = -1;
+                }
+            }
+            in.out.clear();
+            if (pos > (int64_t) kPPQ * 4 * kMaxBars * 4) break;   // a guard: never longer than the longest pattern
+        }
+        out = std::move (res);
+    }
     return out;
 }
 

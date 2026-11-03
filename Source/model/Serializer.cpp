@@ -84,6 +84,7 @@ juce::var trackToJson (const Track& tr, const DeviceProcessor* dev)
         locks.add (juce::var (lo));
     }
     o->setProperty ("steps", steps); o->setProperty ("lanes", lanes); o->setProperty ("locks", locks);
+    if (tr.arp) o->setProperty ("arp", true);
     if (tr.pianoRoll)
     {
         // a piano-roll clip: [start, length, note, velocity, flags, muted] in kPPQ ticks
@@ -104,6 +105,7 @@ juce::var trackToJson (const Track& tr, const DeviceProcessor* dev)
 void trackFromJson (Track& tr, const juce::var& v, const DeviceProcessor* dev)
 {
     tr.clear();
+    tr.arp = (bool) v.getProperty ("arp", false);
     if ((bool) v.getProperty ("pianoRoll", false))
     {
         tr.pianoRoll = true;

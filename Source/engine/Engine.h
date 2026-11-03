@@ -185,6 +185,10 @@ private:
     /** A key from MIDI or the UI: through the track's note input (scale, chord, arp) to the device and the recorder. */
     void inputKey (int pattern, int track, int note, float vel, bool on, int offset, std::vector<SeqEvent>& out, bool fromRoll = false);
     void flushInput (int track, std::vector<SeqEvent>& out);
+    /** Tracks whose Arp is on for playback: their sequenced notes (steps or clip) are held keys for the track's
+        arpeggiator, with its settings as they are now; what it plays replaces them in `out`. `beat0`: the block's
+        start in beats. */
+    void runPlaybackArps (int n, double beat0, std::vector<SeqEvent>& out);
     void recordNote (int track, int note, float vel, bool on, int offset);
     /** Live recording of a controller (pitch bend, mod wheel, expression, pressure) into the clip's lane. */
     void recordControl (int track, int lane, float value, int offset);
@@ -225,6 +229,11 @@ private:
     // live input per track: scale lock, chord mode, arp (the pattern it plays into is remembered for its note-offs)
     std::array<NoteInput, kTracks> inputs;
     std::array<int, kTracks> inputPattern {};
+    // the playback arpeggiators (Track::arp): one per track, and the pattern each is playing (−1 idle)
+    std::array<NoteInput, kTracks> playArps;
+    std::array<int, kTracks> playArpPattern { -1, -1, -1, -1, -1, -1, -1, -1 };
+    std::vector<SeqEvent> arpIn;
+    void resetPlaybackArps() { for (auto& a : playArps) a.reset(); playArpPattern.fill (-1); }
     int lastFocusTrack = 0, lastFocusPattern = 0;
     std::array<int, kTracks> stepHeld {};      // keys down in the current step-recorded chord
     std::atomic<bool> recording { false }, playingFlag { false }, countingIn { false };
