@@ -287,6 +287,17 @@ struct Project
     double bpm = 120.0;
     int beats = 4, unit = 4;          // time signature
     float swing = 0.5f;              // 0.5–0.75
+    /** Swing as a time warp on the step grid (x in steps): in each pair of steps the first stretches by s and the
+        second shrinks by it, so a note on the second step plays s steps late (as the steps do, s = (swing − 0.5) × 2),
+        one between moves in proportion and the pair's edges stay. Used for clip notes and drum rolls, which are
+        anywhere, not only on steps. */
+    double swungSteps (double x) const
+    {
+        const double s = (swing - 0.5) * 2.0;
+        if (s <= 0.0) return x;
+        const double k = std::floor (x / 2.0) * 2.0, f = x - k;
+        return k + (f < 1.0 ? f * (1.0 + s) : 1.0 + s + (f - 1.0) * (1.0 - s));
+    }
     bool countIn = true;             // a bar of clicks before recording starts
     bool metronome = false;
     float clickLevel = 0.5f;

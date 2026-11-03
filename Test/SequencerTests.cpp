@@ -1567,3 +1567,48 @@ MB_TEST (metronome_bypasses_the_master_bus)
     const float full = peak (0.8f), zero = peak (0.0f);
     ctx.check (zero > 0.05f && std::abs (zero - full) < 0.01f, "click peak with the master at 0: " + juce::String (zero) + ", at 0.8: " + juce::String (full));
 }
+
+/** Swing moves clip notes (recorded ones are rarely exactly on a step) and drum rolls, not only steps: a clip note on
+    an odd step plays as late as a step there; one halfway into an odd step's pair moves in proportion; an even step
+    stays. Rolls swing the same way while the pattern plays. */
+MB_TEST (swing_moves_clip_notes_and_rolls)
+{
+    {
+        Rig rig (1);
+        rig.e.project().swing = 0.66f;   // s = 0.32 steps
+        auto& tr = rig.track();
+        tr.pianoRoll = true;
+        const int st = rig.stepT();
+        for (auto [step, note] : { std::pair { 4.0, 60 }, { 5.0, 61 }, { 4.5, 62 }, { 5.5, 63 } })
+        { ClipNote n; n.start = (int) std::lround (step * st); n.length = st / 4; n.note = (uint8_t) note; tr.addClipNote (n); }
+        rig.e.play();
+        rig.runTo (8);
+        std::map<int, double> at;
+        for (auto& o : rig.probe->ons) at[o.second] = o.first / Rig::stepLen;
+        const double s = 0.32;
+        ctx.check (std::abs (at[60] - 4.0) < 0.01, "even step stays: " + juce::String (at[60], 3));
+        ctx.check (std::abs (at[61] - (5.0 + s)) < 0.01, "odd step late by s: " + juce::String (at[61], 3));
+        ctx.check (std::abs (at[62] - (4.0 + 0.5 * (1 + s))) < 0.01, "halfway into the first step: " + juce::String (at[62], 3));
+        ctx.check (std::abs (at[63] - (5.0 + s + 0.5 * (1 - s))) < 0.01, "halfway into the second: " + juce::String (at[63], 3));
+    }
+    {
+        Rig rig (0, 8);
+        rig.e.project().swing = 0.66f;
+        rig.e.play();
+        rig.runTo (3.95);
+        rig.e.setRoll (0, 38, 0.9f, 0.25, true);   // a 1/16 roll: one hit per step
+        rig.runTo (8.5);
+        rig.e.setRoll (0, 38, 0.0f, 0.25, false);
+        // from the first hit (on step 4): gaps of 1.32 and 0.68 steps by turns
+        const auto& ons = rig.probe->ons;
+        juce::String got;
+        bool ok = ons.size() >= 5;
+        for (size_t i = 1; i < ons.size(); ++i)
+        {
+            const double gap = (ons[i].first - ons[i - 1].first) / Rig::stepLen;
+            got << juce::String (gap, 2) << " ";
+            ok = ok && std::abs (gap - (i & 1 ? 1.32 : 0.68)) < 0.01;
+        }
+        ctx.check (ok, "roll gaps swing 1.32 / 0.68: " + got);
+    }
+}

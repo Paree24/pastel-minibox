@@ -260,15 +260,17 @@ void Sequencer::scheduleStep (Project& p, DeviceLookup& devs, int si, int offset
                 // a converted step's chance and condition (pass of the pattern; the note's id keeps its own roll)
                 if (cn.cond != 0 && ! trigConditionPasses (cn.cond, pass)) continue;
                 if (cn.probability < 100 && chance (pat, t, (int) (cn.id & 0x7fffffff), pass) >= cn.probability) continue;
-                const double delay = (cn.start - a) / (double) stT * stepLen + (cn.start == a ? swingDelay : 0.0);
-                double len = std::max (1.0, cn.length / (double) stT * stepLen);
+                // swing warps the clip's time (a recorded note is rarely exactly on a step): start and end
+                const double x0 = p.swungSteps (cn.start / (double) stT), x1 = p.swungSteps (cn.end() / (double) stT);
+                const double delay = (x0 - si) * stepLen;
+                double len = std::max (1.0, (x1 - x0) * stepLen);
                 if (cn.flags & (kSlide | kTie))
                 {
                     // a slide / tie note holds until the next note starts (the overlap is what slides), as a step does
                     int next = -1;
                     for (const auto& o : track.clip) if (! o.muted && o.start > cn.start && (next < 0 || o.start < next)) next = o.start;
                     if (next < 0) for (const auto& o : track.clip) if (! o.muted && (next < 0 || o.start < next)) next = o.start + p.patternTicks (pat);   // wraps
-                    if (next > cn.start) len = std::max (len, (next - cn.start) / (double) stT * stepLen + 0.004 * sampleRate);
+                    if (next > cn.start) len = std::max (len, (p.swungSteps (next / (double) stT) - x0) * stepLen + 0.004 * sampleRate);
                 }
                 note (cn.note, cn.vel / 127.0f, cn.flags, delay, len);
             }
