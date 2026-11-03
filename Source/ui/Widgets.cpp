@@ -136,6 +136,19 @@ void KnobView::mouseDown (const juce::MouseEvent& e)
 {
     learnPress = learnHooks().press (bind->learnId, e);
     if (learnPress) return;
+    if (e.mods.isPopupMenu() && bind->hasAutomation())
+    {
+        // right-click: the recorded automation of this control goes (its step locks, its clip lane)
+        juce::PopupMenu m;
+        m.addItem (1, "Clear automation");
+        learnPress = true;   // no drag from this press
+        juce::Component::SafePointer<KnobView> self (this);
+        m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (this), [self] (int r)
+        {
+            if (r == 1 && self != nullptr) { self->bind->clearAutomation(); self->repaint(); }
+        });
+        return;
+    }
     startNorm = bind->getNorm();
     dragging = true;
     bind->gestureBegin();

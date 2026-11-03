@@ -128,6 +128,12 @@ public:
     void touchParam (int pattern, int track, int param, float value);
     /** A macro turned while recording: a point on the clip's macro lane (piano roll), or locks for the
         parameters it moves (steps). */
+    /** Recorded automation of a parameter on a pattern's track (its step locks), and clearing it. */
+    bool hasAutomation (int pattern, int track, int param) const;
+    void clearAutomation (int pattern, int track, int param);
+    /** A macro's automation wherever its device plays: its clip lane, or its targets' step locks. */
+    bool hasMacroAutomation (const DeviceProcessor* dev, int macro);
+    void clearMacroAutomation (const DeviceProcessor* dev, int macro);
     void recordMacro (const DeviceProcessor*, int macro, float value);
     void recordTouched();
     /** The step under the playhead, for step-lock editing. */
@@ -308,6 +314,13 @@ private:
     // (key = lane, pos = tick). Automation never lengthens the pattern: what lands past the kept bars folds back
     struct TakeAuto { int track = 0, key = 0, pos = 0; float value = 0.0f; bool lane = false; };
     std::vector<TakeAuto> takeAuto;
+    // the recorded pattern's parameters and macros as they were when the take began: a lane a take starts writing
+    // holds that value where the control was not moved (it played the control's new, end value there before)
+    std::array<std::vector<float>, kTracks> takeParamBefore;
+    std::array<std::array<float, 8>, kTracks> takeMacroBefore {};
+    struct Filled { int track, key; std::vector<char> steps; };   // the steps a lane's fill wrote (they were empty)
+    std::vector<Filled> takeFilled;                 // (track, parameter or 100 + macro) already filled this take
+    bool fillAutomation (int track, int key);      // true the first time in this take
     std::atomic<bool> takeOpen { false };
     void beginTake();   // message thread: record armed and playing (Play with record on, or record on while playing)
     void endTake();     // message thread: Stop or record off; trims what the take grew

@@ -150,6 +150,17 @@ void Engine::beginTake()
     takeLastStep = -1;
     takeAuto.clear();
     takeAuto.reserve (4096);
+    takeFilled.clear();
+    for (int t = 0; t < kTracks; ++t)
+    {
+        auto& before = takeParamBefore[(size_t) t];
+        before.clear();
+        if (auto* d = device (takePattern, t))
+        {
+            for (int i = 0; i < d->params().size(); ++i) before.push_back (d->get (i));
+            for (int m = 0; m < 8; ++m) takeMacroBefore[(size_t) t][(size_t) m] = d->getMacro (m);
+        }
+    }
     takeOpen = true;
 }
 
@@ -164,6 +175,23 @@ void Engine::endTake()
     if (! takeOpen) return;
     takeOpen = false;
     const ScopedEdit edit (*this);
+    {
+        // a knob's locks after its last move hold where it was left (latch), not the value from before the take
+        auto& pt = proj.patterns[(size_t) takePattern];
+        const int total = std::min (kMaxSteps, proj.patternSteps (takePattern));
+        for (auto& f : takeFilled)
+        {
+            if (f.key >= 100 || f.steps.empty()) continue;
+            int lastStep = -1; float lastValue = 0.0f;
+            for (auto& a : takeAuto)
+                if (! a.lane && a.track == f.track && a.key == f.key && total > 0 && a.pos % total >= lastStep)
+                { lastStep = a.pos % total; lastValue = a.value; }
+            if (lastStep < 0) continue;
+            if (auto* l = pt.slots[(size_t) f.track].track.lockFor (f.key, false))
+                for (int s = lastStep + 1; s < (int) f.steps.size(); ++s) if (f.steps[(size_t) s]) l->values[(size_t) s] = lastValue;
+        }
+        takeFilled.clear();
+    }
     const int last = takeLastStep.exchange (-1);
     for (int p = 0; p < kPatterns; ++p)
     {
@@ -442,13 +470,32 @@ void Engine::runRoll (Roll& r, double b0, double b1, double perSample, int n, st
 
 int Engine::stepForRecording() const { return curStep.load(); }
 
+bool Engine::fillAutomation (int track, int key)
+{
+    for (auto& f : takeFilled) if (f.track == track && f.key == key) return false;
+    takeFilled.push_back ({ track, key, {} });
+    return true;
+}
+
 void Engine::recordKnob (int pattern, int track, int param, float value)
 {
     if (! (recording.load() && playingFlag.load())) return;
     const ScopedEdit edit (*this);
     auto& tr = proj.patterns[(size_t) pattern].slots[(size_t) track].track;
     const int step = std::clamp (curStep.load(), 0, kMaxSteps - 1);
-    if (auto* lane = tr.lockFor (param, true)) lane->values[(size_t) step] = value;
+    auto* lane = tr.lockFor (param, true);
+    if (lane != nullptr && takeOpen.load() && pattern == takePattern && fillAutomation (track, param)
+        && param < (int) takeParamBefore[(size_t) track].size())
+    {
+        // the first move of this control in the take: the steps it has no value on keep the value it had before
+        // (unlocked, they would play where the knob ends up)
+        const float before = takeParamBefore[(size_t) track][(size_t) param];
+        const int total = std::min (kMaxSteps, proj.patternSteps (pattern));
+        auto& filled = takeFilled.back().steps;
+        filled.assign ((size_t) total, 0);
+        for (int s = 0; s < total; ++s) if (std::isnan (lane->values[(size_t) s])) { lane->values[(size_t) s] = before; filled[(size_t) s] = 1; }
+    }
+    if (lane != nullptr) lane->values[(size_t) step] = value;
     if (takeOpen.load() && pattern == takePattern) takeAuto.push_back ({ track, param, step, value, false });
 }
 
@@ -474,6 +521,11 @@ void Engine::recordMacro (const DeviceProcessor* dev, int macro, float value)
                 // a clip: the macro's lane, at the playing position
                 const ScopedEdit edit (*this);
                 const int tick = std::clamp ((int) std::lround ((curStep.load() + stepPhaseNow.load()) * proj.stepTicks (p)), 0, proj.patternTicks (p));
+                // the lane's first point in this take, on a lane with none: the pattern starts at the macro's value
+                // from before the take (with no point there it chased nothing and played the end value)
+                if (takeOpen.load() && p == takePattern && fillAutomation (t, 100 + macro)
+                    && std::none_of (tr.cc.begin(), tr.cc.end(), [&] (const CCPoint& c) { return c.lane == 100 + macro; }) && tick > 0)
+                    tr.setPoint (100 + macro, 0, takeMacroBefore[(size_t) t][(size_t) macro]);
                 tr.setPoint (100 + macro, tick, value);
                 if (takeOpen.load() && p == takePattern) takeAuto.push_back ({ t, 100 + macro, tick, value, true });
             }
@@ -484,6 +536,49 @@ void Engine::recordMacro (const DeviceProcessor* dev, int macro, float value)
                 for (int i = 0; i < mm.count; ++i) touchParam (p, t, mm.targets[(size_t) i].param, dev->get (mm.targets[(size_t) i].param));
             }
             return;
+        }
+}
+
+bool Engine::hasAutomation (int pattern, int track, int param) const
+{
+    auto& tr = const_cast<Track&> (proj.patterns[(size_t) pattern].slots[(size_t) track].track);
+    auto* l = tr.lockFor (param, false);
+    return l != nullptr && l->any();
+}
+
+void Engine::clearAutomation (int pattern, int track, int param)
+{
+    const ScopedEdit edit (*this);
+    auto& locks = proj.patterns[(size_t) pattern].slots[(size_t) track].track.locks;
+    locks.erase (std::remove_if (locks.begin(), locks.end(), [param] (const LockLane& l) { return l.param == param; }), locks.end());
+}
+
+bool Engine::hasMacroAutomation (const DeviceProcessor* dev, int macro)
+{
+    if (dev == nullptr || macro < 0 || macro >= 8) return false;
+    const auto& mm = const_cast<DeviceProcessor*> (dev)->macros()[(size_t) macro];
+    for (int p = 0; p < kPatterns; ++p)
+        for (int t = 0; t < kTracks; ++t)
+        {
+            if (devices[(size_t) p][(size_t) t].get() != dev) continue;
+            const auto& tr = proj.patterns[(size_t) p].slots[(size_t) t].track;
+            for (auto& c : tr.cc) if (c.lane == 100 + macro) return true;
+            for (int i = 0; i < mm.count; ++i) if (hasAutomation (p, t, mm.targets[(size_t) i].param)) return true;
+        }
+    return false;
+}
+
+void Engine::clearMacroAutomation (const DeviceProcessor* dev, int macro)
+{
+    if (dev == nullptr || macro < 0 || macro >= 8) return;
+    const auto& mm = const_cast<DeviceProcessor*> (dev)->macros()[(size_t) macro];
+    for (int p = 0; p < kPatterns; ++p)
+        for (int t = 0; t < kTracks; ++t)
+        {
+            if (devices[(size_t) p][(size_t) t].get() != dev) continue;
+            for (int i = 0; i < mm.count; ++i) clearAutomation (p, t, mm.targets[(size_t) i].param);
+            const ScopedEdit edit (*this);
+            proj.patterns[(size_t) p].slots[(size_t) t].track.erasePoints (100 + macro, 0, std::numeric_limits<int>::max());
         }
 }
 
@@ -674,7 +769,7 @@ void Engine::runPlaybackArps (int n, double beat0, std::vector<SeqEvent>& out)
         auto ps = proj.patterns[(size_t) pat].slots[(size_t) t].play;
         ps.arpOn = true; ps.chordOn = false; ps.arpLatch = false;
         auto& a = playArps[(size_t) t];
-        a.tick (n, ps, true, beat0, proj.bpm);
+        a.tick (n, ps, true, beat0, proj.bpm, &proj);
         for (auto& o : a.out)
         {
             SeqEvent e; e.offset = o.offset; e.pattern = pat; e.track = t;
@@ -1162,9 +1257,9 @@ void Engine::processBlock (float* L, float* R, int n, const juce::MidiBuffer* mi
     }
     if (! plugin && ! recording.load()) closeOpenNotes();   // the take ended with keys still held
     masterBus.clearSends (n);
+    const double beat0 = seq.beatPosition();   // the block's start in beats (the arps' grid)
     if (! plugin)
     {
-        const double beat0 = seq.beatPosition();
         seq.generate (proj, *this, n, events);
         runPlaybackArps (n, beat0, events);
         if (seq.switchedThisBlock)
@@ -1225,7 +1320,8 @@ void Engine::processBlock (float* L, float* R, int n, const juce::MidiBuffer* mi
         const bool synced = seq.isPlaying() && seq.countInSamplesLeft <= 0;
         for (int t = 0; t < (plugin ? 1 : kTracks); ++t)
         {
-            inputs[(size_t) t].tick (n, proj.patterns[(size_t) inputPattern[(size_t) t]].slots[(size_t) t].play, synced, seq.beatPosition(), proj.bpm);
+            inputs[(size_t) t].tick (n, proj.patterns[(size_t) inputPattern[(size_t) t]].slots[(size_t) t].play, synced, beat0, proj.bpm,
+                                     synced && ! plugin ? &proj : nullptr);
             flushInput (t, events);
         }
     }

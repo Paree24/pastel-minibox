@@ -1380,6 +1380,75 @@ MB_TEST (record_knob_motion)
     e.setRecord (false);
 }
 
+/** Recorded automation holds the knob's start value where it was not moved: a cutoff at 20 % turned to 90 % over
+    steps 4-7 plays 20 % on steps 0-3 (it played the end value there, the steps being empty) and holds 90 % after the
+    move (latch). On a piano-roll track a macro lane starts at the macro's value from before the take. */
+MB_TEST (record_automation_keeps_start_value)
+{
+    Engine e;
+    e.prepare (48000.0, 512);
+    auto dev = createDevice (DeviceType::Mono);
+    presets::loadDefault (*dev, true);
+    auto* d = dev.get();
+    e.setDevice (0, 1, std::move (dev));
+    e.project().countIn = false;
+    auto& tr = e.project().patterns[0].slots[1].track;
+    for (int s = 0; s < 16; s += 2) tr.steps[(size_t) s].addNote (36, 100, 200);
+    const int cut = d->params().indexOf ("cutoff");
+    const float start = d->params()[cut].fromNorm (0.2f), end = d->params()[cut].fromNorm (0.9f);
+    d->set (cut, start);
+    e.setRecord (true);
+    e.play();
+    std::vector<float> l (512), r (512);
+    const double stepLen = 6000.0;
+    double samples = 0;
+    while (samples < 4 * stepLen) { e.process (l.data(), r.data(), 512, nullptr); samples += 512; }
+    while (samples < 8 * stepLen)
+    {
+        const float v = d->params()[cut].fromNorm (0.2f + 0.7f * (float) ((samples - 4 * stepLen) / (4 * stepLen)));
+        d->set (cut, v); e.touchParam (0, 1, cut, v);
+        e.process (l.data(), r.data(), 512, nullptr); samples += 512;
+        e.recordTouched();
+    }
+    d->set (cut, end); e.touchParam (0, 1, cut, end);
+    while (samples < 15.5 * stepLen) { e.process (l.data(), r.data(), 512, nullptr); samples += 512; e.recordTouched(); }
+    e.setRecord (false);
+    auto* lane = tr.lockFor (cut, false);
+    juce::String got;
+    bool before = lane != nullptr, after = lane != nullptr;
+    for (int s = 0; lane != nullptr && s < 16; ++s)
+    {
+        const float v = lane->values[(size_t) s];
+        got << (std::isnan (v) ? juce::String ("-") : juce::String (d->params()[cut].toNorm (v), 2)) << " ";
+        if (s < 4) before = before && std::abs (v - start) < 1e-4f;
+        if (s >= 9) after = after && std::abs (v - end) < 1e-4f;
+    }
+    ctx.check (before, "steps before the move keep the start value: " + got);
+    ctx.check (after, "steps after the move hold the end value: " + got);
+
+    // a macro lane on a piano-roll track: a point at the start with the macro's value from before the take
+    auto& clipTr = e.project().patterns[0].slots[1].track;
+    clipTr.locks.clear();
+    clipTr.convertToPianoRoll (e.project().stepTicks (0), e.project().patternSteps (0));
+    const float m0 = d->getMacro (0);
+    e.setRecord (true);
+    while (samples < 20 * stepLen) { e.process (l.data(), r.data(), 512, nullptr); samples += 512; }
+    e.recordMacro (d, 0, std::min (1.0f, m0 + 0.5f));
+    e.setRecord (false);
+    bool atStart = false; int points = 0;
+    for (auto& p : clipTr.cc) if (p.lane == 100) { ++points; atStart = atStart || (p.tick == 0 && std::abs (p.value - m0) < 1e-4f); }
+    ctx.check (atStart && points == 2, "the macro lane starts at its value from before (" + juce::String (points) + " points)");
+    // clearing (a knob's right-click, the phone's long-press): the lane and the locks go
+    ctx.check (e.hasMacroAutomation (d, 0), "the macro has automation");
+    e.clearMacroAutomation (d, 0);
+    ctx.check (! e.hasMacroAutomation (d, 0) && std::none_of (clipTr.cc.begin(), clipTr.cc.end(), [] (const CCPoint& p) { return p.lane == 100; }),
+               "cleared: no lane points");
+    tr.lockFor (cut, true)->values[3] = start;
+    ctx.check (e.hasAutomation (0, 1, cut), "a lock is automation");
+    e.clearAutomation (0, 1, cut);
+    ctx.check (! e.hasAutomation (0, 1, cut) && tr.lockFor (cut, false) == nullptr, "cleared: the lock lane is gone");
+}
+
 /** Doubling during a take copies the recorded track's earlier content into the new bars, never the take; when
     the take stops, the bars past its last note go, copies included. */
 MB_TEST (record_doubling_copies_pre_take_content)
@@ -1692,6 +1761,52 @@ MB_TEST (arp_playback_live_settings)
     tr.arp = false; rig.probe->ons.clear();
     rig.e.play(); rig.runTo (12.5 + 2.0);
     ctx.check (rig.heard().size() == 3, "arp off: the chord, " + juce::String ((int) rig.heard().size()) + " notes");
+}
+
+/** The arp swings: with the Arp's own Swing, and with the project's swing (on its grid) while the pattern plays,
+    the off-beat arp notes play late. */
+MB_TEST (arp_swings)
+{
+    auto gaps = [] (float arpSwing, float projSwing, bool live)
+    {
+        Rig rig (1);
+        auto& p = rig.e.project();
+        p.swing = projSwing;
+        auto& ps = p.patterns[0].slots[1].play;
+        ps.arpRate = 6; ps.arpMode = 0; ps.arpGate = 50.0f; ps.arpSwing = arpSwing;   // 1/16
+        auto& tr = rig.track();
+        if (! live)
+        {
+            tr.pianoRoll = true; tr.arp = true;
+            for (int n : { 60, 64, 67 }) { ClipNote c; c.start = 0; c.length = 16 * rig.stepT(); c.note = (uint8_t) n; tr.addClipNote (c); }
+        }
+        rig.e.play();
+        if (live) { ps.arpOn = true; rig.runTo (0.01); rig.midi (1, 60, true); rig.midi (1, 64, true); }
+        rig.runTo (9.5);
+        juce::String g;
+        std::vector<double> d;
+        for (size_t i = 1; i < rig.probe->ons.size(); ++i) d.push_back ((rig.probe->ons[i].first - rig.probe->ons[i - 1].first) / Rig::stepLen);
+        for (double x : d) g << juce::String (x, 2) << " ";
+        return std::make_pair (d, g);
+    };
+    auto alternates = [] (const std::vector<double>& d, double longGap)
+    {
+        if (d.size() < 6) return false;
+        for (size_t i = 0; i < 6; ++i) if (std::abs (d[i] - (i % 2 == 0 ? longGap : 2.0 - longGap)) > 0.03) return false;
+        return true;
+    };
+    {
+        auto [d, g] = gaps (50.0f, 0.5f, false);
+        ctx.check (alternates (d, 1.25), "Arp swing 50 %: 1.25 / 0.75 steps: " + g);
+    }
+    {
+        auto [d, g] = gaps (0.0f, 0.66f, false);
+        ctx.check (alternates (d, 1.32), "project swing 66 %: 1.32 / 0.68 steps: " + g);
+    }
+    {
+        auto [d, g] = gaps (0.0f, 0.66f, true);
+        ctx.check (alternates (d, 1.32), "live arp, project swing 66 %: " + g);
+    }
 }
 
 /** Steps ↔ piano roll both ways: steps → clip → steps comes back the same (a chord, a long note, an offset, a mute);

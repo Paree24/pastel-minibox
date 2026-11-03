@@ -150,6 +150,9 @@ struct Binding
     virtual bool locked() const { return false; }
     virtual void gestureBegin() {}
     virtual void gestureEnd() {}
+    /** Recorded automation on this control (step locks, a clip lane): the knob's right-click clears it. */
+    virtual bool hasAutomation() const { return false; }
+    virtual void clearAutomation() {}
 };
 
 /** A device parameter. Writes a parameter lock instead when a lock step is selected, and records
@@ -165,6 +168,8 @@ struct ParamBinding : Binding
     bool bipolar() const override { return dev->params()[idx].bipolar; }
     int steps() const override;
     bool locked() const override;
+    bool hasAutomation() const override { return ctx != nullptr && pat >= 0 && trk >= 0 && ctx->engine.hasAutomation (pat, trk, idx); }
+    void clearAutomation() override { if (hasAutomation()) { ctx->engine.clearAutomation (pat, trk, idx); ctx->markDirty(); } }
     std::function<void (int, float)> onChange;   // plugin: host notification
     AppContext* ctx; DeviceProcessor* dev; int idx, pat, trk;
 };
@@ -176,6 +181,8 @@ struct MacroBinding : Binding
     void setNorm (float n) override { dev->setMacro (macro, n); if (ctx) { ctx->engine.recordMacro (dev, macro, n); ctx->markDirty(); } }
     float defaultNorm() const override { return 0.5f; }
     juce::String text() const override;
+    bool hasAutomation() const override { return ctx != nullptr && ctx->engine.hasMacroAutomation (dev, macro); }
+    void clearAutomation() override { if (ctx != nullptr) { ctx->engine.clearMacroAutomation (dev, macro); ctx->markDirty(); } }
     AppContext* ctx; DeviceProcessor* dev; int macro;
 };
 

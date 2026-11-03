@@ -27,7 +27,8 @@ public:
     int key (int note, float vel, bool on, int offset, const ScaleSettings&, const PlaySettings&, int* chordOut);
     /** Advance one block: arp steps, strummed notes and gate ends. ppq = the sequencer's beat at the block
         start when it is playing (synced), else the arp free-runs on bpm. */
-    void tick (int n, const PlaySettings&, bool synced, double ppq, double bpm);
+    /** `swing`: while the pattern plays, the project whose swing the arp's steps follow (as the steps do). */
+    void tick (int n, const PlaySettings&, bool synced, double ppq, double bpm, const Project* swing = nullptr);
 
     std::vector<Out> out;        // emitted this block, cleared by the engine after use
     int heldKeys() const { return numVoices; }

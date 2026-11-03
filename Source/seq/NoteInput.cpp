@@ -256,7 +256,7 @@ int NoteInput::key (int inNote, float vel, bool on, int offset, const ScaleSetti
     return 0;
 }
 
-void NoteInput::tick (int n, const PlaySettings& ps, bool synced, double ppq, double bpm)
+void NoteInput::tick (int n, const PlaySettings& ps, bool synced, double ppq, double bpm, const Project* swingOf)
 {
     if (ps.arpOn && poolSize > 0)
     {
@@ -295,9 +295,12 @@ void NoteInput::tick (int n, const PlaySettings& ps, bool synced, double ppq, do
                 nextPpq = std::ceil (ppq / interval - 1.0e-9) * interval;
             while (guard++ < 64)
             {
-                const double swing = swingBeats(), at = nextPpq + swing;
+                // its own swing, then the project's (the off-beat 1/16s or 1/8s late, as the steps play)
+                const double swing = swingBeats();
+                const double at = swingOf != nullptr ? swingOf->swungQuarters (nextPpq + swing) : nextPpq + swing;
                 if (at >= endPpq) break;
-                fire (std::clamp ((int) ((at - ppq) * spb), 0, n - 1), (interval - swing) * spb);
+                const double next = swingOf != nullptr ? swingOf->swungQuarters (nextPpq + interval) : nextPpq + interval;
+                fire (std::clamp ((int) ((at - ppq) * spb), 0, n - 1), std::max (1.0, (next - at) * spb));
                 nextPpq += interval;
             }
         }
