@@ -1544,3 +1544,26 @@ MB_TEST (seq_clip_slide_overlaps_next_note)
     for (auto& o : p.offTimes) if (o.second == 36 && off1 < 0) off1 = o.first;
     ctx.check (on2 >= 0 && off1 > on2, "the slide note lasts past the next note-on (on " + juce::String (on2) + ", off " + juce::String (off1) + ")");
 }
+
+/** The click is mixed after the master bus: the master volume at 0 (the music silent) leaves it as loud as before. */
+MB_TEST (metronome_bypasses_the_master_bus)
+{
+    auto peak = [] (float volume)
+    {
+        Rig rig (1);
+        rig.e.project().metronome = true;
+        rig.e.project().master.volume = volume;
+        rig.e.play();
+        std::vector<float> l (128), r (128);
+        float pk = 0.0f;
+        for (int b = 0; b < 400; ++b)
+        {
+            std::fill (l.begin(), l.end(), 0.0f); std::fill (r.begin(), r.end(), 0.0f);
+            rig.e.process (l.data(), r.data(), 128, nullptr);
+            for (float v : l) pk = std::max (pk, std::abs (v));
+        }
+        return pk;
+    };
+    const float full = peak (0.8f), zero = peak (0.0f);
+    ctx.check (zero > 0.05f && std::abs (zero - full) < 0.01f, "click peak with the master at 0: " + juce::String (zero) + ", at 0.8: " + juce::String (full));
+}

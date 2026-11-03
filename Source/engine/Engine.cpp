@@ -14,7 +14,8 @@ void Engine::prepare (double sr, int block)
     const ScopedEdit edit (*this);
     sampleRate = sr;
     maxBlock = std::max (block, 16);
-    for (auto* v : { &slotL, &slotR, &auxAL, &auxAR, &auxBL, &auxBR }) v->assign ((size_t) maxBlock, 0.0f);
+    for (auto* v : { &slotL, &slotR, &auxAL, &auxAR, &auxBL, &auxBR, &clickBuf }) v->assign ((size_t) maxBlock, 0.0f);
+    clickRing.assign (16384, 0.0f); clickRingPos = 0;
     for (auto& row : devices) for (auto& d : row) if (d) d->prepare (sr, maxBlock);
     seq.prepare (sr);
     masterBus.prepare (sr, maxBlock, proj.master.lookAhead);
@@ -976,7 +977,7 @@ void Engine::renderSub (float* L, float* R, int start, int len)
             const float s = std::sin ((float) clickPhase) * clickEnv * lvl;
             clickPhase += dsp::kTwoPi * clickFreq / sampleRate;
             clickEnv *= decay;
-            L[i] += s; R[i] += s;
+            clickBuf[(size_t) i] += s;
         }
     }
 }
@@ -998,6 +999,7 @@ void Engine::processBlock (float* L, float* R, int n, const juce::MidiBuffer* mi
 {
     std::fill (L, L + n, 0.0f);
     std::fill (R, R + n, 0.0f);
+    std::fill (clickBuf.begin(), clickBuf.begin() + n, 0.0f);
     const auto t0 = juce::Time::getHighResolutionTicks();
     const AudioLock::ScopedLockType sl (audioLock);
     const bool plugin = engineMode == Mode::Plugin;
@@ -1187,6 +1189,16 @@ void Engine::processBlock (float* L, float* R, int n, const juce::MidiBuffer* mi
     if (clockRuns && ! clockWasPlaying) beatClock = 0.0;   // Play: the effects' grid starts with the pattern
     clockWasPlaying = clockRuns;
     masterBus.process (L, R, n, proj.master, proj.bpm, masterInsert, beatClock, clockRuns);
+    {   // the click, after the bus (renderSub wrote it to clickBuf), as late as the bus's look-ahead makes the music
+        const int ring = (int) clickRing.size(), lat = std::clamp (masterBus.latency(), 0, ring - 1);
+        for (int i = 0; i < n; ++i)
+        {
+            clickRing[(size_t) clickRingPos] = clickBuf[(size_t) i];
+            const float c = clickRing[(size_t) ((clickRingPos - lat + ring) % ring)];
+            clickRingPos = (clickRingPos + 1) % ring;
+            L[i] += c; R[i] += c;
+        }
+    }
     beatClock += n * std::max (20.0, proj.bpm) / (60.0 * sampleRate);
 
     // publish state for the UI

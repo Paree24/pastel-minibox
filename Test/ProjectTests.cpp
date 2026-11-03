@@ -202,3 +202,25 @@ MB_TEST (export_flac_and_ogg)
         f.deleteFile();
     }
 }
+
+/** The metronome is for playing along: an export with it on has no click (a project with no notes renders silence). */
+MB_TEST (export_has_no_metronome)
+{
+    Engine e;
+    e.prepare (48000.0, 256);
+    e.project().metronome = true;
+    e.project().clickLevel = 1.0f;
+    auto f = juce::File::createTempFile (".wav");
+    auto r = serializer::exportWav (e, f, 1);
+    ctx.check (r.ok, "export: " + r.error);
+    juce::AudioFormatManager fm; fm.registerBasicFormats();
+    std::unique_ptr<juce::AudioFormatReader> rd (fm.createReaderFor (f));
+    if (rd)
+    {
+        juce::AudioBuffer<float> buf (2, (int) rd->lengthInSamples);
+        rd->read (&buf, 0, buf.getNumSamples(), 0, true, true);
+        ctx.check (buf.getMagnitude (0, buf.getNumSamples()) < 1.0e-4f, "silent: no click in the file, peak " + juce::String (buf.getMagnitude (0, buf.getNumSamples())));
+    }
+    ctx.check (e.project().metronome, "the live project keeps its metronome on");
+    f.deleteFile();
+}

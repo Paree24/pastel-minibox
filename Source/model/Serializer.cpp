@@ -633,6 +633,7 @@ Result exportWav (Engine& live, const juce::File& file, int loops, double sr)
     r = restore (off, snap);
     forceSyncSampleLoads() = false;
     if (! r.ok) return r;
+    off.project().metronome = false;   // the click is for playing along, never in the file
     off.queuePattern (pattern);
     off.focusPattern = pattern;
     std::vector<float> l (512), rr (512);
@@ -684,6 +685,7 @@ Result exportSongWav (Engine& live, const juce::File& file, double sr)
     if (order.empty()) { r.ok = false; r.error = "No pattern has notes."; return r; }
     proj.switchQuantize = 1;   // each pattern plays to its end, then the next
     proj.perform = false;
+    proj.metronome = false;    // the click is for playing along, never in the file
     double seconds = 3.0;
     for (int p : order) seconds += proj.patternSteps (p) * proj.stepQuarters (p) * 60.0 / proj.bpm;
     off.queuePattern (order[0]);

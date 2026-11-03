@@ -202,6 +202,10 @@ private:
     double sampleRate = 48000.0;
     int maxBlock = 512;
     std::vector<float> slotL, slotR, auxAL, auxAR, auxBL, auxBR;
+    // the metronome's click: mixed after the master bus (its effects, the performance pads and the limiter never touch
+    // it), delayed by the bus's look-ahead so it stays on the beat with the music
+    std::vector<float> clickBuf, clickRing;
+    int clickRingPos = 0;
     std::vector<SeqEvent> events;
     // patterns switched away from, ringing out (until silent or 4 s): any number of them, each its own clock
     std::array<int64_t, kPatterns> tailSamples {};
