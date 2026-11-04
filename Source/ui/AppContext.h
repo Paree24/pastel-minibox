@@ -122,7 +122,7 @@ struct AppContext
     {
         int tool = 0;               // 0 Select, 1 Draw, 2 Paint, 3 Erase
         int lengthMode = 0;         // 0 last used; 1… fixed (PianoRoll::lengthChoices)
-        bool scale = false, fold = false, ghosts = false;
+        bool scale = true, fold = true, ghosts = false;   // the scale's rows shown, folded to them (as the phone)
         int viewSteps = 0;          // steps in view (time zoom); 0 = a bar
         int start = 0;              // the first step in view
         int rows = 18;              // rows in view (pitch zoom)

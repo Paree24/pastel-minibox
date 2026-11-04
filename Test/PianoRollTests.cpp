@@ -18,6 +18,7 @@ struct RollRig
         engine.focusTrack = 1;
         engine.project().patterns[0].lengthBars = 4;
         ctx.rollSettings.tool = 1;   // Draw (the select-tool tests switch)
+        ctx.rollSettings.fold = ctx.rollSettings.scale = false;   // every semitone a row (the app folds to the scale by default)
         roll.setSize (1000, 360);
         roll.topNote = 72;
     }

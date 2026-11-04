@@ -29,7 +29,7 @@ public:
 
 private:
     struct Target { enum Kind { None, BarLess, BarMore, Res, Bar, RowSelect, RowStep, RowMute, RowSolo, ViewSwitch, Convert, Quantize, Overdub, LockParam,
-                                Follow, Tool, LaneVel, LaneA, LaneB, LaneCond, StepNote, StepLane, ClipVel, ClipLaneMenu, DrumCell, DrumLaneView, DrumLane, Swing } kind = None;
+                                Follow, Tool, LaneVel, LaneA, LaneB, LaneCond, StepNote, StepLane, ClipVel, ClipLaneMenu, DrumCell, DrumLaneView, DrumLane, Swing, Arp } kind = None;
                     int a = -1, b = -1; };
     Target locate (juce::Point<float>) const;
     void applyDrag (const Target&, juce::Point<float>, bool rightButton);
@@ -60,7 +60,7 @@ private:
 
     AppContext& ctx;
     bool stepsView = true;         // a step sequence: Steps (true) or viewed as a piano roll
-    juce::Rectangle<float> convertR, lockPickR;
+    juce::Rectangle<float> convertR, lockPickR, arpR;
     Step noteStepAtDown;           // pitch drag on a note cell
     float noteDownY = 0;
     float swingAtDown = 0.5f, swingDownX = 0;
@@ -78,6 +78,11 @@ private:
     PianoRoll roll;
     enum ToolId { TSelect, TDraw, TPaint, TErase, TGrid, TLength, TQuantize, TFunctions, TScale, TFold, TGhosts, TZoomOut, TZoomIn, TFit, TLoop, TUndo, TRedo, TTransDownOct, TTransDown, TTransUp, TTransUpOct };
     std::vector<std::pair<juce::Rectangle<float>, int>> toolZones;
+    std::vector<std::pair<juce::Rectangle<float>, int>> chordPills;   // a step's chord pill (its step in view) opens the chord menu
+    void showStepMenu (int step, bool chordsOnly);                    // the step's chord shapes (and Clear)
+    int hoverStep = -1;                                               // the note cell under the mouse (its Chord pill shows)
+    void mouseMove (const juce::MouseEvent&) override;
+    void mouseExit (const juce::MouseEvent&) override { if (hoverStep >= 0) { hoverStep = -1; repaint(); } }
     juce::Rectangle<float> followR;
     void paintToolbar (juce::Graphics&, juce::Colour);
     void toolAction (int id);

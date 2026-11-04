@@ -4,6 +4,7 @@
 #include "ui/PresetBrowser.h"
 #include "devices/SampleSlot.h"
 #include "plugin/PluginProcessor.h"
+#include "model/Serializer.h"
 
 using namespace mb;
 
@@ -79,6 +80,7 @@ MB_TEST (tool_ui_shots)
     Engine e;
     e.prepare (48000.0, 512);
     demo (e);
+    serializer::save (e, shotDir().getChildFile ("demo.minibox"));   // the same project for the phone's screenshots
     MainComponent mc (e);
     mc.setSize (1600, 1000);   // 16:10: the narrow layout (icon file buttons)
     mc.refreshAll();
@@ -109,6 +111,8 @@ MB_TEST (tool_ui_shots)
         for (int i = 4; i >= 0; --i) fx.removeSlot (i);
     }
     shot (1, 1, "02_seq");
+    shot (1, 0, "02h_seq_drums");    // the drum track's steps
+    shot (1, 2, "02i_seq_chords");   // a step track of chords and long notes
     {
         // a long note in the Steps view: its gate bar runs over the 4 steps it rings (as the piano roll shows it)
         auto& st = e.project().patterns[0].slots[1].track.steps[0];

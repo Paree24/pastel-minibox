@@ -1,4 +1,5 @@
 #include "SeqView.h"
+#include "seq/Chords.h"
 #include <climits>
 
 namespace mb::ui
@@ -39,6 +40,36 @@ SeqView::SeqView (AppContext& c) : ctx (c), roll (c)
         if (index < 0 || index >= (int) hots.size()) return false;
         return keyOnTarget (locate (hots[(size_t) index].r.getCentre()), k);
     };
+}
+
+void SeqView::mouseMove (const juce::MouseEvent& e)
+{
+    const auto t = locate (e.position);
+    const int s = t.kind == Target::StepNote ? ctx.viewBar * spb() + t.b : -1;
+    if (s != hoverStep) { hoverStep = s; repaint(); }
+}
+
+void SeqView::showStepMenu (int step, bool chordsOnly)
+{
+    // a step's chord: a shape on its lowest note (velocity, length, chance and the rest stay); right-click adds Clear
+    const int tr = ctx.focusTrack(), pat = ctx.focusPattern();
+    const auto& st = ctx.engine.project().patterns[(size_t) pat].slots[(size_t) tr].track.steps[(size_t) step];
+    juce::PopupMenu m;
+    m.addSectionHeader ("Chord on " + chords::noteName (chords::lowest (st)));
+    const int cur = chords::typeOf (st);
+    const auto& types = chords::types();
+    for (int k = 0; k < (int) types.size(); ++k) m.addItem (1 + k, juce::String::fromUTF8 (types[(size_t) k].name), true, k == cur);
+    if (! chordsOnly) { m.addSeparator(); m.addItem (100, "Clear step"); }
+    m.showMenuAsync (menuAt (*this, menuArea), [this, step, tr, pat] (int id)
+    {
+        if (id <= 0) return;
+        ctx.snapshot (pat);
+        const Engine::ScopedEdit ed (ctx.engine);
+        auto& s = ctx.engine.project().patterns[(size_t) pat].slots[(size_t) tr].track.steps[(size_t) step];
+        if (id == 100) s.clear();
+        else chords::set (s, chords::types()[(size_t) (id - 1)].iv);
+        ctx.markDirty(); repaint();
+    });
 }
 
 void SeqView::showSwingMenu()
@@ -93,9 +124,10 @@ bool SeqView::keyOnTarget (const Target& t, const juce::KeyPress& k)
     {
         case Target::StepNote:
         {
-            // a note cell: ↑ / ↓ its pitch (Shift: an octave)
-            if (dir == 0) return false;
+            // a note cell: ↑ / ↓ its pitch (Shift: an octave); Delete clears it (right-click opens its menu)
             auto& st = tr.steps[(size_t) (ctx.viewBar * spb() + t.b)];
+            if ((code == juce::KeyPress::deleteKey || code == juce::KeyPress::backspaceKey) && st.noteCount > 0) return edit ([&] { st.clear(); });
+            if (dir == 0) return false;
             if (st.noteCount == 0) return false;
             return edit ([&]
             {
@@ -442,6 +474,7 @@ void SeqView::paint (juce::Graphics& g)
     followR = { x + w - 16 - fw, kDetailY + 14, fw, 26 };
     fb.hot (followR, 13);
     toolZones.clear();
+    chordPills.clear();
 
     if (drum)
     {
@@ -504,7 +537,7 @@ void SeqView::paint (juce::Graphics& g)
     }
 
     // which kind of sequence: a step sequence (Steps, or viewed as a piano roll; converted one way) or a clip
-    convertR = {};
+    convertR = {}; arpR = {};
     if (tr.pianoRoll)
     {
         const float lw = paint::pill (g, x + 130, kDetailY + 13, "Piano roll", 12, colour, col::bg, 30, 12, Weight::Black);
@@ -519,6 +552,15 @@ void SeqView::paint (juce::Graphics& g)
         const float pw = paint::pill (g, x + 308, kDetailY + 13, "Convert to roll", 11, col::control, col::quiet, 30, 12, Weight::Bold);
         convertR = { x + 308, kDetailY + 13, pw, 30 };
         fb.hot (convertR, 15);
+    }
+    // Arp the sequence: the track's notes (steps or clip) play through its arpeggiator, its Play-drawer settings live
+    {
+        const juce::String label = juce::String::fromUTF8 (tr.arp ? "Arp \xe2\x97\x8f" : "Arp");
+        const float aw = textWidth (label, 11) + 24;
+        arpR = { followR.getX() - 92 - aw, kDetailY + 14, aw, 26 };
+        paint::pill (g, arpR.getX(), arpR.getY(), label, 11, tr.arp ? colour : col::control, tr.arp ? col::bg : col::quiet, 26, 12,
+                     tr.arp ? Weight::Black : Weight::Bold);
+        fb.hot (arpR, 13);
     }
     if (! rollView())
     {
@@ -686,22 +728,25 @@ void SeqView::paintStepsView (juce::Graphics& g, Track& tr, DeviceProcessor& dev
         fb.hot (c, 10);
         if (on)
         {
-            // the step's notes, highest first (a chord stacks)
-            std::vector<int> ns (st.notes, st.notes + st.noteCount);
-            std::sort (ns.rbegin(), ns.rend());
-            const float lineH = std::min (18.0f, (c.getHeight() - 40) / (float) ns.size());
-            float yy = c.getCentreY() - lineH * ns.size() / 2 + lineH * 0.75f;
-            for (int n : ns)
-            {
-                const auto name = juce::MidiMessage::getMidiNoteName (n, true, true, 4);
-                paint::text (g, name, c.getCentreX(), yy, ns.size() > 3 ? 11.0f : 14.0f, Weight::Black, col::bg, juce::Justification::horizontallyCentred);
-                yy += lineH;
-            }
+            // the step's root (its lowest note) large, its chord's name under it (as the phone shows a step)
+            const auto root = chords::noteName (chords::lowest (st));
+            paint::text (g, root, c.getCentreX(), c.getCentreY() - 2, c.getWidth() > 50 ? 17.0f : 13.0f, Weight::Black, col::bg, juce::Justification::horizontallyCentred);
             if (c.getWidth() > 30)
             {
                 paint::chevron (g, c.getCentreX(), c.getY() + 16, 8, col::bg, 'u');
                 paint::chevron (g, c.getCentreX(), c.getBottom() - 16, 8, col::bg, 'd');
             }
+            // the chord pill: a chord shows its name in it; a single note only under the mouse (calm otherwise).
+            // Its shapes in a menu (Maj, Min, 7ths, sus, power, octave)
+            const bool chord = st.noteCount > 1, hover = hoverStep == first + i;
+            const R pill (c.getX() + 6, c.getBottom() - 54, c.getWidth() - 12, 20);
+            if (c.getWidth() > 34 && c.getHeight() > 110 && (chord || hover))
+            {
+                g.setColour (col::bg.withAlpha (chord ? 0.22f : 0.14f)); g.fillRoundedRectangle (pill, 10);
+                paint::text (g, (chord ? chords::nameOf (st) : juce::String ("Chord")) + juce::String::fromUTF8 (" \xe2\x96\xbe"), pill.getCentreX(),
+                             pill.getCentreY() + 4, 10, Weight::Black, col::bg, juce::Justification::horizontallyCentred);
+            }
+            if (c.getWidth() > 34 && c.getHeight() > 110) chordPills.push_back ({ pill, first + i });
         }
         if (first + i == play) { g.setColour (col::pattern); g.drawRoundedRectangle (c.expanded (3), 12, 2.0f); }
         if (first + i == cursor) dashedBox (g, c.expanded (3), col::record);
@@ -782,7 +827,7 @@ void SeqView::paintStepsView (juce::Graphics& g, Track& tr, DeviceProcessor& dev
             }
         }
     }
-    paint::text (g, juce::String::fromUTF8 ("Click: a step on / off  \xc2\xb7  Drag up / down: pitch (Shift: octave)  \xc2\xb7  Right-click: clear  \xc2\xb7  Piano roll: view and edit these steps as notes"),
+    paint::text (g, juce::String::fromUTF8 ("Click: a step on / off  \xc2\xb7  Drag up / down: pitch (Shift: octave)  \xc2\xb7  Chord \xe2\x96\xbe: its shape  \xc2\xb7  Right-click: chord, clear  \xc2\xb7  Piano roll: view and edit these steps as notes"),
                  notesArea().getX(), stepLaneArea (kStepLanes - 1).getBottom() + 26, 10, Weight::Bold, col::faint);
 }
 
@@ -824,6 +869,7 @@ SeqView::Target SeqView::locate (juce::Point<float> p) const
         for (auto& [r, id] : toolZones) if (r.contains (p)) { t.kind = Target::Tool; t.a = id; return t; }
         if (dev->laneCount() > 0 && p.x >= x + 160 && p.x < x + 520) { t.kind = Target::DrumLaneView; t.a = juce::jlimit (0, 4, (int) ((p.x - x - 160) / 72.0f)); }
         else if (dev->laneCount() == 0 && convertR.contains (p)) t.kind = Target::Convert;
+        else if (dev->laneCount() == 0 && arpR.contains (p)) t.kind = Target::Arp;
         else if (dev->laneCount() == 0 && ! const_cast<SeqView*> (this)->track (ctx.focusTrack()).pianoRoll && p.x >= x + 130 && p.x < x + 300)
         { t.kind = Target::ViewSwitch; t.a = p.x < x + 215 ? 0 : 1; }
         return t;
@@ -1023,11 +1069,21 @@ void SeqView::mouseDown (const juce::MouseEvent& e)
             ctx.markDirty();
             break;
         case Target::Convert: convertToPianoRoll(); break;
+        case Target::Arp:
+        {
+            auto& a = track (ctx.focusTrack());
+            { const Engine::ScopedEdit ed (ctx.engine); a.arp = ! a.arp; }
+            ctx.markDirty();
+            break;
+        }
         case Target::StepNote:
         {
             // a press on a note cell: on with the last note; on an on cell, drag for pitch, release to switch off
             auto& st = track (ctx.focusTrack()).steps[(size_t) (ctx.viewBar * steps + t.b)];
-            if (right) { const Engine::ScopedEdit ed (ctx.engine); st.clear(); ctx.markDirty(); break; }
+            if (right) { if (st.noteCount > 0) showStepMenu (ctx.viewBar * steps + t.b, false); dragTarget = {}; break; }
+            bool onPill = false;
+            for (auto& [r, s] : chordPills) onPill = onPill || (s == ctx.viewBar * steps + t.b && r.contains (e.position));
+            if (onPill && st.noteCount > 0) { showStepMenu (ctx.viewBar * steps + t.b, true); dragTarget = {}; break; }
             noteWasOn = st.noteCount > 0;
             noteMoved = false;
             noteDownY = e.position.y;

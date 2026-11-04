@@ -1,4 +1,5 @@
 #include "Visuals.h"
+#include "seq/Chords.h"
 #include "devices/fm/FmDevice.h"
 #include "devices/fm/Algorithms.h"
 #include "devices/sampler/SamplerDevice.h"
@@ -952,7 +953,7 @@ void VisualView::paint (juce::Graphics& g)
                     const bool stacked = dev.get ("stack") > 0.5f;
                     paint::text (g, iv[m][i], vx + vw / 2, cell.getY() + 16, 10, Weight::Bold, stacked || i == 1 ? col::text : col::faint, juce::Justification::horizontallyCentred);
                 }
-                else if (vw > 22) paint::text (g, on ? juce::MidiMessage::getMidiNoteName (notes[(size_t) i], true, true, 4) : "-", vx + vw / 2, cell.getY() + 16, 10, Weight::Bold, on ? col::text : col::faint, juce::Justification::horizontallyCentred);
+                else if (vw > 22) paint::text (g, on ? chords::noteName (notes[(size_t) i]) : "-", vx + vw / 2, cell.getY() + 16, 10, Weight::Bold, on ? col::text : col::faint, juce::Justification::horizontallyCentred);
             }
             break;
         }

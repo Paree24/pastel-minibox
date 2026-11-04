@@ -1,4 +1,5 @@
 #include "EditorView.h"
+#include "seq/Chords.h"
 #include "app/presets/PresetBank.h"
 #include "devices/sampler/SamplerDevice.h"
 #include "devices/drumsampler/DrumSamplerDevice.h"
@@ -562,7 +563,7 @@ void StepStrip::paint (juce::Graphics& g)
         {
             const float vel = s.velocity() / 127.0f;
             g.setColour (colour.withAlpha (0.25f + 0.6f * vel)); g.fillRoundedRectangle (cx, cy, cw, ch, 9);
-            auto label = juce::MidiMessage::getMidiNoteName (s.notes[0], true, true, 4);
+            auto label = chords::noteName (s.notes[0]);
             if (s.noteCount > 1) label << "+" << (s.noteCount - 1);
             paint::text (g, label, cx + cw / 2, cy + ch / 2 + 5, label.length() < 5 ? 13.0f : 11.0f, Weight::Black, col::bg, juce::Justification::horizontallyCentred);
             g.setColour (col::bg.withAlpha (0.6f)); g.fillRoundedRectangle (cx + 8, cy + ch - 9, (cw - 16) * vel, 3, 1.5f);

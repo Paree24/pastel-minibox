@@ -3,6 +3,7 @@
 #include <iostream>
 #include "engine/Engine.h"
 #include "seq/Arpeggiate.h"
+#include "seq/Chords.h"
 #include "model/Serializer.h"
 #include "model/DawProject.h"
 #include "app/presets/PresetBank.h"
@@ -1910,6 +1911,25 @@ MB_TEST (sidechain_ducks_other_tracks_on_the_kick)
     ctx.check (std::abs (dip0 / before0 - 1.0) < 0.05, "at 0 nothing changes: " + juce::String (dip0 / before0, 2));
     ctx.check (std::abs (dip / before - 0.5) < 0.08, "50 %: the synth dips to half on the kick: " + juce::String (dip / before, 2));
     ctx.check (std::abs (back / before - 1.0) < 0.05, "back after an 1/8 note: " + juce::String (back / before, 2));
+}
+
+/** Step chords (the desktop's Chord menu, the phone's step sheet): a shape on the lowest note keeps the step's
+    velocity, length and the rest; the shape is named back; note names use the phone's spelling. */
+MB_TEST (step_chords_shared)
+{
+    Step st;
+    st.addNote (60, 90, 300);
+    st.probability = 75; st.ratchet = 2; st.microTiming = 5;
+    const auto& t = chords::types();
+    auto idx = [&] (const char* n) { for (size_t k = 0; k < t.size(); ++k) if (juce::String::fromUTF8 (t[k].name) == n) return (int) k; return -1; };
+    chords::set (st, t[(size_t) idx ("m7")].iv);
+    ctx.check (st.noteCount == 4 && st.hasNote (60) && st.hasNote (63) && st.hasNote (67) && st.hasNote (70), "m7 on C4");
+    ctx.check (st.vel[3] == 90 && st.len[3] == 300 && st.probability == 75 && st.ratchet == 2 && st.microTiming == 5, "the step's settings stay");
+    ctx.check (chords::nameOf (st) == "m7" && chords::typeOf (st) == idx ("m7"), "named back: " + chords::nameOf (st));
+    st.notes[1] = 61;   // C Db G Bb: not a shape
+    ctx.check (chords::nameOf (st) == "4 notes", "an unknown shape: " + chords::nameOf (st));
+    ctx.check (chords::noteName (60) == "C4" && chords::noteName (63) == "Eb4" && chords::noteName (70) == "Bb4" && chords::noteName (61) == "C#4",
+               "names: " + chords::noteName (63) + " " + chords::noteName (70));
 }
 
 /** Steps ↔ piano roll both ways: steps → clip → steps comes back the same (a chord, a long note, an offset, a mute);

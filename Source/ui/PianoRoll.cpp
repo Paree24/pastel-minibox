@@ -1,5 +1,6 @@
 #include "PianoRoll.h"
 #include "seq/Arpeggiate.h"
+#include "seq/Chords.h"
 #include "seq/Scales.h"
 #include "Shortcuts.h"
 #include <climits>
@@ -228,7 +229,7 @@ R PianoRoll::noteRect (const NoteData& d) const
     const int row = rowForNote (d.note);
     if (row < 0) return {};
     const float len = d.tie ? 1.0f : d.len / (float) stepT();
-    const R r (xForTick (d.tick) + 1, g.getY() + row * rh + 2, std::max (6.0f, cw * len - 2), rh - 4);
+    const R r (xForTick (d.tick) + 1, g.getY() + row * rh + 1, std::max (6.0f, cw * len - 2), rh - 2);   // the row's height
     if (r.getRight() < g.getX() || r.getX() > g.getRight()) return {};
     return r;
 }
@@ -492,11 +493,14 @@ void PianoRoll::paint (juce::Graphics& g)
         const bool black = juce::MidiMessage::isMidiNoteBlack (note);
         const float yy = gr.getY() + r * rh;
         const R key (0, yy + 1, kKeysW, rh - 2);
-        g.setColour (note == previewNote ? colour : (black ? col::bg : col::control)); g.fillRoundedRectangle (key, 3);
-        // labels: the scale's root when a scale is in use (lock or Scale highlight), else C
+        // the keys as the phone shows them: every row named, the scale's root (else C) in the track's colour
         const int labelPc = proj.scale.lock || ctx.rollSettings.scale ? proj.scale.root : 0;
-        if ((note % 12 == labelPc || ctx.rollSettings.fold) && rh >= 9)
-            paint::text (g, juce::MidiMessage::getMidiNoteName (note, true, true, 4), kKeysW - 8, yy + rh / 2 + 4, std::min (10.0f, rh - 1), Weight::Bold, col::quiet, juce::Justification::right);
+        const bool root = note % 12 == labelPc;
+        g.setColour (note == previewNote ? colour : (root ? colour.withAlpha (0.28f) : (black ? col::bg.brighter (0.05f) : col::control)));
+        g.fillRoundedRectangle (key, std::min (6.0f, (rh - 2) / 2));
+        if (rh >= 9 && (rh >= 12 || root || ctx.rollSettings.fold))
+            paint::text (g, chords::noteName (note), kKeysW - 8, yy + rh / 2 + 4, std::min (11.0f, rh - 1), root ? Weight::Black : Weight::Bold,
+                         note == previewNote ? col::bg : (root ? colour : col::quiet), juce::Justification::right);
         fb.hot (key, 3, Feedback::kHover);
         g.setColour (black ? juce::Colour (0xff1C1E23) : col::bg); g.fillRect (R (gr.getX(), yy, gr.getWidth(), rh));
         if (ctx.rollSettings.scale && pcs[(size_t) (note % 12)])   // the project scale's rows, the root stronger
@@ -556,14 +560,23 @@ void PianoRoll::paint (juce::Graphics& g)
     forEachVisible (track(), [&] (const NoteRef& ref, const NoteData& d, R nr)
     {
         const bool selected = isSelected (ref.step, ref.note), muted = d.muted;
-        const float rad = std::min (4.0f, nr.getHeight() / 2);
-        g.setColour (muted ? col::faint.withAlpha (0.6f) : colour.withAlpha (0.45f + 0.55f * d.vel / 127.0f));
+        const float rad = std::min (6.0f, nr.getHeight() / 2);
+        // velocity as the note's strength (as the phone), a lighter top edge, the name inside when it fits
+        g.setColour (muted ? col::faint.withAlpha (0.6f) : colour.withAlpha (0.35f + 0.65f * d.vel / 127.0f));
         g.fillRoundedRectangle (nr, rad);
+        if (! muted && nr.getHeight() > 8)
+        {
+            g.setColour (juce::Colours::white.withAlpha (0.12f));
+            g.fillRoundedRectangle (nr.withHeight (std::min (3.0f, nr.getHeight() / 3)).reduced (rad * 0.5f, 0), 1.5f);
+        }
         if (nr.getWidth() > 10 && nr.getHeight() > 8)
         {
-            g.setColour (col::bg.withAlpha (0.55f));
+            g.setColour (col::bg.withAlpha (0.45f));
             g.drawLine (nr.getRight() - 4, nr.getY() + 3, nr.getRight() - 4, nr.getBottom() - 3, 1.5f);
         }
+        if (nr.getWidth() > 34 && nr.getHeight() >= 13 && ! d.locked)
+            paint::text (g, chords::noteName (d.note), nr.getX() + 6, nr.getCentreY() + 4, std::min (11.0f, nr.getHeight() - 3), Weight::Black,
+                         col::bg.withAlpha (0.8f));
         if (selected) { g.setColour (col::text); g.drawRoundedRectangle (nr.expanded (1.5f), rad + 1, 2.0f); }
         if (d.locked && nr.getWidth() > 14 && nr.getHeight() > 9) paint::lockIcon (g, nr.getX() + 7, nr.getCentreY(), std::min (9.0f, nr.getHeight() - 2), col::bg);
         fb.hot (nr, rad, Feedback::kHover);

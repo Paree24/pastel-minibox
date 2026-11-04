@@ -226,7 +226,10 @@ void PlayDrawer::paint (juce::Graphics& g)
         const auto b = box (2);
         panel (b, "ARP");
         const float onW = togglePill (b.getRight() - 12, b.getY() + 8, "On", ps.arpOn, colour, "arpOn");
-        togglePill (b.getRight() - 18 - onW, b.getY() + 8, "Latch", ps.arpLatch, colour, "latch");
+        const float latchW = togglePill (b.getRight() - 18 - onW, b.getY() + 8, "Latch", ps.arpLatch, colour, "latch");
+        // the track's own notes (steps or clip) through the arp while the pattern plays (the phone's "Arp the sequence")
+        const auto& seqTr = proj.patterns[(size_t) ctx.focusPattern()].slots[(size_t) ctx.focusTrack()].track;
+        togglePill (b.getRight() - 24 - onW - latchW, b.getY() + 8, "Sequence", seqTr.arp, colour, "arpSeq");
         seg ({ b.getX() + 14, b.getY() + 38, b.getWidth() - 28, 28 }, { "Up", "Down", "Up-Dn", "Dn-Up", "Rand", "Played" }, ps.arpMode, colour, "mode");
         pillAt (b.getX() + 14, b.getY() + 78, kRates[std::clamp (ps.arpRate, 0, 14)], false, colour, "rate", 86, true);
         const R well (b.getX() + 110, b.getY() + 76, b.getWidth() - 124, 58);
@@ -330,6 +333,12 @@ void PlayDrawer::mouseUp (const juce::MouseEvent& e)
     else if (id == "bass") ps.bassBelow = ! ps.bassBelow;
     else if (id == "arpOn") ps.arpOn = ! ps.arpOn;
     else if (id == "latch") ps.arpLatch = ! ps.arpLatch;
+    else if (id == "arpSeq")
+    {
+        auto& tr = ctx.engine.project().patterns[(size_t) ctx.focusPattern()].slots[(size_t) ctx.focusTrack()].track;
+        const Engine::ScopedEdit ed (ctx.engine);
+        tr.arp = ! tr.arp;
+    }
     else if (id == "mode") ps.arpMode = z->a;
     else if (id == "rate") { chooseRate(); return; }
     else if (id.endsWith ("menu"))
@@ -352,7 +361,7 @@ void PlayDrawer::refresh()
     juce::String s;
     s << ctx.focusTrack() << ctx.focusPattern() << (int) proj.scale.lock << proj.scale.root << proj.scale.scale << proj.scale.snap << (int) proj.scale.whiteKeys
       << (int) ps.chordOn << ps.inversion << (int) ps.invLower << (int) ps.bassBelow << (int) ps.arpOn << (int) ps.arpLatch << ps.arpMode << ps.arpRate
-      ;
+      << (int) proj.patterns[(size_t) ctx.focusPattern()].slots[(size_t) ctx.focusTrack()].track.arp;
     for (auto t : ps.chordType) s << (int) t;
     if (auto* d = ctx.focusDevice()) s << (int) d->type();
     if (s != sig) { sig = s; repaint(); }
