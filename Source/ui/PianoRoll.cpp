@@ -88,7 +88,11 @@ void PianoRoll::zoomRows (int delta)
 {
     // from the rows in view (folded, a few notes may already all fit): fewer rows = taller ones
     ctx.rollSettings.rows = std::clamp (rowsInView() + delta, 4, 48);
-    if (ctx.rollSettings.fold) rowOffset = std::clamp (rowOffset, 0, std::max (0, (int) rowNotes.size() - rowsInView()));
+    if (ctx.rollSettings.fold)
+    {
+        rowOffset = std::clamp (rowOffset, 0, std::max (0, (int) rowNotes.size() - rowsInView()));
+        if (! rowNotes.empty()) topNote = rowNotes[(size_t) rowOffset];
+    }
     topNote = std::clamp (topNote, rows() - 1, 127);
     repaint();
 }
@@ -179,18 +183,21 @@ void PianoRoll::buildRows()
     const auto& sc = ctx.engine.project().scale;
     const auto& facts = Scales::factoryScales();
     const auto pcs = Scales::pcSet (sc.root, facts[(size_t) std::clamp (sc.scale, 0, (int) facts.size() - 1)].intervals);
-    if (ctx.rollSettings.fold != wasFolded) { rowOffset = 0; wasFolded = ctx.rollSettings.fold; }
+    wasFolded = ctx.rollSettings.fold;
     if (ctx.rollSettings.fold)
     {
-        // only the pitches in use (plus, with Scale on, the scale's notes between them)
+        // folded: with Scale on, the scale's notes over the whole keyboard (as the phone; any note in use off it too),
+        // so the wheel reaches every pitch; with Scale off, only the pitches in use. The view keeps its place by its
+        // top note (as the other layouts), so a rebuild or a switch keeps where it was
         std::array<bool, 128> used {};
         const auto& tr = track();
         int lo = 127, hi = 0;
         forEachNote (tr, [&] (const NoteRef&, const NoteData& d) { used[(size_t) d.note] = true; lo = std::min (lo, d.note); hi = std::max (hi, d.note); });
         if (lo > hi) { lo = std::max (0, ctx.lastNote[(size_t) ctx.focusTrack()] - 6); hi = std::min (127, lo + 12); for (int n = lo; n <= hi; ++n) used[(size_t) n] = true; }
-        const int pad = ctx.rollSettings.scale ? 2 : 0;
-        for (int n = std::min (127, hi + pad); n >= std::max (0, lo - pad); --n)
+        for (int n = 127; n >= 0; --n)
             if (used[(size_t) n] || (ctx.rollSettings.scale && pcs[(size_t) (n % 12)])) rowNotes.push_back (n);
+        rowOffset = 0;
+        while (rowOffset < (int) rowNotes.size() - 1 && rowNotes[(size_t) rowOffset] > topNote) ++rowOffset;
         rowOffset = std::clamp (rowOffset, 0, std::max (0, (int) rowNotes.size() - rowsInView()));   // the last screen stays full
         return;
     }
@@ -972,7 +979,12 @@ void PianoRoll::mouseWheelMove (const juce::MouseEvent& e, const juce::MouseWhee
         ctx.followPlayhead = false;
         return;
     }
-    if (ctx.rollSettings.fold) rowOffset = std::clamp (rowOffset - dir * 2, 0, std::max (0, (int) rowNotes.size() - rowsInView()));
+    if (ctx.rollSettings.fold)
+    {
+        // by rows (two at a time): the top row's note is the view's place
+        rowOffset = std::clamp (rowOffset - dir * 2, 0, std::max (0, (int) rowNotes.size() - rowsInView()));
+        if (! rowNotes.empty()) topNote = rowNotes[(size_t) rowOffset];
+    }
     else topNote = juce::jlimit (rows() - 1, 127, topNote + dir * 2);
     repaint();
 }
@@ -1652,6 +1664,18 @@ bool PianoRoll::cursorKey (const juce::KeyPress& k)
             if (c.note > topNote) topNote = c.note;
             if (c.note < topNote - rows() + 1) topNote = c.note + rows() - 1;
         }
+        else if (const int row = rowForNote (c.note); row < 0)
+        {
+            // folded: the view follows the cursor by rows (its place is its top note)
+            const auto it = std::find (rowNotes.begin(), rowNotes.end(), c.note);
+            if (it != rowNotes.end())
+            {
+                const int i = (int) (it - rowNotes.begin());
+                const int off = i < rowOffset ? i : i - rowsInView() + 1;
+                topNote = rowNotes[(size_t) std::clamp (off, 0, std::max (0, (int) rowNotes.size() - 1))];
+                buildRows();
+            }
+        }
         preview (c.note); stopPreview();
         repaint();
         return true;
@@ -1663,7 +1687,7 @@ bool PianoRoll::cursorKey (const juce::KeyPress& k)
         // the note under the cursor (a note started earlier still covers the cell); Delete with nothing selected removes it
         NoteRef at;
         const int cT = keyCursor.step * stepT();
-        forEachVisible (track(), [&] (const NoteRef& ref, const NoteData& d, R)
+        forEachNote (track(), [&] (const NoteRef& ref, const NoteData& d)   // in view or not
         {
             if (ref.note == keyCursor.note && cT + stepT() > d.tick && cT < d.tick + std::max (d.len, 1)) at = ref;
         });

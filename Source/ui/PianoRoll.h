@@ -150,7 +150,7 @@ private:
     int visibleRows() const { return std::max (1, std::min (rows(), (int) rowNotes.size() - rowOffset)); }
     /** Rows in view: the zoom (folded, at most the rows there are). Their height follows only the zoom: scrolling never
         changes it (it did when fewer rows were left below than the view holds: the wheel looked like a zoom). */
-    int rowsInView() const { return ctx.rollSettings.fold ? std::max (1, std::min (rows(), (int) rowNotes.size())) : rows(); }
+    int rowsInView() const { return rows(); }   // fewer rows than that (folded to the pitches in use) leave room below
     float rowH() const { return grid().getHeight() / (float) rowsInView(); }
     int rowForNote (int note) const;
     int noteForRow (int row) const;

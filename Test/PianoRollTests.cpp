@@ -534,3 +534,59 @@ MB_TEST (pianoroll_wheel_scrolls_and_zooms)
         ctx.check (r.roll.visibleSteps() < steps0 && std::abs (r.roll.rowHeight() - h1) < 0.01f, what + "Ctrl over the grid zooms time in");
     }
 }
+
+/** Folded to the scale, a track whose few notes all fit in view still scrolls: the rows are the scale's notes over
+    the whole keyboard (as the phone), so the wheel reaches pitches above and below the notes (it did nothing). */
+MB_TEST (pianoroll_folded_scrolls_past_the_notes)
+{
+    RollRig r;
+    r.ctx.rollSettings.fold = r.ctx.rollSettings.scale = true;
+    r.tr().pianoRoll = true;
+    for (int n : { 60, 64, 67 }) { ClipNote c; c.start = 0; c.length = 480; c.note = (uint8_t) n; r.tr().addClipNote (c); }
+    r.roll.createComponentSnapshot (r.roll.getLocalBounds());
+    auto wheel = [&] (float dy)
+    {
+        juce::MouseWheelDetails w {}; w.deltaY = dy;
+        const auto p = r.cell (4, r.roll.noteAtRow (3));
+        r.roll.mouseWheelMove (r.ev (p, {}, p), w);
+        r.roll.createComponentSnapshot (r.roll.getLocalBounds());
+    };
+    const int top0 = r.roll.noteAtRow (0);
+    const float h0 = r.roll.rowHeight();
+    for (int k = 0; k < 10; ++k) wheel (0.2f);   // up
+    const int up = r.roll.noteAtRow (0);
+    for (int k = 0; k < 30; ++k) wheel (-0.2f);  // down
+    const int down = r.roll.noteAtRow (0);
+    ctx.check (up > top0 + 12 && up > 80, "up past the notes: top " + juce::String (top0) + " -> " + juce::String (up));
+    ctx.check (down < 60, "down past the notes: top " + juce::String (down));
+    ctx.check (std::abs (r.roll.rowHeight() - h0) < 0.01f, "rows keep their height");
+}
+
+/** Inserting a note never zooms: folded to the pitches in use, a first note left one row that filled the roll (and
+    the rows' zoom stopped at the rows there were). Rows keep the zoom's height; Ctrl+wheel over the keys still zooms. */
+MB_TEST (pianoroll_insert_keeps_zoom)
+{
+    for (bool scale : { false, true })
+    {
+        RollRig r;
+        r.ctx.rollSettings.fold = true; r.ctx.rollSettings.scale = scale;
+        r.tr().pianoRoll = true;
+        r.roll.createComponentSnapshot (r.roll.getLocalBounds());
+        const float h0 = r.roll.rowHeight();
+        r.click (r.cell (2, r.roll.noteAtRow (4)));   // draw a note
+        r.roll.createComponentSnapshot (r.roll.getLocalBounds());
+        const juce::String what = scale ? "scale rows: " : "pitches in use: ";
+        ctx.check ((int) r.tr().clip.size() == 1, what + "a note added");
+        ctx.check (std::abs (r.roll.rowHeight() - h0) < 0.01f, what + "the rows keep their height (" + juce::String (h0, 1) + " -> " + juce::String (r.roll.rowHeight(), 1) + ")");
+        juce::MouseWheelDetails w {}; w.deltaY = 0.2f;
+        const juce::Point<float> keys (20.0f, r.roll.pointFor (2, r.roll.noteAtRow (0)).y);
+        r.roll.mouseWheelMove (r.ev (keys, juce::ModifierKeys::ctrlModifier, keys), w);
+        r.roll.createComponentSnapshot (r.roll.getLocalBounds());
+        const float hin = r.roll.rowHeight();
+        w.deltaY = -0.2f;
+        for (int k = 0; k < 3; ++k) r.roll.mouseWheelMove (r.ev (keys, juce::ModifierKeys::ctrlModifier, keys), w);
+        r.roll.createComponentSnapshot (r.roll.getLocalBounds());
+        ctx.check (hin > h0 + 0.5f && r.roll.rowHeight() < hin - 0.5f, what + "Ctrl+wheel over the keys zooms in and out (" + juce::String (h0, 1) + " -> "
+                   + juce::String (hin, 1) + " -> " + juce::String (r.roll.rowHeight(), 1) + ")");
+    }
+}
