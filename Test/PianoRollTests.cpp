@@ -498,3 +498,39 @@ MB_TEST (pianoroll_transpose_buttons)
     r.roll.transposeBy (1, false);
     ctx.check (r.tr().steps[0].hasNote (57), "unlocked: +1 is a semitone");
 }
+
+/** The wheel: plainly it scrolls the notes (the rows keep their height, folded to the scale too); Ctrl over the keys
+    zooms the rows, Ctrl over the grid (or the bar ruler) zooms time. */
+MB_TEST (pianoroll_wheel_scrolls_and_zooms)
+{
+    for (bool fold : { true, false })
+    {
+        RollRig r;
+        r.ctx.rollSettings.fold = r.ctx.rollSettings.scale = fold;
+        for (int n = 60; n <= 74; n += 2) { ClipNote c; c.start = 0; c.length = 480; c.note = (uint8_t) n; r.tr().pianoRoll = true; r.tr().addClipNote (c); }
+        r.roll.createComponentSnapshot (r.roll.getLocalBounds());   // lays the rows out
+        auto wheel = [&] (juce::Point<float> p, float dy, juce::ModifierKeys mods = {})
+        {
+            juce::MouseWheelDetails w {}; w.deltaY = dy;
+            r.roll.mouseWheelMove (r.ev (p, mods, p), w);
+            r.roll.createComponentSnapshot (r.roll.getLocalBounds());
+        };
+        const juce::String what = fold ? "folded: " : "chromatic: ";
+        const auto gridP = r.cell (4, 60), keysP = juce::Point<float> (20.0f, gridP.y);
+        const int steps0 = r.roll.visibleSteps();
+        const float h0 = r.roll.rowHeight();
+        // Ctrl over the keys: taller rows (folded, all the rows fitted: now they don't, there is something to scroll)
+        for (int k = 0; k < 3; ++k) wheel (keysP, 0.2f, juce::ModifierKeys::ctrlModifier);
+        const float h1 = r.roll.rowHeight();
+        ctx.check (h1 > h0 + 0.5f && r.roll.visibleSteps() == steps0, what + "Ctrl over the keys zooms the rows in (" + juce::String (h0, 1) + " -> " + juce::String (h1, 1) + ")");
+        // the wheel alone: scrolls, the rows keep their height down to the last ones
+        const int top0 = r.roll.noteAtRow (0);
+        for (int k = 0; k < 12; ++k) wheel (gridP, -0.2f);   // down, past the end of the rows
+        ctx.check (r.roll.noteAtRow (0) < top0 && std::abs (r.roll.rowHeight() - h1) < 0.01f && r.roll.visibleSteps() == steps0,
+                   what + "the wheel scrolls down, no zoom (top " + juce::String (top0) + " -> " + juce::String (r.roll.noteAtRow (0))
+                   + ", row height " + juce::String (h1, 1) + " -> " + juce::String (r.roll.rowHeight(), 1) + ")");
+        // Ctrl over the grid: time
+        wheel (r.cell (4, r.roll.noteAtRow (2)), 0.2f, juce::ModifierKeys::ctrlModifier);
+        ctx.check (r.roll.visibleSteps() < steps0 && std::abs (r.roll.rowHeight() - h1) < 0.01f, what + "Ctrl over the grid zooms time in");
+    }
+}

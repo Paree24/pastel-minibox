@@ -42,7 +42,10 @@ public:
     void zoomRows (int delta);
     /** Loop playback on / off (a range: Shift-drag in the ruler; the bars in view when none is set). */
     void toggleLoop();
-    int rows() const { return std::clamp (ctx.rollSettings.rows, 8, 48); }
+    int rows() const { return std::clamp (ctx.rollSettings.rows, 4, 48); }
+    /** The note on a row in view (0 = top), and how many rows the view holds (its vertical zoom; tests). */
+    int noteAtRow (int row) const { return noteForRow (row); }
+    float rowHeight() const { return rowH(); }
     /** The keyboard cursor's step (the clip lanes edit there by keys). */
     int cursorStep() const { return keyCursor.step; }
     void moveCursorStep (int d) { keyCursor.step = std::clamp (keyCursor.step + d, 0, std::max (0, totalSteps() - 1)); if (keyCursor.step < firstStep() || keyCursor.step >= firstStep() + visibleSteps()) setFirstStep (keyCursor.step - visibleSteps() / 2); repaint(); }
@@ -145,7 +148,10 @@ private:
     bool wasFolded = false;
     void buildRows();
     int visibleRows() const { return std::max (1, std::min (rows(), (int) rowNotes.size() - rowOffset)); }
-    float rowH() const { return grid().getHeight() / (float) (ctx.rollSettings.fold ? visibleRows() : rows()); }
+    /** Rows in view: the zoom (folded, at most the rows there are). Their height follows only the zoom: scrolling never
+        changes it (it did when fewer rows were left below than the view holds: the wheel looked like a zoom). */
+    int rowsInView() const { return ctx.rollSettings.fold ? std::max (1, std::min (rows(), (int) rowNotes.size())) : rows(); }
+    float rowH() const { return grid().getHeight() / (float) rowsInView(); }
     int rowForNote (int note) const;
     int noteForRow (int row) const;
     juce::Rectangle<float> noteRect (const NoteData&) const;

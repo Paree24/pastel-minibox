@@ -128,9 +128,9 @@ Ghosts · Zoom − / + / Fit · Undo · Redo · Follow. Above the notes a ruler 
 ## Zoom and scroll
 | # | Function | How | Status |
 |---|---|---|---|
-| 58 | Zoom in / out (time) | toolbar − / +, Ctrl+wheel (around the mouse), Ctrl+= / Ctrl+−; from a quarter bar to the whole pattern | done |
+| 58 | Zoom in / out (time) | toolbar − / +, Ctrl+wheel over the grid or the ruler (around the mouse), Ctrl+= / Ctrl+−; from a quarter bar to the whole pattern | done |
 | 59 | Zoom to fit | toolbar *Fit*, Ctrl+0, double-click the ruler: the whole pattern in view | done |
-| 60 | Note height | Alt+wheel, Ctrl+Shift+= / Ctrl+Shift+−: fewer (taller) or more rows | done |
+| 60 | Note height | Ctrl+wheel over the keys, Alt+wheel, Ctrl+Shift+= / Ctrl+Shift+−: fewer (taller) or more rows (folded too; scrolling never changes them) | done |
 | 61 | Ruler | bar and beat numbers above the notes; drag sideways to scroll, up / down to zoom (around the point) | done |
 | 62 | Scroll | wheel: pitch; Shift+wheel or a sideways swipe: time; the scroll bar under the notes (drag it, click beside it) | done |
 | 63 | The view while editing | dragging notes or a box past the edge scrolls the view | done |

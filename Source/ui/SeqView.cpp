@@ -27,7 +27,7 @@ SeqView::SeqView (AppContext& c) : ctx (c), roll (c)
 {
     setTooltip ("Click a step to toggle it (drag to paint)   Drag values   Right-click: clear a value");
     roll.setTooltip ("Click: add a note (drag for its length) or select one   Drag: move (Ctrl: copy, Alt: off the grid)   Drag the ends: length   "
-                     "Shift/Ctrl-drag: select   Ctrl+wheel: zoom   Alt+wheel: note height   Ruler: drag to scroll / zoom");
+                     "Shift/Ctrl-drag: select   Wheel: scroll (Shift: time)   Ctrl+wheel: zoom time (over the keys: note height)   Ruler: drag to scroll / zoom");
     addChildComponent (roll);
     fb.cursorFor = [this] (juce::Point<float> p)
     {

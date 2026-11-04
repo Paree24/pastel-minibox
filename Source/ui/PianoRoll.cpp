@@ -86,7 +86,9 @@ void PianoRoll::zoomToFit()
 
 void PianoRoll::zoomRows (int delta)
 {
-    ctx.rollSettings.rows = std::clamp (rows() + delta, 8, 48);
+    // from the rows in view (folded, a few notes may already all fit): fewer rows = taller ones
+    ctx.rollSettings.rows = std::clamp (rowsInView() + delta, 4, 48);
+    if (ctx.rollSettings.fold) rowOffset = std::clamp (rowOffset, 0, std::max (0, (int) rowNotes.size() - rowsInView()));
     topNote = std::clamp (topNote, rows() - 1, 127);
     repaint();
 }
@@ -189,7 +191,7 @@ void PianoRoll::buildRows()
         const int pad = ctx.rollSettings.scale ? 2 : 0;
         for (int n = std::min (127, hi + pad); n >= std::max (0, lo - pad); --n)
             if (used[(size_t) n] || (ctx.rollSettings.scale && pcs[(size_t) (n % 12)])) rowNotes.push_back (n);
-        rowOffset = std::clamp (rowOffset, 0, std::max (0, (int) rowNotes.size() - 1));
+        rowOffset = std::clamp (rowOffset, 0, std::max (0, (int) rowNotes.size() - rowsInView()));   // the last screen stays full
         return;
     }
     topNote = std::clamp (topNote, rows() - 1, 127);
@@ -954,15 +956,23 @@ void PianoRoll::mouseWheelMove (const juce::MouseEvent& e, const juce::MouseWhee
 {
     const float d = std::abs (w.deltaY) >= std::abs (w.deltaX) ? w.deltaY : w.deltaX;
     const int dir = d > 0 ? 1 : -1;
-    if (e.mods.isCommandDown() || e.mods.isCtrlDown()) { zoomTime (dir > 0 ? 0.8 : 1.25, e.position.x); return; }   // time zoom around the mouse
-    if (e.mods.isAltDown()) { zoomRows (dir > 0 ? -2 : 2); return; }                                                 // note height
+    // Ctrl (Cmd) + wheel zooms the axis under the mouse: over the keys the rows (note height), over the grid or the
+    // bar ruler the time (around the mouse); Alt + wheel zooms the rows anywhere. The wheel alone scrolls.
+    const bool overKeys = e.position.x < kKeysW + kGap;
+    if (e.mods.isCommandDown() || e.mods.isCtrlDown())
+    {
+        if (overKeys) zoomRows (dir > 0 ? -2 : 2);
+        else zoomTime (dir > 0 ? 0.8 : 1.25, e.position.x);
+        return;
+    }
+    if (e.mods.isAltDown()) { zoomRows (dir > 0 ? -2 : 2); return; }
     if (e.mods.isShiftDown() || std::abs (w.deltaX) > std::abs (w.deltaY))
     {
         setFirstStep (firstStep() - dir * std::max (1, visibleSteps() / 16));   // through time
         ctx.followPlayhead = false;
         return;
     }
-    if (ctx.rollSettings.fold) rowOffset = std::max (0, rowOffset - dir * 2);
+    if (ctx.rollSettings.fold) rowOffset = std::clamp (rowOffset - dir * 2, 0, std::max (0, (int) rowNotes.size() - rowsInView()));
     else topNote = juce::jlimit (rows() - 1, 127, topNote + dir * 2);
     repaint();
 }
