@@ -184,6 +184,11 @@ void PianoRoll::buildRows()
     const auto& facts = Scales::factoryScales();
     const auto pcs = Scales::pcSet (sc.root, facts[(size_t) std::clamp (sc.scale, 0, (int) facts.size() - 1)].intervals);
     wasFolded = ctx.rollSettings.fold;
+    {
+        juce::String key;
+        key << pattern() << "/" << ctx.focusTrack() << "/" << (int) ctx.rollSettings.fold << (int) ctx.rollSettings.scale << (int) sc.lock << "/" << sc.root << "/" << sc.scale;
+        if (key != stickyKey) { stickyKey = key; stickyRows.fill (false); }
+    }
     if (ctx.rollSettings.fold)
     {
         // folded: with Scale on, the scale's notes over the whole keyboard (as the phone; any note in use off it too),
@@ -193,9 +198,11 @@ void PianoRoll::buildRows()
         const auto& tr = track();
         int lo = 127, hi = 0;
         forEachNote (tr, [&] (const NoteRef&, const NoteData& d) { used[(size_t) d.note] = true; lo = std::min (lo, d.note); hi = std::max (hi, d.note); });
-        if (lo > hi) { lo = std::max (0, ctx.lastNote[(size_t) ctx.focusTrack()] - 6); hi = std::min (127, lo + 12); for (int n = lo; n <= hi; ++n) used[(size_t) n] = true; }
+        // an empty track: without Scale, an octave around the last note played (with Scale its rows are there already)
+        if (lo > hi && ! ctx.rollSettings.scale) { lo = std::max (0, ctx.lastNote[(size_t) ctx.focusTrack()] - 6); hi = std::min (127, lo + 12); for (int n = lo; n <= hi; ++n) used[(size_t) n] = true; }
+        for (int n = 0; n < 128; ++n) stickyRows[(size_t) n] = stickyRows[(size_t) n] || used[(size_t) n];
         for (int n = 127; n >= 0; --n)
-            if (used[(size_t) n] || (ctx.rollSettings.scale && pcs[(size_t) (n % 12)])) rowNotes.push_back (n);
+            if (stickyRows[(size_t) n] || (ctx.rollSettings.scale && pcs[(size_t) (n % 12)])) rowNotes.push_back (n);
         rowOffset = 0;
         while (rowOffset < (int) rowNotes.size() - 1 && rowNotes[(size_t) rowOffset] > topNote) ++rowOffset;
         rowOffset = std::clamp (rowOffset, 0, std::max (0, (int) rowNotes.size() - rowsInView()));   // the last screen stays full
@@ -208,7 +215,8 @@ void PianoRoll::buildRows()
         std::array<bool, 128> used {};
         const auto& tr = track();
         forEachNote (tr, [&] (const NoteRef&, const NoteData& d) { used[(size_t) d.note] = true; });
-        for (int n = 127; n >= 0; --n) if (pcs[(size_t) (n % 12)] || used[(size_t) n]) rowNotes.push_back (n);
+        for (int n = 0; n < 128; ++n) stickyRows[(size_t) n] = stickyRows[(size_t) n] || used[(size_t) n];
+        for (int n = 127; n >= 0; --n) if (pcs[(size_t) (n % 12)] || stickyRows[(size_t) n]) rowNotes.push_back (n);
         rowOffset = 0;
         while (rowOffset < (int) rowNotes.size() - 1 && rowNotes[(size_t) rowOffset] > topNote) ++rowOffset;
         rowOffset = std::clamp (rowOffset, 0, std::max (0, (int) rowNotes.size() - rows()));

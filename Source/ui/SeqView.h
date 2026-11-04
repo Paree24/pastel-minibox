@@ -24,6 +24,8 @@ public:
     void setStepsView (bool steps) { stepsView = steps; refresh(); repaint(); }
     /** The clip lane under the notes: −1 velocity, else a controller lane (tests, screenshots). */
     void showLane (int lane) { clipLane = lane; repaint(); }
+    /** The piano roll (tests). */
+    PianoRoll& pianoRoll() { return roll; }
     /** Where the last menu opened (tests). */
     juce::Rectangle<float> lastMenuArea() const { return menuArea; }
 

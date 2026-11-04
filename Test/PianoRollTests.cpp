@@ -1,5 +1,7 @@
 #include "Tests.h"
 #include "ui/PianoRoll.h"
+#include "app/MainComponent.h"
+#include "app/presets/PresetBank.h"
 
 using namespace mb;
 using namespace mb::ui;
@@ -589,4 +591,67 @@ MB_TEST (pianoroll_insert_keeps_zoom)
         ctx.check (hin > h0 + 0.5f && r.roll.rowHeight() < hin - 0.5f, what + "Ctrl+wheel over the keys zooms in and out (" + juce::String (h0, 1) + " -> "
                    + juce::String (hin, 1) + " -> " + juce::String (r.roll.rowHeight(), 1) + ")");
     }
+}
+
+/** Adding and removing notes never moves the roll (the phone's rows depend only on the scale): a row's pitch and
+    place stay through a first note on an empty track, a note off the scale removed, and Scale off (pitches in use). */
+MB_TEST (pianoroll_rows_stay_while_editing)
+{
+    for (bool scale : { true, false })
+    {
+        RollRig r;
+        r.ctx.rollSettings.fold = true; r.ctx.rollSettings.scale = scale;
+        r.tr().pianoRoll = true;
+        if (! scale) for (int n : { 60, 63, 67 }) { ClipNote c; c.start = 0; c.length = 240; c.note = (uint8_t) n; r.tr().addClipNote (c); }
+        r.roll.createComponentSnapshot (r.roll.getLocalBounds());
+        auto rowsNow = [&] { std::vector<int> v; for (int i = 0; i < r.roll.rows(); ++i) v.push_back (r.roll.noteAtRow (i)); return v; };
+        auto show = [] (const std::vector<int>& v) { juce::String s; for (int n : v) s << n << " "; return s; };
+        const auto before = rowsNow();
+        r.click (r.cell (6, r.roll.noteAtRow (3)));   // a new note on row 3
+        r.roll.createComponentSnapshot (r.roll.getLocalBounds());
+        const juce::String what = scale ? "scale rows: " : "pitches in use: ";
+        ctx.check ((int) r.tr().clip.size() == (scale ? 1 : 4), what + "a note added");
+        ctx.check (rowsNow() == before, what + "rows stay after adding (" + show (before) + "-> " + show (rowsNow()) + ")");
+        // an off-scale note (or one of the pitches in use) removed: its row stays while editing
+        if (! scale)
+        {
+            for (auto& c : r.tr().clip) if (c.note == 63) { r.tr().removeClipNote (c.id); break; }
+            r.roll.createComponentSnapshot (r.roll.getLocalBounds());
+            ctx.check (rowsNow() == before, what + "rows stay after removing (" + show (before) + "-> " + show (rowsNow()) + ")");
+        }
+    }
+}
+
+/** In the app (MainComponent, the Seq page): drawing notes never moves the roll (it did; the phone's was fixed). */
+MB_TEST (pianoroll_app_draw_keeps_view)
+{
+    Engine e;
+    e.prepare (48000.0, 512);
+    auto d = createDevice (DeviceType::Poly);
+    presets::loadDefault (*d, true);
+    e.setDevice (0, 1, std::move (d));
+    auto& tr = e.project().patterns[0].slots[1].track;
+    tr.pianoRoll = true;
+    e.project().patterns[0].lengthBars = 2;
+    MainComponent mc (e);
+    mc.setSize (1600, 1000);
+    mc.showPage (1, 1);
+    mc.refreshAll();
+    mc.createComponentSnapshot (mc.getLocalBounds());
+    auto& roll = mc.seqView().pianoRoll();
+    mc.context().rollSettings.tool = 1;   // Draw
+    auto snap = [&] { mc.refreshAll(); mc.createComponentSnapshot (mc.getLocalBounds()); };
+    auto view = [&] { juce::String s; s << roll.firstStep() << "/" << roll.visibleSteps() << " rows"; for (int i = 0; i < roll.rows(); ++i) s << " " << roll.noteAtRow (i); return s; };
+    auto ev = [&] (juce::Point<float> p) { const auto now = juce::Time::getCurrentTime(); return juce::MouseEvent (juce::Desktop::getInstance().getMainMouseSource(), p, {}, 0, 0, 0, 0, 0, &roll, &roll, now, p, now, 1, false); };
+    const auto v0 = view();
+    juce::String moved;
+    for (int k = 0; k < 6; ++k)
+    {
+        const auto p = roll.pointFor (1 + k * 3, roll.noteAtRow (2 + k * 2));
+        roll.mouseDown (ev (p)); roll.mouseUp (ev (p));
+        snap();
+        if (view() != v0 && moved.isEmpty()) moved << "after note " << (k + 1) << ": " << v0 << "  ->  " << view();
+    }
+    ctx.check ((int) tr.clip.size() == 6, "six notes drawn (" + juce::String ((int) tr.clip.size()) + ")");
+    ctx.check (moved.isEmpty(), "the view stays: " + moved);
 }

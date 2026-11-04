@@ -146,6 +146,10 @@ private:
     std::vector<int> rowNotes;   // descending
     int rowOffset = 0;
     bool wasFolded = false;
+    // rows beyond the scale (a note off it, or a pitch in use when folded without Scale) stay while editing: adding or
+    // removing notes never adds or drops a row (the view moved); they reset with the track, pattern, scale or layout
+    std::array<bool, 128> stickyRows {};
+    juce::String stickyKey;
     void buildRows();
     int visibleRows() const { return std::max (1, std::min (rows(), (int) rowNotes.size() - rowOffset)); }
     /** Rows in view: the zoom (folded, at most the rows there are). Their height follows only the zoom: scrolling never
