@@ -19,6 +19,13 @@ Each track of a pattern holds **one** kind of sequence:
 - Swing (the project's) is on **1/16 or 1/8 notes** (Swing menu; the phone's Tempo sheet), not on the pattern's
   steps: in each pair the off-beat note plays late, one between in proportion, whatever the step resolution. 1/8
   hats only swing on 1/8. Steps, clip notes, drum rolls and the DAWproject export all use it (Project::swungQuarters).
+- **Step grid** (synth steps, both apps; seq/StepGrid.h, mockups/png/synthseq_option_a.png in minibox-android): the drum
+  sequencer's shape for synths. Steps against the scale's seven notes; modes **Notes** (click / tap a cell: that note
+  on or off; a drag paints along the row or column; a mono synth replaces, a poly one builds chords), **Length** (drag a
+  note's end: whole steps), **Octave** (an octave sequencer: each step's octave 0-8, counted from the scale's root;
+  ‹ All › shifts every step), **Accent**, **Glide** (click or paint over the notes). A new note takes the line's
+  octave. A note off the scale sits on the degree below, outlined. Right-click (desktop) / long-press (phone): the
+  step's chord and settings. The lanes under the desktop grid: velocity, chance, ratchet, condition, lock.
 - **Arp the sequence** (Track::arp; Chords menu → Arp; the phone's piano-roll Arp button opens the Arp sheet with
   the switch): the track's notes, steps or clip, play through its arpeggiator as held keys, with the Arp settings as
   they are now (a change is heard at once); the notes stay as written. The DAWproject export bakes it in.

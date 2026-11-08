@@ -1,5 +1,7 @@
 #include "SeqView.h"
 #include "seq/Chords.h"
+#include "seq/StepGrid.h"
+#include <set>
 #include <climits>
 
 namespace mb::ui
@@ -47,6 +49,56 @@ void SeqView::mouseMove (const juce::MouseEvent& e)
     const auto t = locate (e.position);
     const int s = t.kind == Target::StepNote ? ctx.viewBar * spb() + t.b : -1;
     if (s != hoverStep) { hoverStep = s; repaint(); }
+}
+
+void SeqView::gridApply (int step)
+{
+    auto& proj = ctx.engine.project();
+    const int pat = ctx.focusPattern(), tri = ctx.focusTrack();
+    if (step < 0 || step >= proj.patternSteps (pat) || step == gridLastStep) return;
+    gridLastStep = step;
+    auto& tr = track (tri);
+    auto& st = tr.steps[(size_t) step];
+    auto* dev = ctx.focusDevice();
+    const stepgrid::Scale sc (proj.scale);
+    const int value = gridRows() - 1 - gridRow;
+    {
+        const Engine::ScopedEdit ed (ctx.engine);
+        if (gridMode == 0)
+        {
+            if (std::find (gridDone.begin(), gridDone.end(), step) != gridDone.end()) return;
+            gridDone.push_back (step);
+            if ((stepgrid::noteOnDegree (st, value, sc) >= 0) != gridStrokeOn)
+            {
+                // a new note on an empty step takes the line's octave (the nearest note before it, else after it)
+                int oct = -1;
+                for (int s = step - 1; s >= 0 && oct < 0; --s) oct = stepgrid::octaveOf (tr.steps[(size_t) s], sc);
+                for (int s = step + 1; s < proj.patternSteps (pat) && oct < 0; ++s) oct = stepgrid::octaveOf (tr.steps[(size_t) s], sc);
+                if (oct < 0) oct = stepgrid::placeOf (ctx.lastNote[(size_t) tri], sc).octave;
+                const bool mono = dev != nullptr && (dev->type() == DeviceType::Mono || dev->type() == DeviceType::Acid);
+                if (stepgrid::toggle (st, value, oct, sc, mono, ctx.lastVel[(size_t) tri]))
+                {
+                    const int n = stepgrid::noteOnDegree (st, value, sc);
+                    if (previewNote >= 0) ctx.engine.injectNote (tri, previewNote, 0.0f, false, pat, true);
+                    previewNote = n;   // heard while the mouse is down
+                    ctx.engine.injectNote (tri, n, 0.8f, true, pat, true);
+                    ctx.lastNote[(size_t) tri] = n;
+                }
+            }
+        }
+        else if (gridMode == 1) { if (gridLengthFrom >= 0) stepgrid::setLengthSteps (tr.steps[(size_t) gridLengthFrom], step - gridLengthFrom + 1); }
+        else if (st.noteCount > 0)
+        {
+            if (gridMode == 2) stepgrid::setOctave (st, value, sc);
+            else
+            {
+                const uint8_t f = gridMode == 3 ? kAccent : kSlide;
+                st.flags = (uint8_t) (gridStrokeOn ? (st.flags | f) : (st.flags & ~f));
+            }
+        }
+    }
+    ctx.markDirty();
+    repaint();
 }
 
 void SeqView::showStepMenu (int step, bool chordsOnly)
@@ -122,6 +174,13 @@ bool SeqView::keyOnTarget (const Target& t, const juce::KeyPress& k)
     auto edit = [&] (auto&& fn) { ctx.snapshot (pat); { const Engine::ScopedEdit ed (ctx.engine); fn(); } ctx.markDirty(); repaint(); roll.repaint(); return true; };
     switch (t.kind)
     {
+        case Target::Grid:
+        {
+            // a grid cell: Delete clears its step (Enter is a click: the cell's edit; right-click: its menu)
+            auto& st = tr.steps[(size_t) (ctx.viewBar * spb() + t.b)];
+            if ((code == juce::KeyPress::deleteKey || code == juce::KeyPress::backspaceKey) && st.noteCount > 0) return edit ([&] { st.clear(); });
+            return false;
+        }
         case Target::StepNote:
         {
             // a note cell: ↑ / ↓ its pitch (Shift: an octave); Delete clears it (right-click opens its menu)
@@ -158,7 +217,7 @@ bool SeqView::keyOnTarget (const Target& t, const juce::KeyPress& k)
                 });
             }
             if (st.noteCount == 0 || lane == 4) return false;
-            if ((lane == 2 || lane == 3) && acid) return edit ([&] { st.flags ^= (lane == 2 ? kAccent : kSlide); });
+            if ((lane == 2 || lane == 3) && acid && t.kind != Target::StepLane) return edit ([&] { st.flags ^= (lane == 2 ? kAccent : kSlide); });
             return edit ([&]
             {
                 if (lane == 0) st.setVelocity (juce::jlimit (1, 127, (int) st.velocity() + dir * (fine ? 1 : 8)));
@@ -237,8 +296,21 @@ R SeqView::laneArea (int lane) const
     return { roll.getX(), roll.getBottom() + 12 + lane * 40.0f, roll.getWidth(), 34 };
 }
 
-R SeqView::notesArea() const { return { M + 16 + 108, kDetailY + 60, W - 2 * M - 32 - 108, 190 }; }
-R SeqView::stepLaneArea (int lane) const { const auto n = notesArea(); return { n.getX(), n.getBottom() + 18 + lane * 46.0f, n.getWidth(), 38 }; }
+// the step grid (under its mode tabs), then the lanes: velocity, chance, ratchet, condition, lock (lane 1, the gate,
+// is the grid's Length now; accent and slide its Accent and Glide)
+R SeqView::notesArea() const { return { M + 16 + 108, kDetailY + 92, W - 2 * M - 32 - 108, 180 }; }
+R SeqView::stepLaneArea (int lane) const
+{
+    if (lane == 1) return {};
+    const auto n = notesArea();
+    const int row = lane == 0 ? 0 : lane - 1;
+    return { n.getX(), n.getBottom() + 16 + row * 44.0f, n.getWidth(), 36 };
+}
+int SeqView::gridRows() const
+{
+    if (gridMode == 2) return stepgrid::kOctaves;
+    return stepgrid::Scale (ctx.engine.project().scale).degrees();
+}
 R SeqView::clipLaneArea() const { const auto r = rollArea(); return { r.getX(), r.getBottom() + 18, r.getWidth(), 90 }; }
 
 bool SeqView::rollView() const
@@ -716,46 +788,110 @@ void SeqView::paintStepsView (juce::Graphics& g, Track& tr, DeviceProcessor& dev
         toolZones.push_back ({ b, k == 0 ? TUndo : TRedo });
         fb.hot (b, 13);
     }
+    // the step grid (seq/StepGrid.h; the phone's Seq, mockups/png/synthseq_option_a.png): its modes, then steps
+    // across the scale's notes (Octave: across the octaves 0-8)
     const auto na = notesArea();
-    paint::text (g, "Notes", lx, na.getCentreY() + 4, 11, Weight::Bold, col::quiet, juce::Justification::right);
+    const stepgrid::Scale sc (ctx.engine.project().scale);
+    gridModeRects = paint::segmented (g, { na.getX(), kDetailY + 56, 440, 28 }, { "Notes", "Length", "Octave", "Accent", "Glide" }, gridMode, col::text, 11);
+    for (auto& r : gridModeRects) fb.hot (r.reduced (2));
+    gridShiftR[0] = gridShiftR[1] = {};
+    if (gridMode == 2)
+        for (int k = 0; k < 2; ++k)
+        {
+            const float pw = paint::pill (g, na.getX() + 456 + k * 70, kDetailY + 57, k == 0 ? juce::String::fromUTF8 ("\xe2\x80\xb9 All") : juce::String::fromUTF8 ("All \xe2\x80\xba"),
+                                          11, col::control, col::text, 26, 12, Weight::Bold);
+            gridShiftR[k] = { na.getX() + 456 + k * 70, kDetailY + 57, pw, 26 };
+            fb.hot (gridShiftR[k], 13);
+        }
+    const int rows = gridRows();
+    const float rh = na.getHeight() / rows;
+    const bool octMode = gridMode == 2;
+    static const char* pcNames[12] = { "C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B" };
+    auto rowRect = [&] (int r) { return R (na.getX(), na.getY() + r * rh + 2, na.getWidth(), rh - 4); };
+    auto rowOf = [&] (int value) { return rows - 1 - value; };   // the root (octave 0) at the bottom
+    const float pitch = steps > 1 ? stepCell (na, 1, steps, 6).getX() - stepCell (na, 0, steps, 6).getX() : na.getWidth();
+    std::set<int> usedOct;
+    for (int s = 0; s < (int) tr.steps.size() && s < ctx.engine.project().patternSteps (ctx.focusPattern()); ++s)
+        if (tr.steps[(size_t) s].noteCount) usedOct.insert (stepgrid::octaveOf (tr.steps[(size_t) s], sc));
+    for (int r = 0; r < rows; ++r)
+    {
+        const int v = rows - 1 - r;
+        const bool tint = octMode ? usedOct.count (v) > 0 : v == 0;
+        const auto rr = rowRect (r);
+        if (tint) { g.setColour (colour.withAlpha (0.22f)); g.fillRoundedRectangle (lx - 40, rr.getY(), 44, rr.getHeight(), 7); }
+        paint::text (g, octMode ? juce::String (v) : juce::String (pcNames[(sc.root + sc.iv[(size_t) v]) % 12]), lx, rr.getCentreY() + 4, 11, Weight::Black,
+                     tint ? colour : col::quiet, juce::Justification::right);
+        for (int i = 0; i < steps; ++i)
+        {
+            const auto c = stepCell (rr, i, steps, 6);
+            const bool empty = tr.steps[(size_t) (first + i)].noteCount == 0;
+            g.setColour (((i / 4) % 2 == 0 ? col::control : col::altCell).withAlpha (octMode && empty ? 0.45f : 1.0f));
+            g.fillRoundedRectangle (c, 6);
+            fb.hot (c, 6);
+        }
+    }
+    // the notes: on their row, a bar as long as they ring (Notes, Length), lit by accent / glide in those modes
     for (int i = 0; i < steps; ++i)
     {
-        const auto c = stepCell (na, i, steps, 6);
         const auto& st = tr.steps[(size_t) (first + i)];
-        const bool on = st.noteCount > 0;
-        g.setColour (on ? colour.withAlpha (0.45f + 0.55f * st.velocity() / 127.0f) : ((i / 4) % 2 == 0 ? col::control : col::altCell));
-        g.fillRoundedRectangle (c, 10);
-        fb.hot (c, 10);
-        if (on)
+        if (st.noteCount == 0) continue;
+        const int lenSteps = stepgrid::lengthSteps (st);
+        const float tailW = std::min (na.getRight(), stepCell (na, i, steps, 6).getX() + pitch * lenSteps - 6) - stepCell (na, i, steps, 6).getX();
+        if (octMode)
         {
-            // the step's root (its lowest note) large, its chord's name under it (as the phone shows a step)
-            const auto root = chords::noteName (chords::lowest (st));
-            paint::text (g, root, c.getCentreX(), c.getCentreY() - 2, c.getWidth() > 50 ? 17.0f : 13.0f, Weight::Black, col::bg, juce::Justification::horizontallyCentred);
-            if (c.getWidth() > 30)
-            {
-                paint::chevron (g, c.getCentreX(), c.getY() + 16, 8, col::bg, 'u');
-                paint::chevron (g, c.getCentreX(), c.getBottom() - 16, 8, col::bg, 'd');
-            }
-            // the chord pill: a chord shows its name in it; a single note only under the mouse (calm otherwise).
-            // Its shapes in a menu (Maj, Min, 7ths, sus, power, octave)
-            const bool chord = st.noteCount > 1, hover = hoverStep == first + i;
-            const R pill (c.getX() + 6, c.getBottom() - 54, c.getWidth() - 12, 20);
-            if (c.getWidth() > 34 && c.getHeight() > 110 && (chord || hover))
-            {
-                g.setColour (col::bg.withAlpha (chord ? 0.22f : 0.14f)); g.fillRoundedRectangle (pill, 10);
-                paint::text (g, (chord ? chords::nameOf (st) : juce::String ("Chord")) + juce::String::fromUTF8 (" \xe2\x96\xbe"), pill.getCentreX(),
-                             pill.getCentreY() + 4, 10, Weight::Black, col::bg, juce::Justification::horizontallyCentred);
-            }
-            if (c.getWidth() > 34 && c.getHeight() > 110) chordPills.push_back ({ pill, first + i });
+            const auto c = stepCell (rowRect (rowOf (stepgrid::octaveOf (st, sc))), i, steps, 6);
+            g.setColour (colour.withAlpha (0.3f)); g.fillRoundedRectangle (c.withWidth (tailW), 6);
+            g.setColour (colour); g.fillRoundedRectangle (c, 6);
+            continue;
         }
-        if (first + i == play) { g.setColour (col::pattern); g.drawRoundedRectangle (c.expanded (3), 12, 2.0f); }
-        if (first + i == cursor) dashedBox (g, c.expanded (3), col::record);
+        for (int k = 0; k < st.noteCount; ++k)
+        {
+            const auto pl = stepgrid::placeOf (st.notes[k], sc);
+            const auto c = stepCell (rowRect (rowOf (pl.degree)), i, steps, 6);
+            const bool acc = (st.flags & kAccent) != 0, glide = (st.flags & kSlide) != 0;
+            const float a = gridMode == 3 ? (acc ? 1.0f : 0.3f) : gridMode == 4 ? (glide ? 1.0f : 0.3f) : (acc ? 1.0f : 0.75f);
+            if (lenSteps > 1) { g.setColour (colour.withAlpha (a * 0.45f)); g.fillRoundedRectangle (c.withWidth (tailW), 6); }
+            g.setColour (colour.withAlpha (a)); g.fillRoundedRectangle (c, 6);
+            if (! pl.exact) { g.setColour (col::text.withAlpha (0.7f)); g.drawRoundedRectangle (c.reduced (0.75f), 6, 1.5f); }   // off the scale
+            if (gridMode <= 1 && c.getWidth() > 30)
+                paint::text (g, chords::noteName (st.notes[k]), c.getX() + 5, c.getCentreY() + 4, 10, Weight::Black, col::bg);
+            if (gridMode == 1 && k == 0)   // the note's end: drag it
+            {
+                const float ex = c.getX() + tailW - 6;
+                g.setColour (col::bg.withAlpha (0.7f)); g.fillRoundedRectangle (ex, c.getY() + 5, 2.5f, c.getHeight() - 10, 1.2f);
+                if (lenSteps > 1) paint::text (g, juce::String (lenSteps), ex - 4, c.getCentreY() + 4, 10, Weight::Black, col::bg, juce::Justification::right);
+            }
+            if (gridMode == 0 && acc) { g.setColour (col::bg); g.fillEllipse (c.getRight() - 9, c.getY() + 4, 5, 5); }
+            if (gridMode == 3 && acc && c.getWidth() > 18) paint::text (g, "A", c.getCentreX(), c.getCentreY() + 4, 11, Weight::Black, col::bg, juce::Justification::horizontallyCentred);
+            if ((gridMode == 0 || gridMode == 4) && glide && k == 0)
+            {
+                // the glide: a mark, and a line into the next note
+                juce::Path m; const float gx = c.getRight() - 16, gy = c.getBottom() - 6;
+                m.startNewSubPath (gx, gy); m.quadraticTo (gx + 5, gy - 9, gx + 11, gy - 9);
+                g.setColour (col::bg); g.strokePath (m, juce::PathStrokeType (2.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+                for (int j = i + 1; j < steps; ++j)
+                    if (const auto& nx = tr.steps[(size_t) (first + j)]; nx.noteCount)
+                    {
+                        const auto c2 = stepCell (rowRect (rowOf (stepgrid::placeOf (chords::lowest (nx), sc).degree)), j, steps, 6);
+                        const float x1 = c.getX() + tailW, y1 = c.getCentreY(), x2 = c2.getX(), y2 = c2.getCentreY();
+                        juce::Path p; p.startNewSubPath (x1, y1); p.cubicTo ((x1 + x2) / 2, y1, (x1 + x2) / 2, y2, x2, y2);
+                        g.setColour (colour.withAlpha (0.9f)); g.strokePath (p, juce::PathStrokeType (gridMode == 4 ? 2.4f : 2.0f));
+                        break;
+                    }
+            }
+        }
     }
-    const bool acid = dev.type() == DeviceType::Acid;
-    const char* names[kStepLanes] = { "Velocity", "Gate", acid ? "Accent" : "Prob", acid ? "Slide" : "Ratchet", "Condition", "" };
+    for (int i = 0; i < steps; ++i)
+    {
+        const auto col = stepCell (na, i, steps, 6);
+        if (first + i == play) { g.setColour (col::pattern); g.drawRoundedRectangle (col.expanded (3), 8, 2.0f); }
+        if (first + i == cursor) dashedBox (g, col.expanded (3), col::record);
+    }
+    const char* names[kStepLanes] = { "Velocity", "", "Chance", "Ratchet", "Condition", "" };
     LockLane* locks = lockParam >= 0 ? tr.lockFor (lockParam, false) : nullptr;
     for (int l = 0; l < kStepLanes; ++l)
     {
+        if (l == 1) continue;   // the gate: the grid's Length
         const auto la = stepLaneArea (l);
         if (l < 5) paint::text (g, names[l], lx, la.getCentreY() + 4, 11, Weight::Bold, col::quiet, juce::Justification::right);
         else
@@ -787,18 +923,12 @@ void SeqView::paintStepsView (juce::Graphics& g, Track& tr, DeviceProcessor& dev
                 case 0: { const float v = st.velocity() / 127.0f; g.fillRoundedRectangle (c.getX(), c.getBottom() - c.getHeight() * v, c.getWidth(), c.getHeight() * v, 6); break; }
                 case 1: break;   // drawn below, over the cells: a long note's bar runs across the steps it rings over
                 case 2: case 3:
-                    if (acid)
-                    {
-                        const bool on = l == 2 ? (st.flags & kAccent) != 0 : (st.flags & kSlide) != 0;
-                        if (on) { g.fillRoundedRectangle (c.reduced (0, 4), 6); paint::text (g, l == 2 ? "A" : "S", c.getCentreX(), c.getCentreY() + 4, 11, Weight::Black, col::bg, juce::Justification::horizontallyCentred); }
-                    }
-                    else
-                    {
-                        const float v = l == 2 ? st.probability / 100.0f : st.ratchet / 4.0f;
-                        g.setColour (colour.withAlpha (0.8f)); g.fillRoundedRectangle (c.getX(), c.getBottom() - c.getHeight() * v, c.getWidth(), c.getHeight() * v, 6);
-                        if (l == 3 && st.ratchet > 1) paint::text (g, juce::String (st.ratchet), c.getCentreX(), c.getY() + 14, 10, Weight::Black, col::bg, juce::Justification::horizontallyCentred);
-                    }
+                {
+                    const float v = l == 2 ? st.probability / 100.0f : st.ratchet / 4.0f;
+                    g.setColour (colour.withAlpha (0.8f)); g.fillRoundedRectangle (c.getX(), c.getBottom() - c.getHeight() * v, c.getWidth(), c.getHeight() * v, 6);
+                    if (l == 3 && st.ratchet > 1) paint::text (g, juce::String (st.ratchet), c.getCentreX(), c.getY() + 14, 10, Weight::Black, col::bg, juce::Justification::horizontallyCentred);
                     break;
+                }
                 case 4:
                     if (st.cond != 0) { g.setColour (colour.withAlpha (0.85f)); g.fillRoundedRectangle (c.reduced (0, 4), 6); }
                     if (c.getWidth() > 22) paint::text (g, st.cond != 0 ? juce::String (trigConditionName (st.cond)) : juce::String (juce::CharPointer_UTF8 ("\xc2\xb7")), c.getCentreX(), c.getCentreY() + 4, 10, Weight::Black,
@@ -807,27 +937,8 @@ void SeqView::paintStepsView (juce::Graphics& g, Track& tr, DeviceProcessor& dev
                 default: break;
             }
         }
-        if (l == 1)
-        {
-            // the gate lane as a piano roll's strip: each note's bar is as long as it sounds (1/128 step), across the
-            // following steps; a note longer than a step shows its length in steps
-            const float pitch = steps > 1 ? stepCell (la, 1, steps, 6).getX() - stepCell (la, 0, steps, 6).getX() : la.getWidth();
-            for (int i = 0; i < steps; ++i)
-            {
-                const auto& st = tr.steps[(size_t) (first + i)];
-                if (st.noteCount == 0) continue;
-                const auto c = stepCell (la, i, steps, 6);
-                const float end = std::min (la.getRight(), c.getX() + pitch * st.maxLen() / 128.0f - (st.maxLen() >= 128 ? 6.0f : 0.0f));
-                const float own = std::max (4.0f, std::min (c.getWidth(), end - c.getX()));
-                g.setColour (colour.withAlpha (0.85f)); g.fillRoundedRectangle (c.getX(), c.getY() + 6, own, c.getHeight() - 12, 5);
-                if (end > c.getRight())   // ringing over the next steps: a thin tail along the lane's foot
-                    g.fillRoundedRectangle (c.getRight() - 4, c.getBottom() - 9, end - c.getRight() + 4, 3, 1.5f);
-                if (st.maxLen() > 128)
-                    paint::text (g, juce::String (st.maxLen() / 128.0f, st.maxLen() % 128 == 0 ? 0 : 1), c.getX() + 6, c.getCentreY() + 4, 10, Weight::Black, col::bg);
-            }
-        }
     }
-    paint::text (g, juce::String::fromUTF8 ("Click: a step on / off  \xc2\xb7  Drag up / down: pitch (Shift: octave)  \xc2\xb7  Chord \xe2\x96\xbe: its shape  \xc2\xb7  Right-click: chord, clear  \xc2\xb7  Piano roll: view and edit these steps as notes"),
+    paint::text (g, juce::String::fromUTF8 ("Click a cell: that note on / off (drag along a row: paint)  \xc2\xb7  Length: drag a note\xe2\x80\x99s end  \xc2\xb7  Octave: the step\xe2\x80\x99s octave  \xc2\xb7  Accent, Glide: click or drag over notes  \xc2\xb7  Right-click: chord, clear"),
                  notesArea().getX(), stepLaneArea (kStepLanes - 1).getBottom() + 26, 10, Weight::Bold, col::faint);
 }
 
@@ -892,7 +1003,17 @@ SeqView::Target SeqView::locate (juce::Point<float> p) const
         const auto na = notesArea();
         const float cw = (na.getWidth() - 6.0f * (steps - 1)) / steps;
         auto cellOf = [&] (R a) { return juce::jlimit (0, steps - 1, (int) ((p.x - a.getX()) / (cw + 6))); };
-        if (na.expanded (0, 3).contains (p)) { t.kind = Target::StepNote; t.b = cellOf (na); return t; }
+        for (int k = 0; k < (int) gridModeRects.size(); ++k)
+            if (gridModeRects[(size_t) k].contains (p)) { t.kind = Target::GridMode; t.a = k; return t; }
+        for (int k = 0; k < 2; ++k)
+            if (gridShiftR[k].contains (p)) { t.kind = Target::GridShift; t.a = k; return t; }
+        if (na.expanded (0, 3).contains (p))
+        {
+            t.kind = Target::Grid;
+            t.a = juce::jlimit (0, gridRows() - 1, (int) ((p.y - na.getY()) / (na.getHeight() / gridRows())));
+            t.b = cellOf (na);
+            return t;
+        }
         for (int l = 0; l < kStepLanes; ++l)
             if (stepLaneArea (l).expanded (0, 3).contains (p)) { t.kind = Target::StepLane; t.a = l; t.b = cellOf (stepLaneArea (l)); return t; }
         return t;
@@ -975,8 +1096,8 @@ void SeqView::applyDrag (const Target& t, juce::Point<float> p, bool right)
                 st.setLength (len);
                 ctx.lastGate[(size_t) sel] = len;
             }
-            else if (t.a == 2 && ! acid && st.noteCount > 0) st.probability = (uint8_t) juce::roundToInt (v * 100);
-            else if (t.a == 3 && ! acid && st.noteCount > 0) st.ratchet = (uint8_t) juce::jlimit (1, 4, 1 + (int) (v * 3.99f));
+            else if (t.a == 2 && st.noteCount > 0) st.probability = (uint8_t) juce::roundToInt (v * 100);
+            else if (t.a == 3 && st.noteCount > 0) st.ratchet = (uint8_t) juce::jlimit (1, 4, 1 + (int) (v * 3.99f));
             else if (t.a == 5 && lockParam >= 0)
                 if (auto* lane = tr.lockFor (lockParam, true)) lane->values[(size_t) si] = right ? std::numeric_limits<float>::quiet_NaN() : dev->params()[lockParam].fromNorm (v);
             break;
@@ -1016,6 +1137,7 @@ void SeqView::mouseDown (const juce::MouseEvent& e)
     {
         case Target::BarLess: case Target::BarMore: case Target::Res: case Target::RowStep: case Target::LaneVel: case Target::LaneA:
         case Target::LaneB: case Target::StepLane: case Target::StepNote: case Target::ClipVel: case Target::DrumLane: ctx.snapshot (pat); break;
+        case Target::Grid: if (! right) ctx.snapshot (pat); break;
         case Target::DrumCell: if (t.b >= 0) ctx.snapshot (pat); break;
         default: break;
     }
@@ -1069,6 +1191,33 @@ void SeqView::mouseDown (const juce::MouseEvent& e)
             ctx.markDirty();
             break;
         case Target::Convert: convertToPianoRoll(); break;
+        case Target::GridMode: gridMode = t.a; dragTarget = {}; break;
+        case Target::GridShift:
+        {
+            ctx.snapshot (pat);
+            { const Engine::ScopedEdit ed (ctx.engine); stepgrid::shiftAll (track (ctx.focusTrack()), proj.patternSteps (pat), t.a == 0 ? -1 : 1, stepgrid::Scale (proj.scale)); }
+            ctx.markDirty();
+            dragTarget = {};
+            break;
+        }
+        case Target::Grid:
+        {
+            // the grid (as the phone's): a click edits the cell, a drag paints along the row; the first cell decides
+            const int si = ctx.viewBar * steps + t.b;
+            auto& st = track (ctx.focusTrack()).steps[(size_t) si];
+            if (right) { if (st.noteCount > 0) showStepMenu (si, false); dragTarget = {}; break; }
+            const stepgrid::Scale sc (proj.scale);
+            const int value = gridRows() - 1 - t.a;
+            gridRow = t.a; gridLastStep = -1; gridLengthFrom = -1; gridDone.clear();
+            if (gridMode == 0) gridStrokeOn = stepgrid::noteOnDegree (st, value, sc) < 0;
+            else if (gridMode == 3) gridStrokeOn = (st.flags & kAccent) == 0;
+            else if (gridMode == 4) gridStrokeOn = (st.flags & kSlide) == 0;
+            else if (gridMode == 1)   // the note this row's drag stretches: at or before the click
+                for (int s = si; s >= 0 && gridLengthFrom < 0; --s)
+                    if (stepgrid::noteOnDegree (track (ctx.focusTrack()).steps[(size_t) s], value, sc) >= 0) gridLengthFrom = s;
+            gridApply (si);
+            break;
+        }
         case Target::Arp:
         {
             auto& a = track (ctx.focusTrack());
@@ -1106,13 +1255,7 @@ void SeqView::mouseDown (const juce::MouseEvent& e)
             auto& s = track (ctx.focusTrack()).steps[(size_t) si];
             if (t.a == 4) { if (s.noteCount > 0) showConditionMenu (ctx.focusTrack(), -1, si); break; }
             if (t.a == 5 && lockParam < 0) { dragTarget = {}; mouseDown (e.withNewPosition (lockPickR.getCentre())); return; }
-            if ((t.a == 2 || t.a == 3) && dev != nullptr && dev->type() == DeviceType::Acid)
-            {
-                const Engine::ScopedEdit ed (ctx.engine);
-                if (s.noteCount > 0) s.flags ^= (t.a == 2 ? kAccent : kSlide);
-                ctx.markDirty();
-                break;
-            }
+            juce::ignoreUnused (dev);
             applyDrag (t, e.position, right);
             break;
         }
@@ -1214,6 +1357,13 @@ void SeqView::mouseDrag (const juce::MouseEvent& e)
         ctx.markDirty(); repaint(); return;
     }
     if (t.kind != dragTarget.kind) t = dragTarget;
+    if (dragTarget.kind == Target::Grid && gridRow >= 0)
+    {
+        const auto na = notesArea();
+        const float cw = (na.getWidth() - 6.0f * (spb() - 1)) / spb();
+        gridApply (ctx.viewBar * spb() + juce::jlimit (0, spb() - 1, (int) ((e.position.x - na.getX()) / (cw + 6))));
+        return;
+    }
     if (dragTarget.kind == Target::StepNote)
     {
         // pitch: a semitone every 10 px up / down (Shift: an octave every 30 px); every note of the step together
@@ -1235,7 +1385,7 @@ void SeqView::mouseDrag (const juce::MouseEvent& e)
         return;
     }
     if (t.kind == Target::LaneVel || t.kind == Target::DrumLane || t.kind == Target::ClipVel
-        || (t.kind == Target::StepLane && t.a != 4 && ! ((t.a == 2 || t.a == 3) && ctx.focusDevice() != nullptr && ctx.focusDevice()->type() == DeviceType::Acid))
+        || (t.kind == Target::StepLane && t.a != 4)
         || ((t.kind == Target::LaneA || t.kind == Target::LaneB) && ctx.focusDevice() != nullptr && ctx.focusDevice()->type() != DeviceType::Acid))
     {
         if (dragTarget.kind == Target::StepLane)
@@ -1259,6 +1409,7 @@ void SeqView::mouseUp (const juce::MouseEvent&)
         ctx.markDirty();
     }
     if (previewNote >= 0) { ctx.engine.injectNote (ctx.focusTrack(), previewNote, 0.0f, false, ctx.focusPattern(), true); previewNote = -1; }
+    gridRow = -1;
     repaint();
     dragTarget = {};
 }

@@ -113,6 +113,9 @@ MB_TEST (tool_ui_shots)
     shot (1, 1, "02_seq");
     shot (1, 0, "02h_seq_drums");    // the drum track's steps
     shot (1, 2, "02i_seq_chords");   // a step track of chords and long notes
+    mc.seqView().setGridMode (2);
+    shot (1, 1, "02j_seq_octave");   // the step grid's octave sequencer
+    mc.seqView().setGridMode (0);
     {
         // a long note in the Steps view: its gate bar runs over the 4 steps it rings (as the piano roll shows it)
         auto& st = e.project().patterns[0].slots[1].track.steps[0];

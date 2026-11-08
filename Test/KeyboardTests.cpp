@@ -86,8 +86,8 @@ MB_TEST (keyboard_navigation)
     key (juce::KeyPress::leftKey);
     ctx.check (mc.context().viewBar == 0, "← back to the previous bar");
 
-    // the Steps view by keyboard: a note cell, Enter switches the step on
-    const bool cell = tabTo (mc, [] (const Feedback::Focus& f) { return dynamic_cast<SeqView*> (&f.fb->getView()) != nullptr && f.r.contains (175.0f, 470.0f); });
+    // the Steps view by keyboard: a cell of the step grid, Enter switches that note on
+    const bool cell = tabTo (mc, [] (const Feedback::Focus& f) { return dynamic_cast<SeqView*> (&f.fb->getView()) != nullptr && f.r.contains (175.0f, 534.0f); });
     ctx.check (cell && key (juce::KeyPress::returnKey) && e.project().patterns[0].slots[1].track.steps[0].noteCount == 1, "Tab reaches a step's note cell, Enter switches it on");
     if (cell) { key (juce::KeyPress::returnKey); }
     ctx.check (e.project().patterns[0].slots[1].track.steps[0].noteCount == 0, "Enter again switches it off");
@@ -225,9 +225,9 @@ MB_TEST (keyboard_mouse_equivalents)
     mc.createComponentSnapshot (mc.getLocalBounds());
     auto key = [&] (int code, juce::ModifierKeys m = {}) { const bool r = mc.keyPressed (juce::KeyPress (code, m, 0)); mc.refreshAll(); mc.createComponentSnapshot (mc.getLocalBounds()); return r; };
     auto seqAt = [] (float x, float y) { return [x, y] (const Feedback::Focus& f) { return dynamic_cast<SeqView*> (&f.fb->getView()) != nullptr && f.r.contains (x, y); }; };
-    // the Steps view: step 1's note cell (x ≈ 190) and its velocity lane cell
-    ctx.check (tabTo (mc, seqAt (190.0f, 500.0f)) && key (juce::KeyPress::upKey) && tr.steps[0].hasNote (61), "↑ on a note cell raises its pitch");
-    const int velY = 412 + 190 + 18 + 19;
+    // the Steps view: step 1 in the step grid (x ≈ 190; a row is a note of the scale) and its velocity lane cell
+    ctx.check (tabTo (mc, seqAt (190.0f, 534.0f)) && key (juce::KeyPress::returnKey) && tr.steps[0].noteCount == 2, "Enter on another note's cell adds it (a chord on VA)");
+    const int velY = 444 + 180 + 16 + 18;
     ctx.check (tabTo (mc, seqAt (190.0f, (float) velY)) && key (juce::KeyPress::upKey) && tr.steps[0].vel[0] == 108, "↑ on a velocity cell raises it (" + juce::String (tr.steps[0].vel[0]) + ")");
     ctx.check (tabTo (mc, seqAt (190.0f, 500.0f)) && key (juce::KeyPress::deleteKey) && tr.steps[0].noteCount == 0, "Delete on a note cell clears it (a right-click)");
     Feedback::clearFocus();

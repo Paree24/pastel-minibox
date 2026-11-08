@@ -4,6 +4,7 @@
 #include "engine/Engine.h"
 #include "seq/Arpeggiate.h"
 #include "seq/Chords.h"
+#include "seq/StepGrid.h"
 #include "model/Serializer.h"
 #include "model/DawProject.h"
 #include "app/presets/PresetBank.h"
@@ -1930,6 +1931,33 @@ MB_TEST (step_chords_shared)
     ctx.check (chords::nameOf (st) == "4 notes", "an unknown shape: " + chords::nameOf (st));
     ctx.check (chords::noteName (60) == "C4" && chords::noteName (63) == "Eb4" && chords::noteName (70) == "Bb4" && chords::noteName (61) == "C#4",
                "names: " + chords::noteName (63) + " " + chords::noteName (70));
+}
+
+/** The synth step grid (both apps): a cell is a scale degree at the step's octave (octaves from the scale's root),
+    a tap toggles it (a mono instrument replaces), the octave sequencer moves the whole step, length is in steps. */
+MB_TEST (step_grid_shared)
+{
+    ScaleSettings ss; ss.root = 9; ss.scale = 2;   // A, natural minor? (any 7-note scale)
+    stepgrid::Scale sc (ss);
+    ctx.check (sc.degrees() == (int) Scales::factoryScales()[2].intervals.size(), "the scale's degrees");
+    // places: A2 (45) is degree 0 octave 2 (counted from A); C3 (48), above it, is still octave 2
+    const auto a2 = stepgrid::placeOf (45, sc), c3 = stepgrid::placeOf (48, sc);
+    ctx.check (a2.degree == 0 && a2.octave == 2 && a2.exact, "A2: degree 0, octave 2");
+    ctx.check (c3.octave == 2 && (! c3.exact || stepgrid::noteAt (c3.degree, c3.octave, sc) == 48), "C3: octave 2 in A, round trip");
+    ctx.check (stepgrid::placeOf (44, sc).octave == 1, "G#2, below A2: octave 1");
+    Step st;
+    ctx.check (stepgrid::toggle (st, 2, 3, sc, true) && st.noteCount == 1 && stepgrid::octaveOf (st, sc) == 3, "tap: a note at the given octave");
+    st.setVelocity (90); stepgrid::setLengthSteps (st, 3);
+    stepgrid::toggle (st, 4, 0, sc, true);   // mono: replaces, keeps velocity, length and octave
+    ctx.check (st.noteCount == 1 && stepgrid::placeOf (st.notes[0], sc).degree == 4 && stepgrid::octaveOf (st, sc) == 3
+               && st.vel[0] == 90 && stepgrid::lengthSteps (st) == 3, "mono: the note replaced, its settings kept");
+    stepgrid::toggle (st, 0, 0, sc, false);   // poly: a chord
+    ctx.check (st.noteCount == 2, "poly: a chord");
+    stepgrid::setOctave (st, 5, sc);
+    ctx.check (stepgrid::octaveOf (st, sc) == 5 && st.noteCount == 2, "the octave sequencer moves the chord");
+    ctx.check (! stepgrid::toggle (st, 4, 0, sc, false) && st.noteCount == 1, "tap again: off");
+    stepgrid::setLengthSteps (st, 1);
+    ctx.check (st.len[0] == 96 && stepgrid::lengthSteps (st) == 1, "1 step: the usual gate");
 }
 
 /** Steps ↔ piano roll both ways: steps → clip → steps comes back the same (a chord, a long note, an offset, a mute);

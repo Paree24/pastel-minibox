@@ -24,6 +24,8 @@ public:
     void setStepsView (bool steps) { stepsView = steps; refresh(); repaint(); }
     /** The clip lane under the notes: −1 velocity, else a controller lane (tests, screenshots). */
     void showLane (int lane) { clipLane = lane; repaint(); }
+    /** The step grid's mode: Notes, Length, Octave, Accent, Glide (tests, screenshots). */
+    void setGridMode (int m) { gridMode = juce::jlimit (0, 4, m); repaint(); }
     /** The piano roll (tests). */
     PianoRoll& pianoRoll() { return roll; }
     /** Where the last menu opened (tests). */
@@ -31,7 +33,7 @@ public:
 
 private:
     struct Target { enum Kind { None, BarLess, BarMore, Res, Bar, RowSelect, RowStep, RowMute, RowSolo, ViewSwitch, Convert, Quantize, Overdub, LockParam,
-                                Follow, Tool, LaneVel, LaneA, LaneB, LaneCond, StepNote, StepLane, ClipVel, ClipLaneMenu, DrumCell, DrumLaneView, DrumLane, Swing, Arp } kind = None;
+                                Follow, Tool, LaneVel, LaneA, LaneB, LaneCond, StepNote, StepLane, ClipVel, ClipLaneMenu, DrumCell, DrumLaneView, DrumLane, Swing, Arp, GridMode, Grid, GridShift } kind = None;
                     int a = -1, b = -1; };
     Target locate (juce::Point<float>) const;
     void applyDrag (const Target&, juce::Point<float>, bool rightButton);
@@ -68,6 +70,16 @@ private:
     float swingAtDown = 0.5f, swingDownX = 0;
     void showSwingMenu();
     bool noteWasOn = false, noteMoved = false;
+    // the synth step grid (seq/StepGrid.h, as the phone): Notes, Length, Octave, Accent, Glide; rows are the scale's
+    // notes (Octave: 0-8), steps across. A stroke (a drag) paints along the row it started on, one undo step
+    int gridMode = 0;
+    std::vector<juce::Rectangle<float>> gridModeRects;
+    juce::Rectangle<float> gridShiftR[2];   // Octave: every step an octave down / up
+    int gridRows() const;
+    void gridApply (int step);
+    bool gridStrokeOn = false;
+    int gridRow = -1, gridLengthFrom = -1, gridLastStep = -1;
+    std::vector<int> gridDone;
     int lastKind = -1;
     juce::Rectangle<float> menuArea;   // where the last press was: its menus open there
     int lockParam = -1;
