@@ -47,6 +47,8 @@ public:
     /** The running instance of a slot or pad (message thread: meters, the drawer). */
     const efx::GridEffect* instance (bool perform, int index) const;
 
+    /** A timed effect's grid (its Div, in beats; 0: not timed): a pad press lands on its nearest line. */
+    static double gridBeats (const FxSlot&);
     static const char* padName (int pad);                      // "Stutter" …
     /** The pad's effect with its performance settings (the effect's macro at full, held repeats, full wet). */
     static void defaultPad (FxSlot&, int pad);
@@ -70,6 +72,7 @@ private:
     std::array<std::atomic<bool>, kPerformFx> held {};
     std::atomic<int> lastHeld { -1 };
     std::array<bool, kPerformFx> wasHeld {};
+    std::array<int, kPerformFx> pending {};   // a press waiting for its grid line (samples to go)
     int syncedGen = -1;   // a newly loaded project waits (dry) until sync() built its effects
     double sampleRate = 48000.0;
     int maxBlock = 512;

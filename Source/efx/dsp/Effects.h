@@ -225,6 +225,11 @@ public:
     virtual void prepare (double sampleRate) = 0;           // allocate everything here
     virtual void reset() = 0;
     virtual void process (float* L, float* R, int n, const FxContext& c) = 0;   // n <= kChunk
+    // Minibox: a performance pad's press: a fresh start that keeps the recent past (the slice under the press)
+    virtual void restart() { reset(); }
+    // Minibox: while the slot sleeps (bypassed), the buffer-based time effects keep recording what passes, so a
+    // press can take the slice from the grid line before it
+    virtual void listen (const float* /*L*/, const float* /*R*/, int /*n*/) {}
     // message-thread hook (~4 Hz) for work that may allocate (e.g. IR rebuilds)
     virtual void idle (const float* /*phys*/, int /*mode*/) {}
     // audio-free description for the visualisers, evaluated on the UI thread
@@ -262,6 +267,7 @@ struct SlotInput
     double bpm = 120.0;
     double ppq = 0.0;
     bool playing = false;
+    bool clock = false;                 // Minibox: ppq is the engine's beat clock even when stopped (else a free clock)
     const float* scL = nullptr;         // whole-block sidechain (nullptr = none)
     const float* scR = nullptr;
     const float* data = nullptr;        // kDataSize shape values (nullptr = effect defaults)
@@ -279,7 +285,7 @@ public:
     void prepare (double sampleRate, int maxBlockSize);
     void reset();
     // Minibox: clears the effect's state but keeps the bypass fade and smoothing (a performance pad's press)
-    void restart() { impl->reset(); }
+    void restart() { impl->restart(); }
     void process (float* L, float* R, int numSamples, const SlotInput& in);
     void idle();                                       // message thread
 

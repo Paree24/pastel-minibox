@@ -1,0 +1,30 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "House Thump",
+  "samples": [],
+  "type": "drums",
+  "values": {
+    "kitComp": 0.4,
+    "kitLevel": 0.702600002288818,
+    "p1Bend": 0.45,
+    "p1Click": 0.6,
+    "p1Decay": 0.55,
+    "p1Eng": 1,
+    "p2Click": 0.5,
+    "p2Eng": 1,
+    "p2SendReverb": 0.2,
+    "p3Eng": 1,
+    "p3SendReverb": 0.35,
+    "p4Eng": 1,
+    "p5Eng": 0,
+    "p6Decay": 0.4,
+    "p6Eng": 0,
+    "p7Eng": 0,
+    "p8Eng": 1,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

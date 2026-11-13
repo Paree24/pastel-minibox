@@ -91,7 +91,7 @@ MB_TEST (master_fx_perform_pads_hold)
         const auto name = juce::String (MasterFx::padName (pad));
         ctx.check (diff (8) < 1.0e-4, name + ": not held, nothing changes");
         held.fx.setHeld (pad, true);
-        const double on = diff (40);
+        const double on = diff (100);   // a timed pad pressed late in its step waits for the next line (Reverse: up to ½ note)
         ctx.check (on > 0.05, name + ": held, the sound changes (" + juce::String (on, 3) + ")");
         held.fx.setHeld (pad, false);
         diff (12);   // the fade (a 10 ms time constant: gone after ~70 ms)
@@ -331,4 +331,57 @@ MB_TEST (tool_slicer_gate_direct)
     for (float v : gate) { if (v > 0.5f) ++run; else if (run > 0) { runs.push_back (run / 48.0); run = 0; } }
     double avg = 0; for (double x : runs) avg += x;
     std::cout << "    slicer gate: " << runs.size() << " slices a bar, above half for " << juce::String (runs.empty() ? 0.0 : avg / runs.size(), 1) << " ms on average" << std::endl;
+}
+
+/** Performance pads land on the grid: a kick on every beat, the Stutter pad pressed a third of a step after a bar
+    line (it takes the slice from the line, the kick in it) or a third of a step before one (dry until the line, then
+    the slice from it): each repeat starts with the kick, on its line. */
+MB_TEST (master_fx_pads_on_the_grid)
+{
+    for (const bool late : { false, true })
+    {
+        Engine e;
+        e.prepare (48000.0, 512);
+        MasterFx fx (e);
+        e.setMasterInsert (&fx);
+        auto d = createDevice (DeviceType::Drums);
+        presets::loadDefault (*d, true);
+        e.setDevice (0, 0, std::move (d));
+        e.project().master.glue = 0.0f;
+        e.project().master.limitDb = 0.0f;
+        fx.sync();
+        auto& tr = e.project().patterns[0].slots[0].track;
+        for (int st = 0; st < 16; ++st) tr.lanes[4][(size_t) st].on = st % 4 == 0;   // a closed hat (noise) on every beat
+        const double beats = MasterFx::gridBeats (e.project().performFx[0]);
+        ctx.check (beats > 0.0 && beats <= 1.0, "the Stutter pad has a grid (" + juce::String (beats) + " beats)");
+        const int step = (int) std::lround (beats * 24000.0), line = 96000 * 2;
+        const int press = late ? line - step / 3 : line + step / 3;
+        e.play();
+        std::vector<float> l (512), r (512), out;
+        for (int pos = 0; pos < line + 96000; )
+        {
+            const int n = pos < press ? std::min (512, press - pos) : 512;
+            if (pos == press) fx.setHeld (0, true);
+            e.process (l.data(), r.data(), n, nullptr);
+            out.insert (out.end(), l.begin(), l.begin() + n);
+            pos += n;
+        }
+        e.setMasterInsert (nullptr);
+        auto peak = [&] (int a, int b) { float m = 0; for (int i = a; i < b; ++i) m = std::max (m, std::abs (out[(size_t) i])); return m; };
+        const auto name = juce::String (late ? "late" : "early") + " press: ";
+        ctx.check (peak (line, line + 480) > 0.05f, name + "the hat on the line");
+        if (late) ctx.check (peak (press, line) <= peak (press - step / 3, press) * 1.05f + 1e-4f, name + "dry until the line");
+        // each repeat is the slice from the line (the hat at its start): the same noise, sample for sample
+        for (int k = 1; k < 4; ++k)
+        {
+            double xy = 0, xx = 0, yy = 0;
+            for (int i = 64; i < std::min (step - 64, 4800); ++i)
+            {
+                const double x = out[(size_t) (line + i)], y = out[(size_t) (line + k * step + i)];
+                xy += x * y; xx += x * x; yy += y * y;
+            }
+            const double corr = xy / std::sqrt (xx * yy + 1e-18);
+            ctx.check (corr > 0.9, name + "repeat " + juce::String (k) + " is the slice from the line (" + juce::String (corr, 3) + ")");
+        }
+    }
 }

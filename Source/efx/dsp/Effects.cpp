@@ -229,6 +229,7 @@ void GridEffect::process (float* L, float* R, int n, const SlotInput& in)
     if (in.bypass && activeS <= 0.0f)
     {
         freePpq += beatsPerSample * n;
+        impl->listen (L, R, n);
         pushScope (L, R, n, L, R);
         return;
     }
@@ -254,7 +255,7 @@ void GridEffect::process (float* L, float* R, int n, const SlotInput& in)
             else smoothN[k] += (target[k] - smoothN[k]) * smoothCoef;
             phys[k] = unmapParam (d->p[k], smoothN[k]);
         }
-        ctx.ppq = in.playing ? in.ppq + beatsPerSample * off : freePpq;
+        ctx.ppq = in.playing || in.clock ? in.ppq + beatsPerSample * off : freePpq;
         ctx.scL = in.scL != nullptr ? in.scL + off : nullptr;
         ctx.scR = in.scR != nullptr ? in.scR + off : nullptr;
 
@@ -304,7 +305,7 @@ void GridEffect::process (float* L, float* R, int n, const SlotInput& in)
         uiPhys[(size_t) k].store (phys[k], std::memory_order_relaxed);
     }
     uiMode.store (in.mode, std::memory_order_relaxed);
-    uiPpq.store (in.playing ? in.ppq : freePpq, std::memory_order_relaxed);
+    uiPpq.store (in.playing || in.clock ? in.ppq : freePpq, std::memory_order_relaxed);
     uiBpm.store (in.bpm, std::memory_order_relaxed);
     vt.inLevelDb.store (gainToDb (std::sqrt (inSq / (float) n)), std::memory_order_relaxed);
     pushScope (L, R, n, nullptr, nullptr);

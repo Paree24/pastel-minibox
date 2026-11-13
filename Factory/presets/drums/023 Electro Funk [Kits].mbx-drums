@@ -1,0 +1,33 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Electro Funk",
+  "samples": [],
+  "type": "drums",
+  "values": {
+    "kitLevel": 0.564100027084351,
+    "p1Bend": 0.6,
+    "p1BendTime": 0.03,
+    "p1Click": 0.8,
+    "p1Decay": 0.45,
+    "p1Eng": 0,
+    "p1Tone": 0.75,
+    "p2Click": 0.8,
+    "p2Eng": 0,
+    "p2SendReverb": 0.2,
+    "p2Tone": 0.6,
+    "p3Eng": 0,
+    "p3SendReverb": 0.3,
+    "p4Eng": 0,
+    "p5Eng": 0,
+    "p6Eng": 0,
+    "p7Eng": 0,
+    "p8Decay": 0.15,
+    "p8Eng": 1,
+    "p8Pitch": 800,
+    "revPre": 0.012,
+    "revSize": 0.4,
+    "revTone": 0.55
+  },
+  "version": 1
+}

@@ -1,0 +1,33 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Boom Bap Tape",
+  "samples": [],
+  "type": "drums",
+  "values": {
+    "kitComp": 0.45,
+    "kitDrive": 0.3,
+    "kitLevel": 0.614700019359589,
+    "p1Click": 0.8,
+    "p1Decay": 0.45,
+    "p1Drive": 0.3,
+    "p1DriveType": 1,
+    "p1Eng": 2,
+    "p1Tone": 0.6,
+    "p2Click": 0.7,
+    "p2Eng": 2,
+    "p2SendReverb": 0.2,
+    "p2Tone": 0.4,
+    "p3Eng": 1,
+    "p4Eng": 2,
+    "p5Eng": 2,
+    "p5Tone": 0.4,
+    "p6Eng": 2,
+    "p7Eng": 1,
+    "p8Eng": 3,
+    "revPre": 0.004,
+    "revSize": 0.2,
+    "revTone": 0.3
+  },
+  "version": 1
+}

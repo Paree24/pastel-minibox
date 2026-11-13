@@ -1156,7 +1156,9 @@ void Engine::renderSub (float* L, float* R, int start, int len)
             // the plugin has no rack strip sends: its host Reverb Return scales the instrument's own Reverb card
             d->reverbScale = plugin ? proj.master.reverbReturn / 0.8f : 1.0f;
             if (! asleep) d->render (slotL.data() + start, slotR.data() + start, len);
-            if (fx) masterInsert->processTrack (p, t, slotL.data() + start, slotR.data() + start, len, ti.bpm, ti.beatPos, ti.playing);
+            // stopped: the master effects' free clock (one grid for every effect, and it keeps running)
+            if (fx) masterInsert->processTrack (p, t, slotL.data() + start, slotR.data() + start, len, ti.bpm,
+                                                ti.playing || plugin ? ti.beatPos : beatClock + start / spq, ti.playing);
             const auto& m = pattern.slots[(size_t) t].mixer;
             const bool audible = ! m.mute && (! anySolo || m.solo);
             const float g = audible ? m.level * d->expressionGain : 0.0f;

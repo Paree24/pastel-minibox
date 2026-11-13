@@ -1,0 +1,32 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Room Live",
+  "samples": [],
+  "type": "drums",
+  "values": {
+    "kitLevel": 0.561699986457825,
+    "p1Click": 0.6,
+    "p1Decay": 0.5,
+    "p1Eng": 1,
+    "p1SendReverb": 0.12,
+    "p2Click": 0.6,
+    "p2Eng": 0,
+    "p2SendReverb": 0.4,
+    "p3Eng": 1,
+    "p3SendReverb": 0.4,
+    "p4Decay": 0.6,
+    "p4Eng": 0,
+    "p4SendReverb": 0.3,
+    "p5Eng": 1,
+    "p6Eng": 1,
+    "p7Decay": 2.6,
+    "p7Eng": 1,
+    "p7SendReverb": 0.25,
+    "p8Eng": 0,
+    "revPre": 0.012,
+    "revSize": 0.55,
+    "revTone": 0.6
+  },
+  "version": 1
+}

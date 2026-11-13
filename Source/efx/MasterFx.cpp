@@ -221,6 +221,19 @@ void MasterFx::setHeld (int pad, bool h)
     if (h) lastHeld = pad;
 }
 
+double MasterFx::gridBeats (const FxSlot& fx)
+{
+    static const juce::StringArray timed { "Stutter", "Glitch", "Buffer Shuffler", "Slicer", "Reverse" };
+    if (! timed.contains (fx.effect)) return 0.0;
+    const auto* d = efx::defForId (efx::idForName (fx.effect));
+    if (d == nullptr) return 0.0;
+    if (const int k = paramIndex (*d, "Sync"); k >= 0 && efx::unmapParam (d->p[k], fx.norm[(size_t) k]) < 0.5f) return 0.0;   // Reverse in ms
+    const int k = paramIndex (*d, "Div");
+    if (k < 0 || d->p[k].choices == nullptr) return 0.0;
+    const int idx = juce::jlimit (0, d->p[k].numChoices - 1, (int) std::lround (efx::unmapParam (d->p[k], fx.norm[(size_t) k])));
+    return efx::divisionBeats (d->p[k].choices[idx]);
+}
+
 const efx::GridEffect* MasterFx::instance (bool perform, int i) const
 {
     const auto& arr = perform ? pads : slots;
@@ -236,6 +249,7 @@ void MasterFx::run (Inst& in, const FxSlot& fx, float* L, float* R, int n, doubl
     si.mode = fx.mode;
     si.bypass = bypass;
     si.bpm = bpm; si.ppq = ppq; si.playing = playing;
+    si.clock = true;   // the engine's beat clock runs while stopped too: one grid for every effect
     in.fx->process (L, R, n, si);
 }
 
@@ -243,13 +257,38 @@ void MasterFx::process (float* L, float* R, int n, double bpm, double ppq, bool 
 {
     const auto& p = engine.project();
     if (engine.projectGeneration() != syncedGen) return;   // a project just loaded: its effects are built on the message thread first
+    const double spb = 60.0 / std::max (20.0, bpm) * sampleRate;   // samples a beat
     for (int i = 0; i < kPerformFx; ++i)
     {
+        auto& in = pads[(size_t) i];
+        const auto& fx = p.performFx[(size_t) i];
         const bool h = held[(size_t) i].load();
-        // a press starts the effect fresh: Stutter catches the slice under the press, Reverse the bar now …
-        if (h && ! wasHeld[(size_t) i] && pads[(size_t) i].fx) pads[(size_t) i].fx->restart();
+        // a press starts the effect fresh (Stutter catches the slice under the press, Reverse the bar now …), on its
+        // grid: a press in the first half of a step takes the line just passed (the effect keeps the recent past),
+        // one in the second half waits for the next line
+        if (h && ! wasHeld[(size_t) i] && in.fx)
+        {
+            pending[(size_t) i] = 0;
+            if (const double beats = gridBeats (fx); beats > 0.0)
+            {
+                const double ph = ppq / beats - std::floor (ppq / beats);
+                if (ph > 0.5) pending[(size_t) i] = std::max (1, (int) std::llround ((1.0 - ph) * beats * spb));
+            }
+            if (pending[(size_t) i] == 0) in.fx->restart();
+        }
+        if (! h) pending[(size_t) i] = 0;
         wasHeld[(size_t) i] = h;
-        run (pads[(size_t) i], p.performFx[(size_t) i], L, R, n, bpm, ppq, playing, ! h);
+        if (h && pending[(size_t) i] > 0)
+        {
+            const int k = std::min (pending[(size_t) i], n);
+            run (in, fx, L, R, k, bpm, ppq, playing, true);
+            pending[(size_t) i] -= k;
+            if (pending[(size_t) i] > 0) continue;
+            if (in.fx) in.fx->restart();
+            run (in, fx, L + k, R + k, n - k, bpm, ppq + k / spb, playing, false);
+            continue;
+        }
+        run (in, fx, L, R, n, bpm, ppq, playing, ! h);
     }
     for (int i = 0; i < kMasterFxSlots; ++i)
         run (slots[(size_t) i], p.masterFx[(size_t) i], L, R, n, bpm, ppq, playing, p.masterFx[(size_t) i].bypass);

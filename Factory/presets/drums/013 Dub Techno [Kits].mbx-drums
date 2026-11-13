@@ -1,0 +1,33 @@
+{
+  "family": "Kits",
+  "macros": "",
+  "name": "Dub Techno",
+  "samples": [],
+  "type": "drums",
+  "values": {
+    "kitComp": 0.35,
+    "kitLevel": 0.696399986743927,
+    "p1Click": 0.6,
+    "p1Decay": 0.7,
+    "p1Eng": 1,
+    "p1Tone": 0.35,
+    "p2Eng": 0,
+    "p2Pitch": 180,
+    "p2SendDelay": 0.45,
+    "p2SendReverb": 0.4,
+    "p3Eng": 0,
+    "p3SendDelay": 0.35,
+    "p3SendReverb": 0.4,
+    "p4Eng": 0,
+    "p5Eng": 2,
+    "p5SendDelay": 0.25,
+    "p6Eng": 2,
+    "p7Eng": 0,
+    "p8Eng": 1,
+    "p8SendDelay": 0.4,
+    "revPre": 0.04,
+    "revSize": 0.85,
+    "revTone": 0.4
+  },
+  "version": 1
+}

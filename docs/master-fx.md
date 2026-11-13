@@ -44,6 +44,11 @@ Eight pads on the MASTER strip, on only while held:
   right-click the toggle ▸ *Set the first note* and press a pad or key to move it. Saved with the controller map.
 - Controllers whose pads or buttons send something of their own (another channel, port or a CC) can map each effect
   directly in MIDI learn instead.
-- A press starts the effect fresh (Stutter repeats what plays at that moment); a release fades it out in a few ms.
-- Effects follow the tempo; their grid starts with Play.
+- A press starts the effect fresh, quantized to its grid (its Div): a press in the first half of a step takes the
+  slice from the line just passed (the timed effects keep the recent past while idle), a press in the second half
+  waits for the next line. So Stutter repeats the beat under the press from its start, on the grid, even when the
+  press is a little late. A release fades it out in a few ms.
+- Effects follow the tempo; their grid starts with Play. While stopped they share the engine's free-running clock
+  (the master slots, the pads and the tracks' slots alike), and a slot switched on or added mid-step starts its
+  first slice on the line before.
 - Tune a pad: right-click it (or the drawer's **Pads** view): its controls and mix; **Reset** restores the pad's settings.

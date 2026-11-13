@@ -350,7 +350,10 @@ class Reverse : public FxImpl
 {
 public:
     void prepare (double s) override { hist.prepare (s, 9.0f); reset(); }
-    void reset() override { hist.reset(); seg = -1; segStart = 0; prevStart = 0; segLen = 1; free = 0.0; fbl = fbr = 0.0f; tl.reset(); tr.reset(); }
+    void reset() override { hist.reset(); restart(); }
+    void restart() override { seg = -1; segStart = 0; prevStart = 0; segLen = 1; free = 0.0; fbl = fbr = 0.0f; tl.reset(); tr.reset(); }
+    void listen (const float* L, const float* R, int n) override { for (int i = 0; i < n; ++i) hist.write (L[i], R[i]); }
+
     void process (float* L, float* R, int n, const FxContext& c) override
     {
         const double speed = c.p[5];
@@ -367,11 +370,14 @@ public:
         {
             hist.write (L[i] + loopSat (fbl * fb), R[i] + loopSat (fbr * fb));
             long long s;
-            if (sync) { const double beat = c.ppq + c.beatsPerSample * i; s = (long long) std::floor (beat / beats); }
+            double into = 0.0;   // samples since the grid line (a fresh start between two lines: the one before)
+            if (sync) { const double pos = (c.ppq + c.beatsPerSample * i) / beats; s = (long long) std::floor (pos); into = (pos - (double) s) * lenS; }
             else { free += 1.0; s = (long long) std::floor (free / juce::jmax (64.0, lenS)); }
             if (s != seg)
             {
-                seg = s; prevStart = segStart; segStart = hist.w - 1;
+                const bool fresh = seg == -1;
+                seg = s; prevStart = segStart; segStart = hist.w - 1 - (long long) std::llround (into);
+                if (fresh) prevStart = segStart - (long long) lenS;
                 segLen = std::max<long long> (64, segStart - prevStart);
             }
             const double t = (double) (hist.w - 1 - segStart) * speed;
@@ -468,7 +474,10 @@ class Stutter : public FxImpl
 {
 public:
     void prepare (double s) override { hist.prepare (s, 8.0f); rng.seed (41); reset(); }
-    void reset() override { hist.reset(); step = -1; active = false; rep = 0; evStart = 0; stepStart = 0; fl.reset(); fr.reset(); reversed = false; }
+    void reset() override { hist.reset(); restart(); }
+    void restart() override { step = -1; active = false; rep = 0; evStart = 0; stepStart = 0; fl.reset(); fr.reset(); reversed = false; }
+    void listen (const float* L, const float* R, int n) override { for (int i = 0; i < n; ++i) hist.write (L[i], R[i]); }
+
     void process (float* L, float* R, int n, const FxContext& c) override
     {
         const double beats = divBeatsOf (*def, c.p, 0);
@@ -486,7 +495,8 @@ public:
             const long long s = (long long) std::floor (beat / beats);
             if (s != step)
             {
-                step = s; stepStart = hist.w - 1;
+                // the step's start: its grid line (a fresh start between two lines takes the one before it)
+                step = s; stepStart = hist.w - 1 - (long long) std::llround ((beat / beats - (double) s) * stepLen);
                 if (active) ++rep;
                 if (active && rep >= repeats && ! hold) active = false;
                 if (! active && (hold || rng.uni() < c.p[1])) { active = true; rep = 0; evStart = stepStart; reversed = rng.uni() < c.p[8]; }
@@ -537,7 +547,10 @@ class Shuffler : public FxImpl
 {
 public:
     void prepare (double s) override { hist.prepare (s, 17.0f); rng.seed (51); reset(); }
-    void reset() override { hist.reset(); step = -1; src = prevSrc = 0.0; back = prevBack = false; live = prevLive = true; stepStart = 0; kind = 0; }
+    void reset() override { hist.reset(); restart(); }
+    void restart() override { step = -1; src = prevSrc = 0.0; back = prevBack = false; live = prevLive = true; stepStart = 0; kind = 0; }
+    void listen (const float* L, const float* R, int n) override { for (int i = 0; i < n; ++i) hist.write (L[i], R[i]); }
+
     void process (float* L, float* R, int n, const FxContext& c) override
     {
         const double beats = divBeatsOf (*def, c.p, 0);
@@ -554,7 +567,7 @@ public:
             {
                 step = s;
                 prevSrc = src + stepLen; prevBack = back; prevLive = live;
-                stepStart = hist.w - 1;
+                stepStart = hist.w - 1 - (long long) std::llround ((beat / beats - (double) s) * stepLen);   // on the grid line
                 if (rng.uni() < c.p[1])
                 {
                     live = false;
@@ -638,7 +651,9 @@ public:
             {
                 lastStep = sa;
                 hitNow = hit ((int) (((sa % steps) + steps) % steps), steps, pulses, rotate);
-                if (hitNow) { t = 0.0f; level = 1.0f - c.p[8] * rng.uni(); ++hitCount; }
+                // a slice starts on its grid line: a fresh start between two lines is already that far into it
+                const double line = (double) sa + ((sa & 1) == 1 ? swing : 0.0);
+                if (hitNow) { t = (float) juce::jmax (0.0, (pos - line) * c.samplesFor (beats)); level = 1.0f - c.p[8] * rng.uni(); ++hitCount; }
             }
             // a slice fades on through the steps without a hit, until the next hit: the Decay sets how long it rings
             // (an empty step used to cut it at its start, so no slice outlasted a step whatever the Decay)
@@ -668,7 +683,10 @@ class Glitch : public FxImpl
 public:
     enum Kind { None = 0, Repeat, Reverse, Crush, Pitch, Stop };
     void prepare (double s) override { hist.prepare (s, 8.0f); rng.seed (61); reset(); }
-    void reset() override { hist.reset(); step = -1; kind = None; left = 0; evStart = 0; stepStart = 0; hold = 0.0f; holdN = 0; ramp = 1.0f; stopPos = 0.0; fl.reset(); fr.reset(); pan = 0.0f; filtered = false; }
+    void reset() override { hist.reset(); restart(); }
+    void restart() override { step = -1; kind = None; left = 0; evStart = 0; stepStart = 0; hold = 0.0f; holdN = 0; ramp = 1.0f; stopPos = 0.0; stopRead = 0.0; fl.reset(); fr.reset(); pan = 0.0f; filtered = false; }
+    void listen (const float* L, const float* R, int n) override { for (int i = 0; i < n; ++i) hist.write (L[i], R[i]); }
+
     void process (float* L, float* R, int n, const FxContext& c) override
     {
         const double beats = divBeatsOf (*def, c.p, 1);
@@ -682,7 +700,7 @@ public:
             const long long s = (long long) std::floor (beat / beats);
             if (s != step)
             {
-                step = s; stepStart = hist.w - 1;
+                step = s; stepStart = hist.w - 1 - (long long) std::llround ((beat / beats - (double) s) * stepLen);   // on the grid line
                 if (left > 0) --left;
                 if (left <= 0)
                 {
