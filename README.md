@@ -4,11 +4,12 @@
 > as-is, without warranty of any kind. The author is not responsible for
 > anything — Use at your own risk.
 
-Pastel Minibox is a small groovebox built around seven instruments: **Bassline**
+Pastel Minibox is a small groovebox built around eight instruments: **Bassline**
 (mono synth), **VA** (6-voice polysynth with DCO and VCO engines and an
 arpeggiator), **Acid** (bass line synth), **FM** (6-operator, with DX7 bank
-import), **Sampler** (chromatic), **Drums** (multi-engine drum synth) and
-**Drum Sampler** (8 pads, with a loop slicer). It ships in two builds:
+import), **Wavetable** (two wavetable oscillators built for bass music, see
+[docs/wavetable.md](docs/wavetable.md)), **Sampler** (chromatic), **Drums**
+(multi-engine drum synth) and **Drum Sampler** (8 pads, with a loop slicer). It ships in two builds:
 
 - **Standalone groovebox:** eight tracks and eight patterns (A–H), and every
   pattern owns its own devices. It has a transport with record, BPM, time
@@ -141,7 +142,7 @@ User presets live in `Documents/Minibox Presets/<Device>/`.
 - `Source/model/` — project, serializer (`.minibox`, `.mbrack`, WAV), MIDI
   files, DAWproject export
 - `Source/seq/` — sequencer, scales, live note input (chords, arp)
-- `Source/dsp/`, `Source/devices/` — shared DSP and the seven devices
+- `Source/dsp/`, `Source/devices/` — shared DSP and the eight devices
 - `Source/efx/` — the effects borrowed from Pastel EFX Grid
 - `Source/ui/` — theme, widgets, rack, sequencer and editor views
 - `Factory/` — factory presets, samples and controller maps (data)

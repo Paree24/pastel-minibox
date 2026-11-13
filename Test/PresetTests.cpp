@@ -40,7 +40,8 @@ MB_TEST (presets_rules)
 {
     // no detune, tune, transpose, octave variants, glide, pitch LFO or pitch EG
     const char* forbidden[] = { "tune", "fine", "detune", "vaFine", "transpose", "glide", "glideTime", "glideMode",
-                                "lfoPitch", "drift", "stackDetune", "pegInt", "range", "vaOctave", "pegL1", "pegL2", "pegL3" };
+                                "lfoPitch", "drift", "stackDetune", "pegInt", "range", "vaOctave", "pegL1", "pegL2", "pegL3",
+                                "oscAOct", "oscASemi", "oscAFine", "oscBOct", "oscBSemi", "oscBFine" };
     for (int t = 0; t < (int) DeviceType::Count; ++t)
     {
         auto ref = createDevice ((DeviceType) t);
@@ -54,6 +55,16 @@ MB_TEST (presets_rules)
                 if (i >= 0 && std::abs (d->get (i) - ref->get (i)) > 1.0e-6f)
                     ctx.check (false, deviceTypeName ((DeviceType) t) + " '" + p.name + "' changes " + id);
             }
+            // Wavetable: no pitch modulation (an LFO or a matrix slot on Pitch or Pitch B)
+            for (const char* id : { "lfo1Dest", "lfo2Dest", "mod1Dst", "mod2Dst", "mod3Dst", "mod4Dst", "mod5Dst", "mod6Dst", "mod7Dst", "mod8Dst" })
+                if (t == (int) DeviceType::Wavetable)
+                {
+                    const int i = d->params().indexOf (id);
+                    const int dst = (int) d->get (i);
+                    const bool live = juce::String (id).startsWith ("lfo") ? d->get (i + -2) > 0.0f   // the LFO's Depth (two before Dest)
+                                                                          : true;
+                    if (live && (dst == 1 || dst == 7)) ctx.check (false, "Wavetable '" + p.name + "' modulates pitch (" + id + ")");
+                }
             for (int op = 1; op <= 6 && t == (int) DeviceType::FM; ++op)
                 if (std::abs (d->get ("op" + juce::String (op) + "Detune")) > 1.0e-6f)
                     ctx.check (false, "FM '" + p.name + "' detunes OP" + juce::String (op));
@@ -222,6 +233,11 @@ MB_TEST (tool_nudge_presets)
             case DeviceType::DrumSampler:
                 for (int p = 1; p <= 8; ++p) { const juce::String s = "pd" + juce::String (p); add (s + "Decay", true, 1.4f); add (s + "HiCut", true, 1.6f); }
                 break;
+            case DeviceType::Wavetable:   // the tables, routes and voice stay; their colour moves
+                add ("cutoff", true, 1.4f); add ("reso", false, 0.12f); add ("oscAPos", false, 0.2f); add ("oscBPos", false, 0.2f);
+                add ("distDrive", false, 0.15f); add ("squash", false, 0.2f); add ("noiseLevel", false, 0.05f); add ("filterEnv", false, 0.15f);
+                add ("fltD", true, 1.4f); add ("chorus", false, 0.15f);
+                break;
             default: break;
         }
         return d;
@@ -270,6 +286,7 @@ MB_TEST (tool_nudge_presets)
                         if (pi < 0) continue;
                         const auto& info = c->params()[pi];
                         float v = c->get (pi);
+                        if (! dim.mul && v == 0.0f) continue;   // what a preset leaves off (its noise, chorus, filter envelope) stays off
                         v = dim.mul ? v * std::pow (dim.amount, rng.bipolar()) : v + dim.amount * rng.bipolar();
                         c->set (pi, juce::jlimit (info.min, info.max, v));
                     }

@@ -21,6 +21,8 @@ private:
     std::vector<std::unique_ptr<KnobView>> knobs;
     std::unique_ptr<ChoiceView> choice;
     std::unique_ptr<PaintedButton> toggle;
+    std::unique_ptr<PaintedButton> menu;    // a long choice on the title line (a wavetable)
+    std::unique_ptr<PaintedButton> scope;   // the macro band: what Randomize changes
     std::unique_ptr<VisualView> visual;
 };
 
@@ -81,9 +83,10 @@ public:
 private:
     struct Hit { int bar = -1, step = -1, lane = -1; bool badge = false; };
     Hit locate (juce::Point<float>) const;
+    void lockAt (const juce::MouseEvent&);   // the Wavetable: a step's lock from the mouse along its bar
     AppContext& ctx;
     juce::String sig;
-    int dragStep = -1;
+    int dragStep = -1, dragLock = -1;
     Feedback fb { *this };
 };
 

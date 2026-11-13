@@ -4,6 +4,8 @@
 #include "devices/sampler/SamplerDevice.h"
 #include "devices/drumsampler/DrumSamplerDevice.h"
 #include "devices/fm/FmDevice.h"
+#include "devices/wavetable/WavetableDevice.h"
+#include "dsp/Wavetables.h"
 
 namespace mb::ui
 {
@@ -24,6 +26,21 @@ juce::String categoryOf (const DeviceProcessor& d)
 }
 
 std::unique_ptr<juce::FileChooser>& chooser() { static std::unique_ptr<juce::FileChooser> c; return c; }
+
+/** The Wavetable's step strip: the parameter whose step locks show under the notes (-1: none), per device. */
+struct StripLock { const char* id; const char* label; };
+const StripLock kStripLocks[] = { { "cutoff", "Cutoff" }, { "oscAPos", "Position" }, { "oscBMod", "FM" }, { "distDrive", "Dirt" } };
+int& stripLock (const DeviceProcessor* d) { static std::unordered_map<const DeviceProcessor*, int> m; auto it = m.find (d); if (it == m.end()) m[d] = 1; return m[d]; }
+int stripLockParam (const DeviceProcessor* d)
+{
+    if (d == nullptr || d->type() != DeviceType::Wavetable) return -1;
+    const int k = stripLock (d);
+    return k < 0 ? -1 : d->params().indexOf (kStripLocks[k].id);
+}
+constexpr float kLockBarH = 16.0f;   // the lock bar under each step
+
+/** What Randomize changes, per device (the scope pill beside it). */
+int& randomScope (const DeviceProcessor* d) { static std::unordered_map<const DeviceProcessor*, int> m; return m[d]; }
 } // namespace
 
 // ------------------------------------------------------------------------------------------- section card
@@ -33,12 +50,20 @@ SectionCard::SectionCard (AppContext& c, DeviceProcessor& d, const SectionSpec& 
 {
     for (auto& k : spec.knobs)
     {
+        if (const int m = macroIndexOf (k.id); m >= 0)
+        {
+            auto kv = std::make_unique<KnobView> (std::make_unique<MacroBinding> (&ctx, &dev, m), k.label, colour, spec.band ? 22.0f : 20.0f, spec.band);
+            addAndMakeVisible (*kv);
+            knobs.push_back (std::move (kv));
+            continue;
+        }
         const int idx = dev.params().indexOf (resolveId (dev, k));
         if (idx < 0) continue;
         auto b = std::make_unique<ParamBinding> (&ctx, &dev, idx, pattern, track);
         b->onChange = onParamChange;
         if (track >= 0) b->learnId = "param:" + juce::String (track) + ":" + dev.params()[idx].id;
-        auto kv = std::make_unique<KnobView> (std::move (b), k.label, colour, 20.0f);
+        auto kv = std::make_unique<KnobView> (std::move (b), k.label, colour, spec.compact ? 15.0f : 20.0f);
+        if (spec.compact) kv->labelSize = 10.0f;
         addAndMakeVisible (*kv);
         knobs.push_back (std::move (kv));
     }
@@ -46,6 +71,17 @@ SectionCard::SectionCard (AppContext& c, DeviceProcessor& d, const SectionSpec& 
     {
         choice = std::make_unique<ChoiceView> (juce::StringArray { "Vel", "Prob", "Ratchet" }, [this] { return ctx.laneView; },
                                                [this] (int i) { ctx.laneView = i; if (visual) visual->repaint(); }, colour);
+        addAndMakeVisible (*choice);
+    }
+    else if (const int bit = uiBit (spec.choiceId); bit != 0)
+    {
+        // which envelope / LFO the card shows: a bit of the device's selection (the card is rebuilt for it)
+        choice = std::make_unique<ChoiceView> (uiChoices (spec.choiceId), [this, bit] { return (ctx.selection (&dev) & bit) != 0 ? 1 : 0; },
+                                               [this, bit] (int i)
+                                               {
+                                                   const int v = (ctx.selection (&dev) & ~bit) | (i ? bit : 0);
+                                                   juce::MessageManager::callAsync ([c = &ctx, d = &dev, v] { c->select (d, v); });
+                                               }, colour);
         addAndMakeVisible (*choice);
     }
     else if (spec.choiceId.isNotEmpty())
@@ -67,7 +103,44 @@ SectionCard::SectionCard (AppContext& c, DeviceProcessor& d, const SectionSpec& 
             addAndMakeVisible (*choice);
         }
     }
-    if (spec.toggleId.isNotEmpty())
+    if (spec.toggleId == "ui:random")
+    {
+        toggle = std::make_unique<PaintedButton>();
+        toggle->painter = [this] (juce::Graphics& g, juce::Rectangle<float> r, bool over, bool)
+        {
+            paint::pill (g, r.getX(), r.getY(), spec.toggleLabel, 12, over ? colour.brighter (0.15f) : colour, col::bg, r.getHeight(), 16, Weight::Black,
+                         false, juce::Justification::left, r.getWidth());
+        };
+        toggle->onClick = [this, onParamChange] (const juce::MouseEvent&)
+        {
+            if (auto* w = dynamic_cast<WavetableDevice*> (&dev))
+            {
+                w->randomize (randomScope (&dev), (uint32_t) juce::Random::getSystemRandom().nextInt());
+                ctx.markDirty();
+            }
+        };
+        addAndMakeVisible (*toggle);
+        scope = std::make_unique<PaintedButton>();
+        scope->painter = [this] (juce::Graphics& g, juce::Rectangle<float> r, bool, bool)
+        {
+            paint::pill (g, r.getX(), r.getY(), WavetableDevice::randomizeScopes()[randomScope (&dev)], 12, col::control, col::text, r.getHeight(), 14,
+                         Weight::Bold, true, juce::Justification::left, r.getWidth());
+        };
+        scope->onClick = [this] (const juce::MouseEvent&)
+        {
+            juce::PopupMenu m;
+            const auto names = WavetableDevice::randomizeScopes();
+            for (int i = 0; i < names.size(); ++i) m.addItem (i + 1, names[i], true, i == randomScope (&dev));
+            m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (scope.get()), [this, sp = juce::Component::SafePointer<SectionCard> (this)] (int id)
+            {
+                if (sp == nullptr || id <= 0) return;
+                randomScope (&dev) = id - 1;
+                scope->repaint();
+            });
+        };
+        addAndMakeVisible (*scope);
+    }
+    else if (spec.toggleId.isNotEmpty())
     {
         const int idx = dev.params().indexOf (spec.toggleId);
         if (idx >= 0)
@@ -88,6 +161,45 @@ SectionCard::SectionCard (AppContext& c, DeviceProcessor& d, const SectionSpec& 
             addAndMakeVisible (*toggle);
         }
     }
+    if (spec.menuId.isNotEmpty())
+    {
+        const int idx = dev.params().indexOf (spec.menuId);
+        if (idx >= 0)
+        {
+            menu = std::make_unique<PaintedButton>();
+            menu->painter = [this, idx] (juce::Graphics& g, juce::Rectangle<float> r, bool over, bool)
+            {
+                const auto& info = dev.params()[idx];
+                paint::pill (g, r.getX(), r.getY(), info.choices[juce::jlimit (0, info.choices.size() - 1, (int) dev.get (idx))], 11,
+                             over ? col::surface.brighter (0.08f) : col::control, colour, r.getHeight(), 10, Weight::Black, true, juce::Justification::left, r.getWidth());
+            };
+            menu->onClick = [this, idx, onParamChange] (const juce::MouseEvent&)
+            {
+                // the tables by family, a column each
+                juce::PopupMenu m;
+                const auto& info = dev.params()[idx];
+                const auto fams = dsp::wt::Bank::families();
+                juce::String fam;
+                for (int i = 0; i < info.choices.size(); ++i)
+                {
+                    if (fams[i] != fam) { if (fam.isNotEmpty() && fams[i] != "Analog" && fams[i] != "Sub" && fams[i] != "Growl" && fams[i] != "Metal" && fams[i] != "Digital") m.addColumnBreak();
+                                          fam = fams[i]; m.addSectionHeader (fam); }
+                    m.addItem (i + 1, info.choices[i], true, i == (int) dev.get (idx));
+                }
+                m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (menu.get()),
+                                 [this, idx, onParamChange, sp = juce::Component::SafePointer<SectionCard> (this)] (int id)
+                {
+                    if (sp == nullptr || id <= 0) return;
+                    dev.set (idx, (float) (id - 1));
+                    ctx.markDirty();
+                    if (onParamChange) onParamChange (idx, (float) (id - 1));
+                    if (menu) menu->repaint();
+                    if (visual) visual->repaint();
+                });
+            };
+            addAndMakeVisible (*menu);
+        }
+    }
     if (spec.visual.kind != VisualKind::None)
     {
         visual = std::make_unique<VisualView> (ctx, dev, spec.visual, colour, pattern, track);
@@ -103,6 +215,26 @@ void SectionCard::paint (juce::Graphics& g)
 void SectionCard::resized()
 {
     const float w = (float) getWidth(), h = (float) getHeight();
+    if (spec.band)
+    {
+        // the macro band: the knobs spread across, Randomize and its scope at the right
+        const float sw = scope ? textWidth (WavetableDevice::randomizeScopes()[randomScope (&dev)], 12, Weight::Bold) + 46 : 0.0f;
+        const float rw = toggle ? textWidth (spec.toggleLabel, 12, Weight::Black) + 32 : 0.0f;
+        if (scope) scope->setBounds (juce::Rectangle<float> (w - 16 - sw, h / 2 - 16, sw, 32).toNearestInt());
+        if (toggle) toggle->setBounds (juce::Rectangle<float> (w - 16 - sw - 10 - rw, h / 2 - 16, rw, 32).toNearestInt());
+        const float x0 = 130.0f, x1 = w - 16 - sw - rw - 40;
+        const int n = (int) knobs.size();
+        const float cw = (x1 - x0) / std::max (1, n);
+        for (int i = 0; i < n; ++i)
+            knobs[(size_t) i]->setBounds (juce::Rectangle<float> (x0 + cw * (i + 0.5f) - 48, h / 2 - 40, 96, 84).toNearestInt());
+        return;
+    }
+    if (menu)
+    {
+        const int idx = dev.params().indexOf (spec.menuId);
+        const float mw = textWidth (dev.params()[idx].choices[juce::jlimit (0, dev.params()[idx].choices.size() - 1, (int) dev.get (idx))], 11, Weight::Black) + 40;
+        menu->setBounds (juce::Rectangle<float> (w - 14 - mw, 9, mw, 24).toNearestInt());
+    }
     if (toggle)
     {
         const float tw = textWidth (spec.toggleLabel, 10, Weight::Black) + 18;
@@ -112,9 +244,10 @@ void SectionCard::resized()
     const float ix = 14.0f, iw = w - 28.0f;
     if (choice) { choice->setBounds (juce::Rectangle<float> (ix, cy, iw, 26).toNearestInt()); cy += 38.0f; }
     const int n = (int) knobs.size();
-    const int cols = n > 0 ? std::max (1, std::min (n, (int) ((w - 12) / 86))) : 1;
+    const float cellMin = spec.compact ? 54.0f : 86.0f, rowH = spec.compact ? 66.0f : 84.0f;
+    const int cols = n > 0 ? std::max (1, std::min (n, (int) ((w - 12) / cellMin))) : 1;
     const int rows = n > 0 ? (n + cols - 1) / cols : 0;
-    const float kh = rows * 84.0f;
+    const float kh = rows * rowH;
     if (visual)
     {
         const float vh = (h - 14) - cy - kh - (n > 0 ? 6.0f : 0.0f);
@@ -128,14 +261,15 @@ void SectionCard::resized()
         const int r = i / cols, c = i % cols;
         const int inRow = std::min (cols, n - r * cols);
         const float x0 = ix + (iw - inRow * cellw) / 2.0f;
-        const float kx = x0 + cellw * (c + 0.5f), ky = cy + r * 84.0f + 32.0f;
+        const float kx = x0 + cellw * (c + 0.5f), ky = cy + r * rowH + (spec.compact ? 24.0f : 32.0f);
         const float bw = std::min (cellw, 86.0f);
-        knobs[(size_t) i]->setBounds (juce::Rectangle<float> (kx - bw / 2, ky - 26.0f, bw, 72.0f).toNearestInt());
+        knobs[(size_t) i]->setBounds (juce::Rectangle<float> (kx - bw / 2, ky - (spec.compact ? 20.0f : 26.0f), bw, spec.compact ? 62.0f : 72.0f).toNearestInt());
     }
 }
 
 void SectionCard::refresh()
 {
+    if (menu) { menu->repaint(); resized(); }
     for (auto& k : knobs) k->refresh();
     if (choice) choice->refresh();
     if (toggle) toggle->repaint();
@@ -161,7 +295,7 @@ juce::String EditorBody::layoutKey() const
         for (auto& sec : row)
         {
             k << "|" << sec.title << ":" << sec.choiceId;
-            for (auto& kn : sec.knobs) k << "," << resolveId (*dev, kn);
+            for (auto& kn : sec.knobs) k << "," << resolveId (*dev, kn) << "=" << kn.label;
         }
     return k;
 }
@@ -188,7 +322,11 @@ void EditorBody::resized()
 {
     if (spec.rows.empty()) return;
     const float w = (float) getWidth(), h = (float) getHeight();
-    const float rh = (h - GAP * ((float) spec.rows.size() - 1)) / (float) spec.rows.size();
+    // row heights: by the spec's weights (the Wavetable's macro band is short), else equal
+    float wsum = 0.0f;
+    for (size_t ri = 0; ri < spec.rows.size(); ++ri) wsum += ri < spec.rowWeights.size() ? spec.rowWeights[ri] : 1.0f;
+    const float avail = h - GAP * ((float) spec.rows.size() - 1);
+    float y = 0.0f;
     size_t ci = 0;
     for (size_t ri = 0; ri < spec.rows.size(); ++ri)
     {
@@ -196,12 +334,14 @@ void EditorBody::resized()
         float tot = 0.0f;
         for (auto& s : row) tot += s.weight;
         const float unit = (w - GAP * ((float) row.size() - 1)) / tot;
+        const float rh = avail * (ri < spec.rowWeights.size() ? spec.rowWeights[ri] : 1.0f) / wsum;
         float x = 0.0f;
         for (auto& s : row)
         {
-            if (ci < cards.size()) cards[ci++]->setBounds (juce::Rectangle<float> (x, ri * (rh + GAP), unit * s.weight, rh).toNearestInt());
+            if (ci < cards.size()) cards[ci++]->setBounds (juce::Rectangle<float> (x, y, unit * s.weight, rh).toNearestInt());
             x += unit * s.weight + GAP;
         }
+        y += rh + GAP;
     }
 }
 
@@ -446,6 +586,12 @@ void StepStrip::refresh()
         for (int l = 0; l < kLanes; ++l) s << (tr.lanes[(size_t) l][(size_t) i].on ? 1 : 0);
     }
     if (tr.pianoRoll) { s << "c" << (int) tr.clip.size(); for (auto& n : tr.clip) s << n.start + n.length * 3 + n.note; }
+    if (const int lp = stripLockParam (ctx.focusDevice()); lp >= 0)
+    {
+        s << "L" << lp;
+        if (const auto* l = const_cast<Track&> (tr).lockFor (lp, false))
+            for (int i = first; i < first + spb && i < kMaxSteps; ++i) s << (std::isnan (l->values[(size_t) i]) ? -1.0f : l->values[(size_t) i]);
+    }
     if (s != sig) { sig = s; repaint(); }
 }
 
@@ -549,12 +695,30 @@ void StepStrip::paint (juce::Graphics& g)
         fb.paint (g);
         return;
     }
-    const float gap = 6.0f, cw = (sw - gap * (spb - 1)) / spb, cy = 16.0f, ch = r.getHeight() - 32;
+    // the Wavetable: one parameter's step locks under the notes (Cutoff, Position, FM, Dirt), chosen with a pill
+    const int lockP = stripLockParam (d);
+    const LockLane* lockLane = lockP >= 0 ? const_cast<Track&> (tr).lockFor (lockP, false) : nullptr;
+    if (d->type() == DeviceType::Wavetable)
+    {
+        const int k = stripLock (d);
+        const juce::String txt = k < 0 ? juce::String ("Locks") : "Lock: " + juce::String (kStripLocks[k].label);
+        paint::pill (g, 16, r.getHeight() - 38, txt, 11, col::control, k < 0 ? col::quiet : col::text, 26, 10, Weight::Bold, true,
+                     juce::Justification::left, 140);
+        fb.hot ({ 16, r.getHeight() - 38, 140, 26 }, 13);
+    }
+    const float gap = 6.0f, cw = (sw - gap * (spb - 1)) / spb, cy = 16.0f, ch = r.getHeight() - 32 - (lockP >= 0 ? kLockBarH + 6 : 0.0f);
     for (int i = 0; i < spb; ++i)
     {
         const int si = first + i;
         const auto& s = tr.steps[(size_t) si];
         const float cx = sx + i * (cw + gap);
+        if (lockP >= 0)
+        {
+            const float by = cy + ch + 6;
+            g.setColour (col::bg); g.fillRoundedRectangle (cx, by, cw, kLockBarH, 5);
+            const float lv = lockLane != nullptr ? lockLane->values[(size_t) si] : std::numeric_limits<float>::quiet_NaN();
+            if (! std::isnan (lv)) { g.setColour (col::pattern); g.fillRoundedRectangle (cx, by, std::max (6.0f, cw * d->params()[lockP].toNorm (lv)), kLockBarH, 5); }
+        }
         g.setColour ((i / 4) % 2 == 0 ? col::control : col::altCell);
         g.fillRoundedRectangle (cx, cy, cw, ch, 9);
         fb.hot ({ cx, cy, cw, ch }, 9);
@@ -587,11 +751,34 @@ void StepStrip::mouseDown (const juce::MouseEvent& e)
     auto* d = ctx.focusDevice();
     if (d == nullptr) return;
     const auto h = locate (e.position);
-    dragStep = -1;
+    dragStep = -1; dragLock = -1;
     if (h.bar >= 0) { ctx.viewBar = h.bar; ctx.lockStep = -1; repaint(); return; }
+    if (d->type() == DeviceType::Wavetable && juce::Rectangle<float> (16, (float) getHeight() - 38, 140, 26).contains (e.position))
+    {
+        juce::PopupMenu m;
+        for (int k = 0; k < 4; ++k) m.addItem (k + 2, kStripLocks[k].label, true, stripLock (d) == k);
+        m.addSeparator();
+        m.addItem (1, "None", true, stripLock (d) < 0);
+        m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (this), [this, d, sp = juce::Component::SafePointer<StepStrip> (this)] (int id)
+        {
+            if (sp == nullptr || id <= 0) return;
+            stripLock (d) = id - 2;
+            sig.clear(); repaint();
+        });
+        return;
+    }
     if (h.step < 0) return;
     const int pat = ctx.focusPattern(), trk = ctx.focusTrack();
     const int si = ctx.viewBar * ctx.engine.project().stepsPerBar (pat) + h.step;
+    if (const int lp = stripLockParam (d); lp >= 0 && e.position.y >= (float) getHeight() - 16 - kLockBarH - 3)
+    {
+        // a step's lock: along its bar (right-click: gone)
+        ctx.snapshot (pat);
+        dragStep = -1;
+        dragLock = si;
+        lockAt (e);
+        return;
+    }
     if (e.mods.isShiftDown()) { ctx.lockStep = ctx.lockStep == si ? -1 : si; repaint(); return; }
     if (d->laneCount() == 0 && ctx.engine.project().patterns[(size_t) pat].slots[(size_t) trk].track.pianoRoll) return;   // a clip: edited in Seq
     ctx.snapshot (pat);
@@ -611,8 +798,30 @@ void StepStrip::mouseDown (const juce::MouseEvent& e)
     repaint();
 }
 
+void StepStrip::lockAt (const juce::MouseEvent& e)
+{
+    auto* d = ctx.focusDevice();
+    const int lp = stripLockParam (d);
+    if (lp < 0 || dragLock < 0) return;
+    const auto& proj = ctx.engine.project();
+    const int pat = ctx.focusPattern(), spb = proj.stepsPerBar (pat);
+    const float sx = 172.0f, sw = (float) getWidth() - sx - 16, gap = 6.0f, cw = (sw - gap * (spb - 1)) / spb;
+    const float cx = sx + (float) (dragLock - ctx.viewBar * spb) * (cw + gap);
+    {
+        const Engine::ScopedEdit edit (ctx.engine);
+        auto& tr = ctx.engine.project().patterns[(size_t) pat].slots[(size_t) ctx.focusTrack()].track;
+        if (auto* lane = tr.lockFor (lp, true))
+            lane->values[(size_t) dragLock] = e.mods.isPopupMenu() ? std::numeric_limits<float>::quiet_NaN()
+                                                                    : d->params()[lp].fromNorm (juce::jlimit (0.0f, 1.0f, (e.position.x - cx) / cw));
+    }
+    ctx.markDirty();
+    sig.clear();
+    repaint();
+}
+
 void StepStrip::mouseDrag (const juce::MouseEvent& e)
 {
+    if (dragLock >= 0) { lockAt (e); return; }
     if (dragStep < 0) return;
     const Engine::ScopedEdit edit (ctx.engine);
     auto& s = ctx.engine.project().patterns[(size_t) ctx.focusPattern()].slots[(size_t) ctx.focusTrack()].track.steps[(size_t) dragStep];

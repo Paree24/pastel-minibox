@@ -14,7 +14,7 @@ inline juce::Colour deviceColour (DeviceType t)
     switch (t)
     {
         case DeviceType::Drums: case DeviceType::DrumSampler: return juce::Colour (0xff9EB9F3);
-        case DeviceType::Acid: case DeviceType::Mono: return juce::Colour (0xff8FD0C2);
+        case DeviceType::Acid: case DeviceType::Mono: case DeviceType::Wavetable: return juce::Colour (0xff8FD0C2);
         case DeviceType::Poly: return juce::Colour (0xffE8B86A);
         default: return juce::Colour (0xffE9A3B8);   // FM, Sampler
     }

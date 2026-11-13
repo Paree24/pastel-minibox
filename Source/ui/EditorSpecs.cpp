@@ -193,6 +193,45 @@ EditorSpec drumSampler (const DeviceProcessor& d, int pad)
           S (d.laneName (pad) + " Lane", {}, "ui:lane", V (VK::Lane, {}), 1.3f) } };
     return e;
 }
+EditorSpec wavetable (const DeviceProcessor& d, int sel)
+{
+    EditorSpec e;
+    const bool fEnv = (sel & 1) != 0, lfo2 = (sel & 2) != 0;
+    const juce::String env = fEnv ? "flt" : "amp", l = lfo2 ? "lfo2" : "lfo1";
+    const int bMode = (int) d.get ("oscBMode");
+    const juce::String modLabel = bMode == 1 ? "Sync" : bMode == 2 ? "FM" : bMode == 3 ? "Ring" : "Mod";
+    auto macros = S ("Macros", { K ("macro:0", "Wobble"), K ("macro:1", "Movement"), K ("macro:2", "Dirt"), K ("macro:3", "Bite"), K ("macro:4", "Width") },
+                     {}, {}, 1.0f, "ui:random", "Randomize");
+    macros.band = true;
+    auto oscA = S ("Osc A", { K ("oscAPos", "Position"), K ("oscAOct", "Octave"), K ("oscASemi", "Semi"), K ("oscAFine", "Fine"), K ("oscAPhase", "Phase"),
+                              K ("oscALevel", "Level") }, {}, V (VK::Wavetable, { "oscATable", "oscAPos" }), 1.3f);
+    oscA.menuId = "oscATable";
+    auto oscB = S ("Osc B", { K ("oscBPos", "Position"), K ("oscBOct", "Octave"), K ("oscBSemi", "Semi"), K ("oscBFine", "Fine"), K ("oscBPhase", "Phase"),
+                              K ("oscBMod", modLabel), K ("oscBLevel", "Level") }, "oscBMode", V (VK::Wavetable, { "oscBTable", "oscBPos" }), 1.3f);
+    oscB.menuId = "oscBTable";
+    std::vector<juce::String> slotIds;
+    for (int s = 1; s <= 8; ++s) for (auto f : { "Src", "Dst", "Amt" }) slotIds.push_back ("mod" + juce::String (s) + f);
+    e.rows = {
+        { macros },
+        { oscA, oscB,
+          S ("Sub & Noise", { K ("subLevel", "Sub"), K ("subOct", "Octave"), K ("noiseLevel", "Noise"), K ("noiseType", "Color"), K ("noiseTone", "Tone"),
+                              K ("noiseDecay", "Decay") }, "subShape", {}, 0.85f),
+          S ("Filter", { K ("cutoff", "Cutoff"), K ("reso", "Reso"), K ("filterDrive", "Drive"), K ("filterEnv", "Env"), K ("filterKey", "Key") }, "filterMode",
+             V (VK::Filter, { "cutoff", "reso", "filterMode" }, 4), 1.15f) },
+        { S ("Envelopes", { K (env + "A", "Attack"), K (env + "D", "Decay"), K (env + "S", "Sustain"), K (env + "R", "Release") }, "ui:env",
+             V (VK::Adsr, { env + "A", env + "D", env + "S", env + "R" })),
+          S ("LFO", { K (l + "Rate", "Rate", l + "Div", l + "Sync"), K (l + "Shape", "Shape"), K (l + "Depth", "Depth"), K (l + "Dest", "Dest"), K (l + "Fade", "Fade") },
+             "ui:lfo", V (VK::Lfo, { l + "Shape", l + "Depth", l + "Dest" }, 3), 1.05f, l + "Sync", "Sync"),
+          S ("Distortion", { K ("distDrive", "Drive"), K ("distFold", "Fold"), K ("distCrush", "Crush"), K ("distTone", "Tone"), K ("distMix", "Mix"),
+                             K ("squash", "Squash") }, "distType",
+             V (VK::Drive, { "distDrive", "distType" }, 2)),
+          S ("Mod Matrix", {}, {}, V (VK::Matrix, slotIds), 1.45f),
+          S ("Unison", { K ("uniVoices", "Voices"), K ("uniDetune", "Detune"), K ("uniWidth", "Width"), K ("monoBass", "Mono Bass"), K ("uniPhase", "Phase"),
+                         K ("chorus", "Chorus"), K ("glide", "Glide") }, "voiceMode", V (VK::Unison, { "uniVoices", "uniDetune", "uniWidth", "monoBass" }), 1.1f) } };
+    for (auto& row : e.rows) for (auto& sec : row) sec.compact = ! sec.band;
+    e.rowWeights = { 0.3f, 1.0f, 1.0f };
+    return e;
+}
 } // namespace
 
 EditorSpec editorSpecFor (const DeviceProcessor& d, int sel)
@@ -206,6 +245,7 @@ EditorSpec editorSpecFor (const DeviceProcessor& d, int sel)
         case DeviceType::Sampler: return sampler (std::clamp (sel, 0, 7));
         case DeviceType::Drums: return drums (d, std::clamp (sel, 0, 7));
         case DeviceType::DrumSampler: return drumSampler (d, std::clamp (sel, 0, 7));
+        case DeviceType::Wavetable: return wavetable (d, sel);
         default: return {};
     }
 }

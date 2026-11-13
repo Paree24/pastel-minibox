@@ -5,6 +5,7 @@
 #include "devices/SampleSlot.h"
 #include "plugin/PluginProcessor.h"
 #include "model/Serializer.h"
+#include "devices/wavetable/WavetableDevice.h"
 
 using namespace mb;
 
@@ -228,6 +229,30 @@ MB_TEST (tool_ui_shots)
     shot (2, 1, "08_mono");
     shot (2, 2, "09_poly_va");
     shot (2, 3, "10_sampler");
+    {
+        // the Wavetable editor (as mockups/png/wavetable_desktop.png): a growl with LFO 1 on its table, a matrix route
+        auto d = createDevice (DeviceType::Wavetable);
+        for (auto& pi : presets::list (DeviceType::Wavetable)) if (pi.name == "Bite") presets::apply (*d, pi, true);
+        d->set ("mod3Src", (float) WavetableDevice::SrcLfo2); d->set ("mod3Dst", (float) WavetableDevice::DstCutoff); d->set ("mod3Amt", -0.3f);
+        d->set ("uniVoices", 5.0f);
+        auto* raw = d.get();
+        e.setDevice (1, 1, std::move (d));
+        {   // a bass line with its table position locked per step (the strip's Lock lane)
+            auto& tr = e.project().patterns[1].slots[1].track;
+            const int notes[16] = { 36, 0, 36, 36, 0, 39, 36, 0, 36, 0, 31, 34, 36, 0, 41, 36 };
+            const float pos[16] = { .2f, 0, .45f, .7f, 0, .9f, .3f, 0, .2f, 0, .6f, .85f, .35f, 0, 1, .5f };
+            auto* lane = tr.lockFor (raw->params().indexOf ("oscAPos"), true);
+            for (int i = 0; i < 16; ++i)
+            {
+                tr.steps[(size_t) i].clear();
+                if (notes[i] == 0) continue;
+                tr.steps[(size_t) i].addNote (notes[i], 100, 96);
+                if (lane) lane->values[(size_t) i] = pos[i];
+            }
+        }
+        mc.context().select (raw, 0);
+        shot (2, 1, "08b_wavetable");
+    }
     {
         ui::AppContext bctx (e, true);
         e.focusPattern = 0;

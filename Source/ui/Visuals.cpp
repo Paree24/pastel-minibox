@@ -5,6 +5,9 @@
 #include "devices/sampler/SamplerDevice.h"
 #include "devices/drumsampler/DrumSamplerDevice.h"
 #include "devices/drums/DrumsDevice.h"
+#include "devices/wavetable/WavetableDevice.h"
+#include "dsp/Wavetables.h"
+#include "Widgets.h"
 
 namespace mb::ui
 {
@@ -24,6 +27,77 @@ void strokeAndFill (juce::Graphics& g, const std::vector<juce::Point<float>>& pt
     g.fillPath (area);
     g.setColour (c);
     g.strokePath (line, juce::PathStrokeType (sw, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+}
+
+/** A wavetable as a stack of frames, back to front, the frame at the position lit (and a bar for the position). */
+void drawWavetable (juce::Graphics& g, R r, juce::Colour c, int table, float pos)
+{
+    paint::well (g, r);
+    const auto& bank = dsp::wt::Bank::get();
+    constexpr int frames = 9, N = 96;
+    const float dx = r.getWidth() * 0.2f / frames, dy = r.getHeight() * 0.4f / frames;
+    const float fw = r.getWidth() * 0.72f, fh = r.getHeight() * 0.36f;
+    const float x0 = r.getX() + 18, y0 = r.getBottom() - fh / 2 - 22;
+    const int lvl = 3;
+    auto framePath = [&] (float fpos, float kx, float ky, juce::Path& line)
+    {
+        for (int i = 0; i <= N; ++i)
+        {
+            const float ph = (float) i / N;
+            const float v = bank.sample (table, lvl, fpos, std::min (ph, 0.9999f));
+            const juce::Point<float> p { kx + ph * fw, ky - v * fh * 0.5f };
+            if (i == 0) line.startNewSubPath (p); else line.lineTo (p);
+        }
+    };
+    for (int k = frames - 1; k >= 0; --k)
+    {
+        const float f = (float) k / (frames - 1);
+        juce::Path line;
+        framePath (f, x0 + k * dx, y0 - k * dy, line);
+        g.setColour (c.withAlpha (0.14f + 0.2f * (1.0f - std::abs (f - pos))));
+        g.strokePath (line, juce::PathStrokeType (1.2f));
+    }
+    const float kf = pos * (frames - 1);
+    const float kx = x0 + kf * dx, ky = y0 - kf * dy;
+    juce::Path line;
+    framePath (pos, kx, ky, line);
+    juce::Path area (line);
+    area.lineTo (kx + fw, ky); area.lineTo (kx, ky); area.closeSubPath();
+    g.setColour (c.withAlpha (0.16f)); g.fillPath (area);
+    g.setColour (c); g.strokePath (line, juce::PathStrokeType (2.4f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+    const float ty = r.getBottom() - 10, tx0 = r.getX() + 14, tw = r.getWidth() - 28;
+    g.setColour (col::divider); g.fillRoundedRectangle (tx0, ty - 1.5f, tw, 3, 1.5f);
+    g.setColour (c); g.fillRoundedRectangle (tx0, ty - 1.5f, tw * pos, 3, 1.5f);
+    g.fillEllipse (tx0 + tw * pos - 5, ty - 5, 10, 10);
+}
+
+/** The matrix's rows: the slots in use, then "+ Add" (while a slot is free). */
+struct MatrixRow { int slot = -1; R row, src, dst, bar; };
+std::vector<MatrixRow> matrixRows (const DeviceProcessor& d, R r)
+{
+    std::vector<int> used;
+    int free = -1;
+    for (int s = 0; s < WavetableDevice::kSlots; ++s)
+    {
+        const bool on = d.get (WavetableDevice::slotParam (s, 0)) > 0.5f || d.get (WavetableDevice::slotParam (s, 1)) > 0.5f;
+        if (on) used.push_back (s); else if (free < 0) free = s;
+    }
+    const int n = (int) used.size() + (free >= 0 ? 1 : 0);
+    const float rh = std::min (34.0f, (r.getHeight() - 8) / (float) std::max (n, 5));
+    std::vector<MatrixRow> rows;
+    for (int i = 0; i < n; ++i)
+    {
+        MatrixRow m;
+        m.slot = i < (int) used.size() ? used[(size_t) i] : -1;
+        m.row = { r.getX() + 4, r.getY() + 4 + i * rh, r.getWidth() - 8, rh - 6 };
+        const float sw = std::min (100.0f, m.row.getWidth() * 0.27f), dw = std::min (118.0f, m.row.getWidth() * 0.31f);
+        m.src = { m.row.getX(), m.row.getY(), sw, m.row.getHeight() };
+        m.dst = { m.row.getX() + sw + 22, m.row.getY(), dw, m.row.getHeight() };
+        const float bx = m.dst.getRight() + 12;
+        m.bar = { bx, m.row.getY(), std::max (20.0f, m.row.getRight() - 44 - bx), m.row.getHeight() };
+        rows.push_back (m);
+    }
+    return rows;
 }
 
 /** The load bar along the top of a sample well: the sample's name on the left, then Browse (factory
@@ -154,6 +228,7 @@ void filter (juce::Graphics& g, R r, juce::Colour c, int mode, float cutHz, floa
         const float den = std::sqrt ((1 - x * x) * (1 - x * x) + (x / q) * (x / q));
         float mag;
         if (mode == 1) mag = (x / q) / den * q * 0.6f;
+        else if (mode == 4) mag = std::abs (1 - x * x) / den;
         else if (mode == 2) mag = x * x / den;
         else if (mode == 3) mag = 1.0f / (1.0f + x * x);
         else mag = 1.0f / den;
@@ -473,6 +548,13 @@ void VisualView::paint (juce::Graphics& g)
     {
         case VisualKind::Filter:
         {
+            if (spec.variant == 4)   // the Wavetable's modes: LP 24, LP 12, HP, BP, Notch
+            {
+                static constexpr int modes[5] = { 0, 0, 2, 1, 4 };
+                const int m = juce::jlimit (0, 4, iv (2));
+                draw::filter (g, r, colour, modes[m], v (0), v (1), m == 0 ? 4 : 2);
+                break;
+            }
             const int mode = spec.variant == 2 ? iv (2) : (spec.variant == 3 ? 3 : 0);
             draw::filter (g, r, colour, mode, v (0), spec.variant == 3 ? 0.0f : v (1), spec.variant == 0 ? 4 : 2);
             break;
@@ -500,6 +582,63 @@ void VisualView::paint (juce::Graphics& g)
             break;
         }
         case VisualKind::Adsr: draw::adsr (g, r, colour, v (0), v (1), v (2), v (3)); break;
+        case VisualKind::Wavetable: drawWavetable (g, r, colour, iv (0), v (1)); break;
+        case VisualKind::Matrix:
+        {
+            const auto& srcs = WavetableDevice::sourceNames();
+            const auto& dsts = WavetableDevice::destNames();
+            for (auto& m : matrixRows (dev, r))
+            {
+                const float rad = m.row.getHeight() / 2;
+                if (m.slot < 0)
+                {
+                    g.setColour (col::faint);
+                    juce::Path p; p.addRoundedRectangle (m.row, rad);
+                    const float dashes[] = { 4.0f, 4.0f };
+                    juce::PathStrokeType (1.2f).createDashedStroke (p, p, dashes, 2);
+                    g.fillPath (p);
+                    paint::text (g, "+ Add", m.row.getCentreX(), m.row.getCentreY() + 4, 11, Weight::Bold, col::faint, juce::Justification::horizontallyCentred);
+                    continue;
+                }
+                const int si = (int) dev.get (WavetableDevice::slotParam (m.slot, 0)), di = (int) dev.get (WavetableDevice::slotParam (m.slot, 1));
+                const float amt = dev.pv (WavetableDevice::slotParam (m.slot, 2));
+                g.setColour (col::control); g.fillRoundedRectangle (m.src, rad); g.fillRoundedRectangle (m.dst, rad);
+                paint::text (g, srcs[si], m.src.getCentreX(), m.src.getCentreY() + 4, 11, Weight::Black, col::text, juce::Justification::horizontallyCentred);
+                paint::text (g, juce::String (juce::CharPointer_UTF8 ("\xe2\x86\x92")), m.src.getRight() + 11, m.src.getCentreY() + 4, 12, Weight::Black, col::faint, juce::Justification::horizontallyCentred);
+                paint::text (g, dsts[di], m.dst.getCentreX(), m.dst.getCentreY() + 4, 11, Weight::Black, colour, juce::Justification::horizontallyCentred);
+                const float cy = m.bar.getCentreY(), mid = m.bar.getCentreX();
+                g.setColour (col::divider); g.fillRoundedRectangle (m.bar.getX(), cy - 3, m.bar.getWidth(), 6, 3);
+                g.setColour (col::faint); g.drawVerticalLine (juce::roundToInt (mid), cy - 7, cy + 7);
+                const float x1 = mid + amt * m.bar.getWidth() / 2;
+                g.setColour (colour); g.fillRoundedRectangle (std::min (mid, x1), cy - 3, std::abs (x1 - mid), 6, 3);
+                paint::text (g, (amt >= 0 ? juce::String ("+") : juce::String (juce::CharPointer_UTF8 ("\xe2\x88\x92"))) + juce::String (juce::roundToInt (std::abs (amt) * 100)) + "%", m.row.getRight() - 2, cy + 4, 11,
+                             Weight::Black, col::quiet, juce::Justification::right);
+            }
+            break;
+        }
+        case VisualKind::Unison:
+        {
+            paint::well (g, r);
+            const int n = juce::jlimit (1, 16, iv (0));
+            const float det = v (1), width = v (2), cx = r.getCentreX(), half = r.getWidth() / 2 - 26;
+            for (int k = 0; k < n; ++k)
+            {
+                const float sp = n == 1 ? 0.0f : 2.0f * k / (n - 1) - 1.0f;
+                const float x = cx + sp * width * half;
+                const float hgt = (r.getHeight() - 24) * (0.55f + 0.45f * (1.0f - std::abs (sp) * det));
+                g.setColour (colour.withAlpha (0.5f));
+                g.fillRoundedRectangle (x - 1.5f, r.getCentreY() - hgt / 2, 3, hgt, 1.5f);
+            }
+            // the low end, held in the middle (Mono Bass)
+            if (v (3) >= 20.0f)
+            {
+                g.setColour (colour); g.fillRoundedRectangle (cx - 10, r.getY() + 8, 20, r.getHeight() - 16, 6);
+                paint::text (g, "S", cx, r.getCentreY() + 4, 10, Weight::Black, col::bg, juce::Justification::horizontallyCentred);
+            }
+            paint::text (g, "L", r.getX() + 8, r.getBottom() - 7, 9, Weight::Black, col::faint, juce::Justification::left);
+            paint::text (g, "R", r.getRight() - 8, r.getBottom() - 7, 9, Weight::Black, col::faint, juce::Justification::right);
+            break;
+        }
         case VisualKind::Decay:
         {
             // attack + exponential decay (variant 1: gate / decay amp of the acid voice)
@@ -611,8 +750,8 @@ void VisualView::paint (juce::Graphics& g)
         case VisualKind::Lfo:
         {
             const int s = iv (0);
-            static constexpr int maps[3][6] = { { 2, 4, 6, 7, 0, 0 }, { 2, 0, 4, 6, 0, 0 }, { 3, 2, 0, 5, 4, 6 } };
-            const int kind = maps[std::clamp (spec.variant, 0, 2)][std::clamp (s, 0, 5)];
+            static constexpr int maps[4][6] = { { 2, 4, 6, 7, 0, 0 }, { 2, 0, 4, 6, 0, 0 }, { 3, 2, 0, 5, 4, 6 }, { 3, 2, 0, 4, 6, 7 } };
+            const int kind = maps[std::clamp (spec.variant, 0, 3)][std::clamp (s, 0, 5)];
             draw::wave (g, r, colour, [kind] (float ph)
             {
                 if (kind == 6) return sh (ph);
@@ -920,6 +1059,8 @@ void VisualView::paint (juce::Graphics& g)
                     y = type == 2 ? 0.9f * std::tanh (std::tanh (t * gain * 3.0f) * 3.0f)
                       : (type == 1 ? 0.85f * u / std::pow (1.0f + std::pow (std::abs (u), 4.0f), 0.25f) : 0.3f * t + 0.6f * std::tanh (t * gain * 1.5f));
                 }
+                else if (spec.variant == 2)   // the Wavetable's distortion: soft, hard, tube
+                    y = type == 1 ? juce::jlimit (-1.0f, 1.0f, t * gain) : (type == 2 ? std::tanh (t * gain + 0.35f) - std::tanh (0.35f) : std::tanh (t * gain));
                 else y = type == 2 ? std::sin (t * gain * 1.2f) * 0.9f : (type == 1 ? std::tanh (t * gain + 0.25f) - std::tanh (0.25f) * 0.8f : std::tanh (t * gain));
                 p.push_back ({ cx + t * sz, cy - juce::jlimit (-1.0f, 1.0f, y) * sz });
             }
@@ -1089,6 +1230,64 @@ void VisualView::mouseDown (const juce::MouseEvent& e)
     }
     switch (spec.kind)
     {
+        case VisualKind::Wavetable:
+        {
+            dragMarker = 1;   // the position follows the mouse
+            mouseDrag (e);
+            break;
+        }
+        case VisualKind::Matrix:
+        {
+            auto pickFrom = [this] (const juce::StringArray& names, int current, std::function<void (int)> done)
+            {
+                juce::PopupMenu m;
+                for (int i = 0; i < names.size(); ++i) m.addItem (i + 1, names[i], true, i == current);
+                m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (this), [done] (int id) { if (id > 0) done (id - 1); });
+            };
+            for (auto& m : matrixRows (dev, r))
+            {
+                if (! m.row.expanded (0, 3).contains (e.position)) continue;
+                const int slot = m.slot;
+                auto setP = [this] (int p, float val) { dev.set (p, val); ctx.markDirty(); repaint(); };
+                if (slot < 0)   // + Add: the next free slot, its source then its destination
+                {
+                    int s = 0;
+                    while (s < WavetableDevice::kSlots && (dev.get (WavetableDevice::slotParam (s, 0)) > 0.5f || dev.get (WavetableDevice::slotParam (s, 1)) > 0.5f)) ++s;
+                    if (s >= WavetableDevice::kSlots) return;
+                    pickFrom (WavetableDevice::sourceNames(), -1, [this, s, setP, pickFrom] (int src)
+                    {
+                        if (src <= 0) return;
+                        setP (WavetableDevice::slotParam (s, 0), (float) src);
+                        pickFrom (WavetableDevice::destNames(), -1, [s, setP] (int dst)
+                        {
+                            setP (WavetableDevice::slotParam (s, 1), (float) dst);
+                            setP (WavetableDevice::slotParam (s, 2), 0.5f);
+                        });
+                    });
+                    return;
+                }
+                if (e.mods.isPopupMenu())   // right-click: the slot is cleared
+                {
+                    for (int f = 0; f < 3; ++f) setP (WavetableDevice::slotParam (slot, f), 0.0f);
+                    return;
+                }
+                if (m.src.contains (e.position))
+                    pickFrom (WavetableDevice::sourceNames(), (int) dev.get (WavetableDevice::slotParam (slot, 0)),
+                              [slot, setP] (int i) { setP (WavetableDevice::slotParam (slot, 0), (float) i); });
+                else if (m.dst.contains (e.position))
+                    pickFrom (WavetableDevice::destNames(), (int) dev.get (WavetableDevice::slotParam (slot, 1)),
+                              [slot, setP] (int i) { setP (WavetableDevice::slotParam (slot, 1), (float) i); });
+                else if (e.position.x >= m.bar.getX() - 6)
+                {
+                    dragMarker = slot;   // the amount follows the mouse along the bar
+                    dragStep = 0;
+                    if (e.getNumberOfClicks() > 1) { ParamBinding b (&ctx, &dev, WavetableDevice::slotParam (slot, 2), pattern, track); b.setNorm (0.5f); ctx.markDirty(); repaint(); dragMarker = -1; }
+                    else mouseDrag (e);
+                }
+                return;
+            }
+            break;
+        }
         case VisualKind::Pads:
         {
             const R pr = r.reduced (16);
@@ -1179,6 +1378,27 @@ void VisualView::mouseDown (const juce::MouseEvent& e)
 void VisualView::mouseDrag (const juce::MouseEvent& e)
 {
     const R r = inner();
+    if (spec.kind == VisualKind::Wavetable && dragMarker == 1 && idx.size() > 1 && idx[1] >= 0)
+    {
+        ParamBinding b (&ctx, &dev, idx[1], pattern, track);   // as its knob: a step lock when a step is chosen, recorded while recording
+        b.setNorm (juce::jlimit (0.0f, 1.0f, (e.position.x - r.getX() - 14) / (r.getWidth() - 28)));
+        ctx.markDirty();
+        repaint();
+        return;
+    }
+    if (spec.kind == VisualKind::Matrix && dragMarker >= 0 && dragStep == 0)
+    {
+        for (auto& m : matrixRows (dev, r))
+            if (m.slot == dragMarker)
+            {
+                const float amt = juce::jlimit (-1.0f, 1.0f, (e.position.x - m.bar.getCentreX()) / (m.bar.getWidth() / 2));
+                ParamBinding b (&ctx, &dev, WavetableDevice::slotParam (m.slot, 2), pattern, track);
+                b.setNorm ((amt + 1.0f) / 2.0f);
+                ctx.markDirty();
+                repaint();
+            }
+        return;
+    }
     if (spec.kind == VisualKind::Rate4 && dragPoint >= 0)
     {
         auto setK = [&] (int k, float val) { if (k < (int) idx.size() && idx[(size_t) k] >= 0) dev.set (idx[(size_t) k], juce::jlimit (0.0f, 1.0f, val)); };
@@ -1408,6 +1628,7 @@ void VisualView::drawRackVisual (juce::Graphics& g, R r, DeviceProcessor& d, juc
             else draw::filter (g, r, c, 0, d.get ("cutoff"), d.get ("reso"), d.get ("engine") > 0.5f ? 2 : 4, false);
             break;
         case DeviceType::FM: draw::algo (g, r, c, (int) d.get ("algorithm"), -1); break;
+        case DeviceType::Wavetable: drawWavetable (g, r, c, (int) d.get ("oscATable"), d.get ("oscAPos")); break;
         case DeviceType::Sampler:
         {
             paint::well (g, r);

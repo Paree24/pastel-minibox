@@ -13,6 +13,7 @@ juce::String deviceTypeName (DeviceType t)
         case DeviceType::Sampler: return "Sampler";
         case DeviceType::Drums: return "Drums";
         case DeviceType::DrumSampler: return "Drum Sampler";
+        case DeviceType::Wavetable: return "Wavetable";
         default: return "Empty";
     }
 }

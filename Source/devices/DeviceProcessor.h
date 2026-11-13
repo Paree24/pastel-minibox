@@ -7,7 +7,7 @@
 
 namespace mb
 {
-enum class DeviceType { Mono = 0, Poly, Acid, FM, Sampler, Drums, DrumSampler, Count };
+enum class DeviceType { Mono = 0, Poly, Acid, FM, Sampler, Drums, DrumSampler, Wavetable, Count };
 
 juce::String deviceTypeName (DeviceType);          // "Drum Sampler"
 juce::String deviceTypeId (DeviceType);            // "drumsampler"

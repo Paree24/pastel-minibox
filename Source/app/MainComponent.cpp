@@ -381,7 +381,7 @@ void MainComponent::showDevicePicker (int track, juce::Component* anchor)
     lastPickerTrack = track;
     juce::PopupMenu m;
     auto* cur = engine.device (ctx.focusPattern(), track);
-    const DeviceType order[] = { DeviceType::Mono, DeviceType::Poly, DeviceType::Acid, DeviceType::FM, DeviceType::Sampler, DeviceType::Drums, DeviceType::DrumSampler };
+    const DeviceType order[] = { DeviceType::Mono, DeviceType::Poly, DeviceType::Acid, DeviceType::FM, DeviceType::Wavetable, DeviceType::Sampler, DeviceType::Drums, DeviceType::DrumSampler };
     for (auto t : order) m.addItem (1 + (int) t, deviceTypeName (t), true, cur != nullptr && cur->type() == t);
     m.addSeparator();
     m.addItem (100, "Empty", true, cur == nullptr);

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Builds the factory content from the hand-designed banks.
 
-    python3 Source/app/presets/banks.py write [dev] # Mono / Poly / Acid / FM / Drums presets (all, or one bank)
+    python3 Source/app/presets/banks.py write [dev] # Mono / Poly / Acid / FM / Drums / Wavetable presets (all, or one bank)
     python3 Source/app/presets/banks.py jobs       # sample jobs: Sampler sources and Drum Sampler kits,
                                                    #   recorded from the engines by
                                                    #   MiniboxTests tool_render_samples
@@ -24,6 +24,7 @@ from bank_poly import POLY      # noqa: E402
 from bank_acid import ACID      # noqa: E402
 from bank_drums import DRUMS    # noqa: E402
 from bank_fm import FM          # noqa: E402
+from bank_wavetable import WAVETABLE   # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(HERE)))
 PRESETS = os.path.join(ROOT, "Factory", "presets")
@@ -32,6 +33,7 @@ JOBS = os.path.join(ROOT, "build", "sample_jobs.json")
 SR = 48000
 
 FORBIDDEN = {"range", "tune", "fine", "detune", "vaFine", "vaOctave", "transpose", "glide", "glideTime", "glideMode", "lfoPitch",
+             "oscAOct", "oscASemi", "oscAFine", "oscBOct", "oscBSemi", "oscBFine",
              "drift", "stackDetune", "pegInt", "slideMode"} | {f"op{n}Detune" for n in range(1, 7)} | {f"pd{n}Pitch" for n in range(1, 9)}
 
 
@@ -101,7 +103,8 @@ def fm_presets():
 def write(only=None):
     """only: a device id to rewrite just that bank (the others keep their nudged / balanced files)."""
     banks = dict(mono=[(n, f, v, []) for n, f, v in MONO], poly=[(n, f, v, []) for n, f, v in POLY],
-                 acid=[(n, f, v, []) for n, f, v in ACID], drums=[(n, "Kits", v, []) for n, v in DRUMS])
+                 acid=[(n, f, v, []) for n, f, v in ACID], drums=[(n, "Kits", v, []) for n, v in DRUMS],
+                 wavetable=[(n, f, v, []) for n, f, v in WAVETABLE])
     for dev, items in banks.items():
         if only in (None, dev): write_dev(dev, items)
     if only in (None, "fm"):
@@ -249,5 +252,5 @@ def samplers():
 if __name__ == "__main__":
     if sys.argv[1] == "write": write(sys.argv[2] if len(sys.argv) > 2 else None)
     elif sys.argv[1] == "add":   # add poly | fm: the bank's new presets only (then tool_balance_presets)
-        add_new(sys.argv[2], {"poly": POLY, "fm": FM, "mono": MONO, "acid": ACID, "drums": DRUMS}[sys.argv[2]])
+        add_new(sys.argv[2], {"poly": POLY, "fm": FM, "mono": MONO, "acid": ACID, "drums": DRUMS, "wavetable": WAVETABLE}[sys.argv[2]])
     else: {"jobs": jobs, "samplers": samplers}[sys.argv[1]]()

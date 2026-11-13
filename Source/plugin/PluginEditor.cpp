@@ -8,7 +8,7 @@ using namespace ui::geo;
 
 namespace
 {
-const DeviceType kOrder[] = { DeviceType::Mono, DeviceType::Poly, DeviceType::Acid, DeviceType::FM, DeviceType::Sampler,
+const DeviceType kOrder[] = { DeviceType::Mono, DeviceType::Poly, DeviceType::Acid, DeviceType::FM, DeviceType::Wavetable, DeviceType::Sampler,
                               DeviceType::Drums, DeviceType::DrumSampler };
 }
 

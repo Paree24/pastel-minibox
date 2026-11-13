@@ -8,7 +8,8 @@ namespace mb::ui
 enum class VisualKind
 {
     None, Filter, Hpf, Adsr, Decay, Rate4, MacroEnv, PitchEnv, Wave, Lfo, Algo, Ops, Sample, Slices, Pads, Lane,
-    Accent, Ring, Chorus, Delay, Slide, Drive, Voices, Arp, Bits, Reverb
+    Accent, Ring, Chorus, Delay, Slide, Drive, Voices, Arp, Bits, Reverb,
+    Wavetable, Matrix, Unison   // the Wavetable device: a table's frames, the modulation matrix, the unison field
 };
 
 /** A visual reads device parameters by id (resolved for the selected part / operator / zone). */

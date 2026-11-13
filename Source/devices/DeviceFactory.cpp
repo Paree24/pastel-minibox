@@ -6,6 +6,7 @@
 #include "sampler/SamplerDevice.h"
 #include "drums/DrumsDevice.h"
 #include "drumsampler/DrumSamplerDevice.h"
+#include "wavetable/WavetableDevice.h"
 
 namespace mb
 {
@@ -20,6 +21,7 @@ std::unique_ptr<DeviceProcessor> createDevice (DeviceType t)
         case DeviceType::Sampler: return std::make_unique<SamplerDevice>();
         case DeviceType::Drums: return std::make_unique<DrumsDevice>();
         case DeviceType::DrumSampler: return std::make_unique<DrumSamplerDevice>();
+        case DeviceType::Wavetable: return std::make_unique<WavetableDevice>();
         default: return nullptr;
     }
 }
